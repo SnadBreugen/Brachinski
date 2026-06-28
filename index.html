@@ -229,7 +229,7 @@ function softclip(x){
 
 // ─── Engine processor ───────────────────────────────────
 class BrachinisteEngine extends AudioWorkletProcessor {
-  constructor(){
+  constructor(options){
     super();
     this.voices=[
       new KickVoice(false),   // 0 KICK 1
@@ -246,6 +246,12 @@ class BrachinisteEngine extends AudioWorkletProcessor {
     this.dist=0;
     this.frame=0;          // samples since context start
     this.queue=[];         // scheduled note events {atFrame, voice, vel}
+    // one-shot export: deterministically trigger a single voice at frame 0 (no message race)
+    const po=options&&options.processorOptions;
+    if(po&&typeof po.renderVoice==="number"){
+      const v=this.voices[po.renderVoice];
+      if(v){ if(typeof po.pan==="number"&&("pan" in v)) v.pan=po.pan; this.queue.push({atFrame:0,voice:po.renderVoice,vel:1}); }
+    }
     this.port.onmessage=(e)=>this.onmsg(e.data);
   }
   onmsg(m){
@@ -332,10 +338,9 @@ async function renderVoice(v){
   const code=document.getElementById("worklet-code").textContent;
   const url="data:text/javascript;charset=utf-8,"+encodeURIComponent(code);
   await ctx.audioWorklet.addModule(url);
-  const node=new AudioWorkletNode(ctx,"brachiniste-engine",{outputChannelCount:[2]});
+  // trigger the voice deterministically at construction (no message-before-render race in Chrome)
+  const node=new AudioWorkletNode(ctx,"brachiniste-engine",{outputChannelCount:[2],processorOptions:{renderVoice:v,pan:0}});
   node.connect(ctx.destination);
-  node.port.postMessage({type:"param",voice:v,key:"pan",value:0});   // dry, centered
-  node.port.postMessage({type:"note",voice:v,vel:1,atFrame:0});
   const buf=await ctx.startRendering();
   const L=buf.getChannelData(0), R=buf.getChannelData(1);
   const mono=new Float32Array(L.length);
