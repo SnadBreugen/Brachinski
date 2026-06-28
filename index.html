@@ -53,6 +53,11 @@
 
   <div class="panel">
     <div class="tag">// INTERFACES</div>
+    <div class="row" style="margin-bottom:12px">
+      <label style="font-size:11px;letter-spacing:1px;color:var(--dim);min-width:74px">SET NAME</label>
+      <input id="setname" placeholder="optional :: defaults to a timestamp" autocomplete="off"
+        style="flex:1;min-width:200px;font-family:inherit;font-size:13px;color:var(--ink);background:#06030c;border:1px solid var(--line-hi);border-radius:5px;padding:9px 11px">
+    </div>
     <div class="row">
       <button id="uplink" class="ghost">1 · UPLINK</button>
       <button id="export" disabled>2 · EXPORT KIT 1 &rarr; MACHINISTE</button>
@@ -298,6 +303,13 @@ let   AT_REDIRECT  = (location.origin + location.pathname).replace(/index\.html?
 const AT_SCOPE     = "project:write sample:write";
 
 const NAMES = ["KICK 1","KICK 2","SNARE","CLAP","CL HAT","OP HAT","TOM 1","TOM 2","WOOD"];
+const SLUGS = ["kick1","kick2","snare","clap","cl-hat","op-hat","tom1","tom2","wood"];
+
+function setSlug(){
+  let s=(document.getElementById("setname").value||"").trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+  if(!s){ const d=new Date(), p=n=>String(n).padStart(2,"0"); s=p(d.getMonth()+1)+p(d.getDate())+"-"+p(d.getHours())+p(d.getMinutes()); }
+  return s;
+}
 
 // ---- log ----------------------------------------------------
 const logEl = document.getElementById("log");
@@ -333,7 +345,7 @@ async function renderVoice(v){
 }
 async function renderOneShots(){
   const out=[];
-  for(let v=0;v<NAMES.length;v++){ out.push({ name:NAMES[v], blob:encodeWav(await renderVoice(v),44100) }); log("   rendered "+NAMES[v]); }
+  for(let v=0;v<NAMES.length;v++){ out.push({ name:NAMES[v], slug:SLUGS[v], blob:encodeWav(await renderVoice(v),44100) }); log("   rendered "+NAMES[v]); }
   return out;
 }
 
@@ -374,6 +386,9 @@ async function runExport(){
     if(doc.start) await doc.start();
     log("project open \u2713", true);
 
+    const set=setSlug();
+    log("set name :: "+set);
+
     log("rendering 9 one-shots from the engine ...");
     const shots=await renderOneShots();
 
@@ -381,13 +396,13 @@ async function runExport(){
     const c=at.client||at;
     const names=[];
     for(const s of shots){
-      const fname="BRACHINSKI_"+s.name.replace(/\s+/g,"_")+".wav";
-      const file=new File([s.blob], fname, {type:"audio/wav"});
-      const up=await c.samples.upload({ file, displayName:"BRACHINSKI "+s.name, kind:"one-shot", tags:["brachinski"], preventTabClose:true });
+      const dn=s.slug+"_"+set+"_brachinski";
+      const file=new File([s.blob], dn+".wav", {type:"audio/wav"});
+      const up=await c.samples.upload({ file, displayName:dn, kind:"one-shot", tags:["brachinski",set], preventTabClose:true });
       if(up instanceof Error) throw up;
       const onServer=await up.uploaded; if(onServer instanceof Error) throw onServer;
       const meta=await up.ready;        if(meta instanceof Error) throw meta;   // wait until the sample is actually playable
-      log("   ready "+s.name+"  ->  "+up.name);
+      log("   ready "+dn+"  ->  "+up.name);
       names.push(up.name);
     }
     log("all 9 samples processed \u2713", true);
@@ -396,7 +411,7 @@ async function runExport(){
     const mach = await doc.modify((t)=>{
       const ses=names.map((n)=> t.create("sample", { sampleName:n }));
       return t.create("machiniste", {
-        displayName:"BRACHINSKI KIT 1",
+        displayName:set+"_brachinski",
         channels: ses.map((se)=>({ sample:se.location, gain:0.85, panning:0 }))
       });
     });
