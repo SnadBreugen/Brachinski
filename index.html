@@ -295,7 +295,7 @@ registerProcessor("brachiniste-engine", BrachinisteEngine);
 const AT_CLIENT_ID = "5162daa5-a5ea-4dda-b2a0-1f66eb556879";
 const AT_PROJECT   = "https://www.audiotool.com/studio?project=0209566c-4b70-407c-b5ae-93de77992a2c";
 let   AT_REDIRECT  = (location.origin + location.pathname).replace(/index\.html?$/i, "");
-const AT_SCOPE     = "project:read project:write sample:read sample:write";
+const AT_SCOPE     = "project:write sample:write";
 
 const NAMES = ["KICK 1","KICK 2","SNARE","CLAP","CL HAT","OP HAT","TOM 1","TOM 2","WOOD"];
 
@@ -337,32 +337,31 @@ async function renderOneShots(){
   return out;
 }
 
-// ---- 1 :: UPLINK (auth) ------------------------------------
-let atSdkPromise=null, atSession=null;
-async function loadAtSdk(){
-  if(!atSdkPromise) atSdkPromise=import("./nexus.bundle.js");
-  const m=await atSdkPromise; return m.default||m;
-}
-async function atConnect(interactive){
+// ---- 1 :: UPLINK (auth via popup) --------------------------
+let atSdkPromise=import("./nexus.bundle.js");   // preload so the popup opens inside the click gesture
+let atSession=null;
+async function loadAtSdk(){ const m=await atSdkPromise; return m.default||m; }
+async function atConnect(){
   if(location.protocol==="file:"){ log("UPLINK requires the live URL (github pages), not file://"); return null; }
   try{
+    log("opening Audiotool login popup ...");
     const sdk=await loadAtSdk();
-    const at=await sdk.audiotool({ clientId:AT_CLIENT_ID, redirectUrl:AT_REDIRECT, scope:AT_SCOPE });
-    if(at.status==="unauthenticated"){
-      if(interactive){ log("redirecting to Audiotool login ... press UPLINK again after returning"); at.login(); }
-      return null;
+    const res=await sdk.audiotoolPopup({ clientId:AT_CLIENT_ID, scope:AT_SCOPE });
+    if(res && res.status==="authenticated"){
+      atSession=res;
+      log("UPLINK established \u2713 :: "+(res.userName||"connected"), true);
+      document.getElementById("export").disabled=false;
+      return res;
     }
-    atSession=at;
-    log("UPLINK established \u2713", true);
-    document.getElementById("export").disabled=false;
-    return at;
+    log("UPLINK not completed (popup closed or denied)");
+    return null;
   }catch(e){ console.error(e); log("UPLINK failed :: "+(e.message||e)); return null; }
 }
 
 // ---- 2 + 3 :: OPEN + TRANSMIT (export) ---------------------
 async function runExport(){
   const ex=document.getElementById("export"); ex.disabled=true;
-  const at = atSession || await atConnect(true);
+  const at = atSession || await atConnect();
   if(!at){ ex.disabled=false; return; }
   try{
     log("opening project ...");
@@ -404,11 +403,8 @@ async function runExport(){
   }
 }
 
-document.getElementById("uplink").onclick=()=>atConnect(true);
+document.getElementById("uplink").onclick=()=>atConnect();
 document.getElementById("export").onclick=()=>runExport();
-
-// silent connect attempt on load (in case already authorized from a prior redirect)
-atConnect(false);
 log("// standby :: press UPLINK to connect");
 </script>
 </body>
