@@ -377,7 +377,7 @@ async function runExport(){
     log("rendering 9 one-shots from the engine ...");
     const shots=await renderOneShots();
 
-    log("uploading samples ...");
+    log("uploading + processing samples ...");
     const c=at.client||at;
     const names=[];
     for(const s of shots){
@@ -385,22 +385,26 @@ async function runExport(){
       const file=new File([s.blob], fname, {type:"audio/wav"});
       const up=await c.samples.upload({ file, displayName:"BRACHINSKI "+s.name, kind:"one-shot", tags:["brachinski"], preventTabClose:true });
       if(up instanceof Error) throw up;
-      const onServer=await up.uploaded;
-      if(onServer instanceof Error) throw onServer;
-      log("   uploaded "+s.name+"  ->  "+up.name);
+      const onServer=await up.uploaded; if(onServer instanceof Error) throw onServer;
+      const meta=await up.ready;        if(meta instanceof Error) throw meta;   // wait until the sample is actually playable
+      log("   ready "+s.name+"  ->  "+up.name);
       names.push(up.name);
     }
-    log("all 9 samples uploaded \u2713", true);
+    log("all 9 samples processed \u2713", true);
 
     log("building 9-channel machiniste with samples ...");
-    await doc.modify((t)=>{
+    const mach = await doc.modify((t)=>{
       const ses=names.map((n)=> t.create("sample", { sampleName:n }));
       return t.create("machiniste", {
         displayName:"BRACHINSKI KIT 1",
         channels: ses.map((se)=>({ sample:se.location, gain:0.85, panning:0 }))
       });
     });
-    log("DONE \u2713 :: machiniste is in your project, samples on every channel. open the desktop.", true);
+    try{
+      const arr=mach.fields.channels.array;
+      arr.forEach((ch,i)=>{ const sf=ch.fields.sample; log("   ch"+(i+1)+" sample "+(sf&&sf.value?"set":"MISSING")); });
+    }catch(e){ log("readback note: "+(e.message||e)); }
+    log("DONE \u2713 :: open the desktop, reload the project (F5), trigger a pad.", true);
   }catch(e){
     console.error(e);
     log("EXPORT failed :: "+(e.message||e));
