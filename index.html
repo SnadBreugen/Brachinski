@@ -337,31 +337,36 @@ async function renderOneShots(){
   return out;
 }
 
-// ---- 1 :: UPLINK (auth via popup) --------------------------
-let atSdkPromise=import("./nexus.bundle.js");   // preload so the popup opens inside the click gesture
+// ---- 1 :: UPLINK (auth via redirect, DRECKSLER pattern) ----
+let atSdkPromise=import("./nexus.bundle.js");
 let atSession=null;
 async function loadAtSdk(){ const m=await atSdkPromise; return m.default||m; }
-async function atConnect(){
+async function atConnect(interactive){
   if(location.protocol==="file:"){ log("UPLINK requires the live URL (github pages), not file://"); return null; }
   try{
-    log("opening Audiotool login popup ...");
     const sdk=await loadAtSdk();
-    const res=await sdk.audiotoolPopup({ clientId:AT_CLIENT_ID, scope:AT_SCOPE });
-    if(res && res.status==="authenticated"){
-      atSession=res;
-      log("UPLINK established \u2713 :: "+(res.userName||"connected"), true);
-      document.getElementById("export").disabled=false;
-      return res;
+    const at=await sdk.audiotool({ clientId:AT_CLIENT_ID, redirectUrl:AT_REDIRECT, scope:AT_SCOPE });
+    if(at.status==="unauthenticated"){
+      if(interactive){
+        log("redirect URI sent (must be registered EXACTLY): "+AT_REDIRECT);
+        log("redirecting to Audiotool login ...");
+        at.login();
+      } else {
+        log("// standby :: press UPLINK to connect");
+      }
+      return null;
     }
-    log("UPLINK not completed (popup closed or denied)");
-    return null;
+    atSession=at;
+    log("UPLINK established \u2713 :: "+(at.userName||"connected"), true);
+    document.getElementById("export").disabled=false;
+    return at;
   }catch(e){ console.error(e); log("UPLINK failed :: "+(e.message||e)); return null; }
 }
 
 // ---- 2 + 3 :: OPEN + TRANSMIT (export) ---------------------
 async function runExport(){
   const ex=document.getElementById("export"); ex.disabled=true;
-  const at = atSession || await atConnect();
+  const at = atSession || await atConnect(true);
   if(!at){ ex.disabled=false; return; }
   try{
     log("opening project ...");
@@ -403,9 +408,9 @@ async function runExport(){
   }
 }
 
-document.getElementById("uplink").onclick=()=>atConnect();
+document.getElementById("uplink").onclick=()=>atConnect(true);
 document.getElementById("export").onclick=()=>runExport();
-log("// standby :: press UPLINK to connect");
+atConnect(false);   // detect return from the Audiotool login redirect
 </script>
 </body>
 </html>
