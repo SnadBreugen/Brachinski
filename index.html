@@ -157,10 +157,48 @@ body{
 .ntype button.on{color:#1a0d05;border-color:var(--amber);background:var(--amber);box-shadow:0 0 8px var(--amber-glow)}
 
 .racks{display:flex;gap:18px;flex-wrap:nowrap;align-items:flex-start}
-.rack{display:flex;flex-direction:column;gap:8px;background:rgba(0,0,0,.22);border:1px solid var(--line);border-radius:6px;padding:9px 11px 11px}
-.rack.params{width:560px}.rack.fx{width:378px}
+.rack{position:relative;display:flex;flex-direction:column;gap:8px;background:rgba(0,0,0,.22);border:1px solid var(--line);border-radius:6px;padding:9px 11px 11px}
+/* rack widths are set per-kit in JS (buildEditor) so frames stay fixed across voices */
 .rack .rl{font-size:9px;letter-spacing:2px;color:var(--amber);opacity:.8}
-.knobs{display:flex;gap:11px;flex-wrap:wrap;row-gap:12px}
+.knobs{display:flex;gap:10px;flex-wrap:nowrap}
+/* DRIVE/CRUSH toggle: sits on the // FX header line, over the rightmost knob */
+.fx-sw{position:absolute;top:7px;right:11px;display:flex;align-items:center;gap:5px;background:none;border:none;padding:0;cursor:pointer;font-family:var(--mono);font-size:8px;letter-spacing:1px;line-height:1}
+.fx-sw .tr{position:relative;width:24px;height:12px;border-radius:7px;background:rgba(0,0,0,.5);border:1px solid var(--line)}
+.fx-sw .nb{position:absolute;top:1px;left:1px;width:8px;height:8px;border-radius:50%;background:var(--amber);box-shadow:0 0 6px var(--amber-glow);transition:left .12s}
+.fx-sw.crush .nb{left:13px;background:var(--signal);box-shadow:0 0 6px var(--signal)}
+.fx-sw .sl{color:var(--amber)}
+.fx-sw .sr{color:var(--dimmer)}
+.fx-sw.crush .sl{color:var(--dimmer)}
+.fx-sw.crush .sr{color:var(--signal)}
+/* MASTER FX chain: module grid (8 slots, 2 rows) */
+.mfx-grid{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start}
+.mfx{position:relative;background:rgba(0,0,0,.22);border:1px solid var(--line);border-radius:6px;padding:8px 9px 10px;min-height:104px;display:flex;flex-direction:column;gap:8px}
+.mfx.empty{align-items:center;justify-content:center;border-style:dashed;opacity:.35}
+.mfx.empty .mfx-add{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--dim)}
+.mfx.add{align-items:center;justify-content:center;border-style:dashed;opacity:.55;cursor:pointer;gap:6px;min-width:118px}
+.mfx.add:hover{opacity:.9;border-color:var(--line-hi)}
+.mfx.add.open{flex-direction:column;opacity:1;justify-content:flex-start;align-items:stretch}
+.mfx.add .mfx-add{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--dim);text-align:center}
+.kbd-overlay{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.65)}
+.kbd-pop{background:var(--panel);border:1px solid var(--line-hi);border-radius:10px;padding:18px;box-shadow:0 12px 50px rgba(0,0,0,.6)}
+.kbd-title{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--amber);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:30px}
+.kbd-piano{position:relative;display:flex;height:120px;user-select:none}
+.kbd-w{width:26px;height:120px;background:#ddd3e6;border:1px solid #3a2f48;border-radius:0 0 3px 3px;cursor:pointer;box-sizing:border-box}
+.kbd-w:hover{background:#efe7f5}
+.kbd-w.on{background:var(--amber)}
+.kbd-b{position:absolute;top:0;width:16px;height:74px;background:#181220;border:1px solid #000;border-radius:0 0 3px 3px;cursor:pointer;z-index:2}
+.kbd-b:hover{background:#2a2235}
+.kbd-b.on{background:var(--signal)}
+.mfx.byp{opacity:.5}
+.mfx-hd{display:flex;align-items:center;gap:6px}
+.mfx-ti{font-size:9px;letter-spacing:2px;color:var(--amber);opacity:.85;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mfx-knobs{display:flex;gap:10px}
+.mfx-b{font-family:var(--mono);font-size:8px;letter-spacing:1px;color:var(--dim);background:rgba(0,0,0,.4);border:1px solid var(--line);border-radius:3px;padding:2px 4px;cursor:pointer;line-height:1}
+.mfx-b:hover{color:var(--ink);border-color:var(--line-hi)}
+.mfx-b.snd{color:var(--signal);border-color:var(--signal)}
+.mfx-mv{display:flex;gap:2px}
+.mfx-byp{width:9px;height:9px;border-radius:50%;background:rgba(0,0,0,.4);border:1px solid var(--line);cursor:pointer;flex:none;padding:0}
+.mfx-byp.active{background:var(--amber);box-shadow:0 0 6px var(--amber-glow);border-color:var(--amber)}
 .knob{display:flex;flex-direction:column;align-items:center;gap:5px;width:50px}
 .dial{
   width:46px;height:46px;border-radius:50%;position:relative;cursor:ns-resize;touch-action:none;
@@ -211,9 +249,26 @@ body{
 .cell-btn.clr{width:auto;padding:0 12px;letter-spacing:1px}
 #bgfx{position:fixed;inset:0;z-index:0;pointer-events:none}
 #ctrlbar{position:fixed;top:14px;right:16px;z-index:60;display:flex;gap:8px}
-#ctrlbar button{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--dim);background:rgba(20,13,32,.82);border:1px solid var(--line);border-radius:5px;padding:7px 10px;text-align:center;box-sizing:border-box;cursor:pointer}
-#ctrlbar #bgBtn,#ctrlbar #colBtn{width:104px}#ctrlbar #skinBtn{width:120px}
-#ctrlbar button:hover{color:var(--ink);border-color:var(--line-hi)}
+#ctrlbarL{position:fixed;top:14px;left:16px;z-index:60;display:flex;gap:8px}
+#ctrlbar button,#ctrlbarL button{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--dim);background:rgba(20,13,32,.82);border:1px solid var(--line);border-radius:5px;padding:7px 10px;text-align:center;box-sizing:border-box;cursor:pointer}
+#ctrlbar #bgBtn,#ctrlbar #colBtn{width:104px}#ctrlbar #skinBtn{width:120px}#ctrlbarL #textBtn{width:104px}
+#ctrlbar button:hover,#ctrlbarL button:hover{color:var(--ink);border-color:var(--line-hi)}
+/* INFO/TOOLTIP PANEL :: drecksler feat-panel, colours bound to brachinski skin vars */
+.feat-panel{position:fixed;top:130px;left:calc(50% - 924px);width:320px;display:none;z-index:5;font-family:var(--mono);font-size:12px;line-height:1.95;letter-spacing:.04em;pointer-events:none}
+@media (min-width:1890px){.feat-panel{display:block}}
+.feat-line{min-height:1.95em;white-space:pre-wrap;background:var(--panel);padding:1px 10px;margin-bottom:2px;border-radius:3px}
+.f-p{color:var(--dim)}
+.f-k{color:var(--amber)}
+.f-v{color:var(--signal);text-shadow:0 0 6px var(--amber-glow)}
+.f-t{color:var(--dim)}
+.f-c{color:var(--dimmer);font-style:italic}
+.feat-cur{display:inline-block;width:8px;height:14px;background:var(--amber);vertical-align:-2px;margin-left:2px;box-shadow:0 0 7px var(--amber-glow);animation:featBlink 1.1s steps(1) infinite}
+@keyframes featBlink{50%{opacity:0}}
+.feat-hover{margin-top:20px;padding:13px 15px;background:var(--amber);border:1px solid var(--line-hi);border-radius:6px;box-shadow:0 0 22px var(--amber-glow);min-height:4em}
+.feat-hover.empty{display:none}
+.feat-hover .f-p,.feat-hover .fh-txt{color:var(--bg);text-shadow:none}
+.fh-txt{color:var(--bg)}
+body.text-off .feat-panel{display:none!important}
 html.inv{--chassis1:#ffc900;--chassis2:#ffbe1a;--chassis-edge:#e0991a;--amber:#b06bff;--amber-deep:#7c3aed;--amber-glow:rgba(176,107,255,.5);--line:#caa24e;--line-hi:#e6bf6a}
 html.inv .btn.play.on{background:linear-gradient(180deg,#c89bff,#9a5cf0);color:#180826}
 html.inv .step.on{background:linear-gradient(180deg,#c89bff,#9a5cf0);border-color:#d7baff}
@@ -248,6 +303,8 @@ html.ghost .crt{opacity:.14}
 </head>
 <body>
 <canvas id="bgfx"></canvas>
+<aside class="feat-panel" id="featPanel" aria-hidden="true"><div id="featLines"></div><div class="feat-hover empty" id="featHover"></div></aside>
+<div id="ctrlbarL"><button id="textBtn" title="explainer text on/off">TEXT: ON</button></div>
 <div id="ctrlbar"><button id="bgBtn" title="background effect">BG: OFF</button><button id="colBtn" title="effect colour">FX: AMBER</button><button id="skinBtn" title="chassis skin">SKIN: VIOLET</button></div>
 <div class="chassis">
   <div class="crt"></div>
@@ -277,18 +334,19 @@ html.ghost .crt{opacity:.14}
   </div>
 
   <div class="island">
-    <span class="tag">// SUM FX</span>
-    <span class="screw tl"></span><span class="screw br"></span>
-    <div id="sumfx"></div>
-  </div>
-
-  <div class="island">
     <span class="tag">// PATTERN</span>
     <span class="screw tl"></span><span class="screw bl"></span><span class="screw br"></span>
     <div class="strip" id="strip"></div>
     <div class="col-head"><div></div><div class="col-nums" id="colnums"></div></div>
     <div id="rows"></div>
     <div class="hint">// step: off · on · accent  ::  drag dial up/down  ::  click name to edit  ::  patterns hold steps, sounds stay global</div>
+  </div>
+
+  <div class="island">
+    <span class="tag">// MASTER FX</span>
+    <span class="screw tl"></span><span class="screw bl"></span><span class="screw br"></span>
+    <div id="sumfx"></div>
+    <div class="hint">// chain runs on the summed mix · drag modules with the arrows · bypass dot · INS keeps signal inline, SND mixes the effect on top</div>
   </div>
 
   <div class="island">
@@ -306,7 +364,7 @@ html.ghost .crt{opacity:.14}
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 039</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 056</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -626,6 +684,59 @@ class BrachinisteEngine extends AudioWorkletProcessor {
 }
 registerProcessor("brachiniste-engine", BrachinisteEngine);
 
+// ═══════════════════════════════════════════════════════════════
+// resonator :: bank of feedback comb filters (one per note)
+// ported 1:1 from Snad's "Dub Resonator" :: fractional-delay comb, LP in feedback = dark + stable
+// ═══════════════════════════════════════════════════════════════
+class CombVoice {
+  constructor(){ this.buf=new Float32Array(8192); this.size=8192; this.pos=0; this.delay=400; this.lpZ=0; }
+  setFreq(freq){ this.delay=Math.min(sampleRate/Math.max(freq,10), this.size-2); }
+  tick(input,fbGain,lpA){
+    const d=this.delay-1, di=d|0, df=d-di;
+    const p0=(this.pos-di+this.size)%this.size;
+    const p1=(this.pos-di-1+this.size)%this.size;
+    const raw=this.buf[p0]+df*(this.buf[p1]-this.buf[p0]);
+    this.lpZ=raw*lpA+this.lpZ*(1-lpA);          // warm one-pole LP in feedback
+    this.buf[this.pos]=input+this.lpZ*fbGain;
+    this.pos=(this.pos+1)%this.size;
+    return this.lpZ;
+  }
+}
+class ResoComb extends AudioWorkletProcessor {
+  constructor(){
+    super();
+    this.combs=[]; this.decay=0.6; this.tone=0.5;
+    this.port.onmessage=(e)=>{
+      const m=e.data;
+      if(m.type==="notes"){ this.combs=(m.freqs||[]).map(fr=>{const v=new CombVoice();v.setFreq(fr);return v;}); }
+      else if(m.type==="decay"){ this.decay=m.value; }
+      else if(m.type==="tone"){ this.tone=m.value; }
+    };
+  }
+  process(inputs,outputs){
+    const inp=inputs[0], out=outputs[0], L=out[0], R=out[1], n=L.length;
+    const combs=this.combs, nc=combs.length;
+    if(nc===0){ for(let i=0;i<n;i++){ L[i]=0; if(R)R[i]=0; } return true; }
+    const inL=(inp&&inp[0])?inp[0]:null, inR=(inp&&inp[1])?inp[1]:(inp&&inp[0]?inp[0]:null);
+    const fbGain=Math.min(0.995,0.9+Math.max(0,Math.min(1,this.decay))*0.095);   // ring length, always < 1 = stable
+    const lpA=0.12+Math.max(0,Math.min(1,this.tone))*0.5;                         // tone : dark .. bright
+    const norm=1/Math.pow(nc,0.4);
+    for(let i=0;i<n;i++){
+      const mono=((inL?inL[i]:0)+(inR?inR[i]:0))*0.5;
+      let sl=0, sr=0;
+      for(let k=0;k<nc;k++){
+        const o=combs[k].tick(mono,fbGain,lpA);
+        const pan=nc>1?(k/(nc-1)):0.5;
+        sl+=o*(0.5+(0.5-pan)*0.5); sr+=o*(0.5+(pan-0.5)*0.5);
+      }
+      sl*=norm*1.5; sr*=norm*1.5;
+      L[i]=sl<-1?-1:sl>1?1:sl; if(R)R[i]=sr<-1?-1:sr>1?1:sr;
+    }
+    return true;
+  }
+}
+registerProcessor("reso-svf", ResoComb);
+
 </script>
 
 <script>
@@ -633,7 +744,7 @@ registerProcessor("brachiniste-engine", BrachinisteEngine);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="039";
+const REV="056";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=9;
 
 function d(key,min,max,def,log,label,rev){return {key,min,max,def,log:!!log,label,rev:!!rev};}
@@ -656,7 +767,7 @@ const K1KEYS=[
  ["pitch",30,3000,1,"PITCH"],["penv",0,5,0,"P.ENV"],["pdec",0.004,0.4,1,"P.DEC"],
  ["wave",0,1,0,"WAVE"],["oscDecay",0.02,1.4,1,"OSC.DEC"],["oscLevel",0,1,0,"OSC.LVL"],
  ["noiseLevel",0,1,0,"NOISE"],["noiseColor",150,16000,1,"N.COL"],["noiseDecay",0.004,0.9,1,"N.DEC"],
- ["drive",0,1,0,"DRIVE"],["saturate",0,1,0,"SAT"],["crush",0,1,0,"CRUSH"],["punch",0,1,0,"PUNCH"],["body",0,1,0,"BODY"],
+ ["saturate",0,1,0,"SAT"],["punch",0,1,0,"PUNCH"],["body",0,1,0,"BODY"],["drive",0,1,0,"DRIVE"],
  ["tone",200,16000,1,"TONE"],["level",0,1,0,"LEVEL"],["pan",-1,1,0,"PAN"]
 ];
 const K1BASE={pitch:200,penv:1,pdec:0.05,wave:0.1,oscDecay:0.3,oscLevel:1,noiseLevel:0,noiseColor:4000,noiseDecay:0.1,drive:0.15,saturate:0,crush:0,punch:0,body:0,tone:14000,level:0.85,pan:0};
@@ -664,7 +775,7 @@ function k1voice(name,preset){const m=Object.assign({},K1BASE,preset);
   const oscOn=m.oscLevel>0.0001, nzOn=m.noiseLevel>0.0001;
   const OSC=["pitch","penv","pdec","wave","oscDecay","oscLevel"], NZ=["noiseLevel","noiseColor","noiseDecay"];
   const defs=K1KEYS.filter(a=>OSC.indexOf(a[0])>=0?oscOn:(NZ.indexOf(a[0])>=0?nzOn:true)).map(a=>d(a[0],a[1],a[2],m[a[0]],a[3],a[4]));
-  return {name,defs};}
+  return {name,defs,fxMode:"drive",extra:{crush:m.crush}};}
 const KIT1V=[
  k1voice("KICK 1",{pitch:52,penv:3.4,pdec:0.045,wave:0.12,oscDecay:0.42,oscLevel:1,noiseLevel:0,drive:0.22,tone:6000,level:0.95}),
  k1voice("KICK 2",{pitch:44,penv:2.2,pdec:0.08,wave:0.35,oscDecay:0.62,oscLevel:1,noiseLevel:0.04,noiseColor:1200,noiseDecay:0.05,drive:0.45,tone:4200,level:0.92}),
@@ -680,11 +791,15 @@ const KIT3V=KIT1V; // placeholder until percussion set lands
 const KITS=[{name:"KIT 1",voices:KIT1V},{name:"KIT 2",voices:KIT2V},{name:"KIT 3",voices:KIT3V}];
 
 function emptyPattern(){return {bars:1,steps:Array.from({length:VOICES},()=>new Array(MAX_STEPS).fill(0)),sub:Array.from({length:VOICES},()=>new Array(MAX_STEPS).fill(1))};}
-function mkVoices(arr){return arr.map(v=>({name:v.name,defs:v.defs,vals:Object.fromEntries(v.defs.map(x=>[x.key,x.def])),mute:false}));}
+function mkVoices(arr){return arr.map(v=>({name:v.name,defs:v.defs,fxMode:v.fxMode,vals:Object.assign(Object.fromEntries(v.defs.map(x=>[x.key,x.def])),v.extra||{}),mute:false}));}
 const state={
   bpm:120,swing:0,playing:false,selected:0,curPattern:0,page:0,kit:0,
   mute:Array(VOICES).fill(false),
   sum:{dist:0},
+  master:{modules:[
+    {kind:"dist",bypass:false},
+    {kind:"filter",bypass:false,cutoff:1200,reso:0.3,ftype:"lp",mix:1}
+  ]},
   kits:KITS.map(k=>mkVoices(k.voices)),
   voices:null,
   patterns:Array.from({length:PATTERNS},emptyPattern)
@@ -695,7 +810,7 @@ function numSteps(){return curPat().bars*STEPS_PER_BAR;}
 function numPages(){return curPat().bars;}
 
 // ---- worklet engine ----
-let ac=null,engineNode=null,meterNode=null,meterBuf=null;
+let ac=null,engineNode=null,meterNode=null,meterBuf=null,masterIn=null,masterOut=null,masterSendBus=null;
 async function ensureAudio(){
   if(ac) return;
   try{
@@ -705,20 +820,26 @@ async function ensureAudio(){
     await ac.audioWorklet.addModule(url);
     engineNode=new AudioWorkletNode(ac,"brachiniste-engine",{outputChannelCount:[2]});
     meterNode=ac.createAnalyser();meterNode.fftSize=1024;meterBuf=new Float32Array(meterNode.fftSize);
-    engineNode.connect(meterNode);meterNode.connect(ac.destination);
+    masterIn=ac.createGain();masterOut=ac.createGain();masterSendBus=ac.createGain();
+    initMasterNodes();
+    engineNode.connect(masterIn);
+    meterNode.connect(ac.destination);
+    wireMaster();
     engineNode.port.postMessage({type:"kit",index:state.kit});
     syncAll();
     requestAnimationFrame(meterLoop);
   }catch(err){
     setStatus("ENGINE FAIL // "+((err&&err.name)||"ERROR"));
     console.error("BRACHINISTE engine load failed:",err);
-    if(ac){try{ac.close();}catch(e){}} ac=null;engineNode=null;
+    if(ac){try{ac.close();}catch(e){}} ac=null;engineNode=null;masterIn=null;masterOut=null;masterSendBus=null;state.master.modules.forEach(m=>{delete m._nodes;});
     throw err;
   }
 }
 function sendParam(vid,key,val){if(engineNode)engineNode.port.postMessage({type:"param",voice:vid,key:key,value:val});}
 function sendSum(key,val){if(engineNode)engineNode.port.postMessage({type:"sum",key:key,value:val});}
-function syncAll(){state.voices.forEach((vo,i)=>{for(const k in vo.vals)sendParam(i,k,vo.vals[k]);});sendSum("dist",state.sum.dist);}
+// effective vals: the inactive of the drive/crush pair is forced to 0 (only one flavour sounds)
+function effVals(vo){const v=Object.assign({},vo.vals);if(vo.fxMode&&("crush" in v)){if(vo.fxMode==="crush")v.drive=0;else v.crush=0;}return v;}
+function syncAll(){state.voices.forEach((vo,i)=>{const ev=effVals(vo);for(const k in ev)sendParam(i,k,ev[k]);});sendSum("dist",state.sum.dist);}
 async function audition(i){
   try{await ensureAudio();}catch(e){return;}
   if(ac.state==="suspended")await ac.resume();
@@ -802,16 +923,19 @@ function dnm(def,n){n=Math.min(1,Math.max(0,n));if(def.rev)n=1-n;return def.log?
 function fmtv(def,val){
   if(def.key==="pan")return val===0?"C":(val<0?"L":"R")+Math.round(Math.abs(val)*100);
   if(def.key==="lp")return Math.round(nrm(def,val)*100);
-  if(def.key==="pitch"||def.key==="tone"||def.key==="noiseColor"||def.key==="hp")return val>=1000?(val/1000).toFixed(1)+"k":Math.round(val);
+  if(def.key==="pitch"||def.key==="tone"||def.key==="noiseColor"||def.key==="hp"||def.key==="cutoff")return val>=1000?(val/1000).toFixed(1)+"k":Math.round(val);
   if(def.key==="decay"||def.key==="attack"||def.key==="spread"||def.key==="pdec"||def.key==="oscDecay"||def.key==="noiseDecay")return Math.round(val*1000);
+  if(def.key==="dlydiv")return (typeof DIVS!=="undefined")?DIVS[Math.max(0,Math.min(DIVS.length-1,Math.round(val)))].k:Math.round(val);
+  if(def.key==="dlyms")return Math.round(val)+"ms";
   if(def.max<=1)return Math.round(val*100);
   return val.toFixed(2);
 }
-function makeKnob(def,get,set){
+function makeKnob(def,get,set,labelOverride){
   const wrap=document.createElement("div");wrap.className="knob";
+  const _tip=(window.TIP_PARAM&&TIP_PARAM[def.key])||(window.TIP_FX&&TIP_FX[def.key]);if(_tip)wrap.title=_tip;
   const dial=document.createElement("div");dial.className="dial";
   const cap=document.createElement("div");cap.className="cap";dial.appendChild(cap);
-  const lab=document.createElement("div");lab.className="kl";lab.textContent=def.label||def.key.toUpperCase();
+  const lab=document.createElement("div");lab.className="kl";lab.textContent=labelOverride||def.label||def.key.toUpperCase();
   const valEl=document.createElement("div");valEl.className="kv";
   wrap.append(dial,lab,valEl);
   function render(){const v=get(),n=nrm(def,v),arc=n*270;
@@ -835,26 +959,230 @@ function buildEditor(){
   head.append(idx,nm);ed.appendChild(head);
   const vo=state.voices[state.selected],vid=state.selected;
   const params=vo.defs.filter(df=>!FX_KEYS[df.key]), fx=vo.defs.filter(df=>FX_KEYS[df.key]);
+  // per-kit fixed frames: widest param/fx count across this kit, so racks don't jump between voices
+  const GAP=10,KW=50,PAD=22;
+  let mp=0,mf=0;
+  state.voices.forEach(v=>{const p=v.defs.filter(d=>!FX_KEYS[d.key]).length,f=v.defs.filter(d=>FX_KEYS[d.key]).length;if(p>mp)mp=p;if(f>mf)mf=f;});
+  const rackW=(n)=>(n*KW+(n-1)*GAP+PAD)+"px";
+  const hasToggle=(vo.fxMode!==undefined&&("crush" in vo.vals));
   const racks=document.createElement("div");racks.className="racks";
-  const mk=(label,defs,cls)=>{const rack=document.createElement("div");rack.className="rack "+cls;
-    const rl=document.createElement("div");rl.className="rl";rl.textContent=label;
+  const mk=(label,defs,cls,fixedN)=>{const rack=document.createElement("div");rack.className="rack "+cls;rack.style.width=rackW(fixedN);
+    const rl=document.createElement("div");rl.className="rl";rl.textContent=label;rack.appendChild(rl);
     const kc=document.createElement("div");kc.className="knobs";
-    defs.forEach(def=>{kc.appendChild(makeKnob(def,()=>vo.vals[def.key],(val)=>{vo.vals[def.key]=val;sendParam(vid,def.key,val);}));});
-    rack.append(rl,kc);return rack;};
-  racks.appendChild(mk("// PARAMS",params,"params"));
-  if(fx.length)racks.appendChild(mk("// FX",fx,"fx"));
+    defs.forEach(def=>{
+      if(cls==="fx"&&hasToggle&&def.key==="drive"){
+        const get=()=>vo.vals[vo.fxMode==="crush"?"crush":"drive"];
+        const set=(val)=>{const k=vo.fxMode==="crush"?"crush":"drive";vo.vals[k]=val;sendParam(vid,k,val);};
+        kc.appendChild(makeKnob(def,get,set,vo.fxMode==="crush"?"CRUSH":"DRIVE"));
+      }else{
+        kc.appendChild(makeKnob(def,()=>vo.vals[def.key],(val)=>{vo.vals[def.key]=val;sendParam(vid,def.key,val);}));
+      }
+    });
+    rack.appendChild(kc);
+    if(cls==="fx"&&hasToggle){
+      const sw=document.createElement("button");sw.className="fx-sw"+(vo.fxMode==="crush"?" crush":"");
+      sw.title="DRIVE / CRUSH : one knob, two flavours of dirt \u00b7 each holds its own value, only the lit one sounds";
+      sw.innerHTML='<span class="sl">DRV</span><span class="tr"><span class="nb"></span></span><span class="sr">CRU</span>';
+      sw.onclick=()=>{vo.fxMode=vo.fxMode==="crush"?"drive":"crush";sendParam(vid,"drive",vo.fxMode==="drive"?vo.vals.drive:0);sendParam(vid,"crush",vo.fxMode==="crush"?vo.vals.crush:0);buildEditor();};
+      rack.appendChild(sw);
+    }
+    return rack;};
+  racks.appendChild(mk("// PARAMS",params,"params",mp));
+  if(fx.length)racks.appendChild(mk("// FX",fx,"fx",mf));
   ed.appendChild(racks);
 }
 
-// ---- sum fx ----
-function buildSum(){
+// ---- master fx chain ----
+const DIVS=[{k:"1/4",f:1},{k:"1/8d",f:0.75},{k:"1/8",f:0.5},{k:"1/16",f:0.25}];
+function ftypeToBiquad(t){return t==="hp"?"highpass":t==="bp"?"bandpass":"lowpass";}
+function ftypeLabel(t){return t==="hp"?"HP":t==="bp"?"BP":"LP";}
+function resoToQ(r){return 0.7+r*r*22;}
+function toneToHz(t){return 400*Math.pow(40,Math.max(0,Math.min(1,t)));}
+function resoToneHz(t){return 180*Math.pow(67,Math.max(0,Math.min(1,t)));}
+function sizeToFb(s){return 0.6+s*0.35;}
+function delaySeconds(m){if(m.sync){const f=DIVS[Math.max(0,Math.min(DIVS.length-1,m.divIdx|0))].f;return (60/state.bpm)*f;}return (m.timeMs||300)/1000;}
+function updateDelayTimes(){state.master.modules.forEach(m=>{if(m.kind==="delay"&&m._nodes&&m.sync)m._nodes.dly.delayTime.value=delaySeconds(m);});}
+// convolver reverb: procedural stereo impulse response, dark + warm
+function revSizeSec(s){return 0.25+s*5.75;}            // 0.25s .. 6s
+function makeReverbIR(sizeSec,tone){
+  const sr=ac.sampleRate,len=Math.max(1,Math.floor(sizeSec*sr));
+  const ir=ac.createBuffer(2,len,sr);
+  const baseDamp=0.04+Math.max(0,Math.min(1,tone))*0.55;   // higher tone = brighter
+  for(let ch=0;ch<2;ch++){
+    const d=ir.getChannelData(ch);let lp=0;
+    for(let i=0;i<len;i++){
+      const t=i/len;
+      const env=Math.pow(1-t,2.0)*Math.exp(-t*2.6);          // smooth warm decay
+      const x=Math.random()*2-1;
+      const damp=baseDamp*(1-t*0.6);                          // tail darkens over time
+      lp+=damp*(x-lp);
+      d[i]=lp*env;
+    }
+  }
+  let e=0;for(let ch=0;ch<2;ch++){const d=ir.getChannelData(ch);for(let i=0;i<d.length;i++)e+=d[i]*d[i];}
+  e=Math.sqrt(e);
+  if(e>0){const g=0.5/e;for(let ch=0;ch<2;ch++){const d=ir.getChannelData(ch);for(let i=0;i<d.length;i++)d[i]*=g;}}
+  return ir;
+}
+function applyReverbIR(m){if(m._nodes&&m._nodes.conv)m._nodes.conv.buffer=makeReverbIR(revSizeSec(m.size),m.tone);}
+function scheduleReverbIR(m){if(m._irTimer)clearTimeout(m._irTimer);m._irTimer=setTimeout(()=>{m._irTimer=null;applyReverbIR(m);},70);}
+// resonator: bank of tuned comb resonators (one per note), independent + saturated = safe
+let _tanhCurve=null;
+function tanhCurve(){if(_tanhCurve)return _tanhCurve;const n=1024,c=new Float32Array(n);for(let i=0;i<n;i++){const x=(i/(n-1))*2-1;c[i]=Math.tanh(3*x)/Math.tanh(3);}_tanhCurve=c;return c;}
+function midiToHz(m){return 440*Math.pow(2,(m-69)/12);}
+function resoDec(d){return 0.8+Math.max(0,Math.min(1,d))*0.185;}   // 0.8 .. 0.985
+function resoSend(m){
+  if(!m._nodes||!m._nodes.svf)return;
+  const freqs=(m.notes||[]).map(midiToHz);
+  m._nodes.svf.port.postMessage({type:"notes",freqs});
+  m._nodes.svf.port.postMessage({type:"decay",value:m.decay});
+  m._nodes.svf.port.postMessage({type:"tone",value:m.tone});
+}
+function buildModuleNodes(m){
+  if(m._nodes||!ac)return;
+  const input=ac.createGain(),output=ac.createGain(),wet=ac.createGain(),dry=ac.createGain();
+  if(m.kind==="filter"){
+    const bq=ac.createBiquadFilter();bq.type=ftypeToBiquad(m.ftype);bq.frequency.value=m.cutoff;bq.Q.value=resoToQ(m.reso);
+    m._nodes={input,output,dry,wet,fxIn:bq,fxOut:bq,all:[bq]};
+  }else if(m.kind==="delay"){
+    const inG=ac.createGain(),outG=ac.createGain();
+    const dly=ac.createDelay(2.0);dly.delayTime.value=delaySeconds(m);
+    const tone=ac.createBiquadFilter();tone.type="lowpass";tone.frequency.value=toneToHz(m.tone);
+    const dsat=ac.createWaveShaper();{const n=1024,c=new Float32Array(n);for(let i=0;i<n;i++){const x=(i/(n-1))*2-1;c[i]=Math.tanh(3*x)/Math.tanh(3);}dsat.curve=c;}
+    const fb=ac.createGain();fb.gain.value=m.fb;
+    inG.connect(dly);dly.connect(outG);dly.connect(tone);tone.connect(dsat);dsat.connect(fb);fb.connect(dly);
+    m._nodes={input,output,dry,wet,fxIn:inG,fxOut:outG,dly,tone,dsat,fb,all:[inG,outG,dly,tone,dsat,fb]};
+  }else if(m.kind==="reverb"){
+    const inG=ac.createGain(),outG=ac.createGain();
+    const pre=ac.createDelay(0.5);pre.delayTime.value=Math.max(0,m.pre);
+    const conv=ac.createConvolver();conv.normalize=false;conv.buffer=makeReverbIR(revSizeSec(m.size),m.tone);
+    inG.connect(pre);pre.connect(conv);conv.connect(outG);
+    m._nodes={input,output,dry,wet,fxIn:inG,fxOut:outG,pre,conv,all:[inG,outG,pre,conv]};
+  }else if(m.kind==="resonator"){
+    const inG=ac.createGain(),outG=ac.createGain();
+    const svf=new AudioWorkletNode(ac,"reso-svf",{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[2]});
+    inG.connect(svf);svf.connect(outG);
+    m._nodes={input,output,dry,wet,fxIn:inG,fxOut:outG,svf,all:[inG,outG,svf]};
+    resoSend(m);
+  }
+}
+function initMasterNodes(){if(!ac)return;state.master.modules.forEach(m=>{if(m.kind!=="dist"&&m.kind!=="empty")buildModuleNodes(m);});}
+function wireMaster(){
+  if(!ac||!masterIn||!masterOut)return;
+  try{masterIn.disconnect();}catch(e){}
+  try{masterOut.disconnect();}catch(e){}
+  try{masterSendBus.disconnect();}catch(e){}
+  state.master.modules.forEach(m=>{const n=m._nodes;if(!n)return;[n.input,n.output,n.dry,n.wet,n.fxOut].forEach(x=>{if(x){try{x.disconnect();}catch(e){}}});});
+  let cursor=masterIn;
+  state.master.modules.forEach(m=>{const n=m._nodes;if(!n)return;
+    const mix=(m.mix!=null?m.mix:0.25);
+    if(m.bypass){cursor.connect(n.input);n.input.connect(n.output);cursor=n.output;return;}
+    if(m.mode==="send"){
+      // parallel send: main signal passes this module UNTOUCHED, wet is added on the send bus
+      cursor.connect(n.input);
+      n.wet.gain.value=mix;n.input.connect(n.wet);n.wet.connect(n.fxIn);n.fxOut.connect(masterSendBus);
+      // cursor stays — the dry chain is not altered by this module
+    }else{
+      // insert: dry/wet crossfade in series
+      n.dry.gain.value=1-mix;n.wet.gain.value=mix;
+      n.input.connect(n.dry);n.dry.connect(n.output);
+      n.input.connect(n.wet);n.wet.connect(n.fxIn);n.fxOut.connect(n.output);
+      cursor.connect(n.input);cursor=n.output;
+    }
+  });
+  cursor.connect(masterOut);masterSendBus.connect(masterOut);masterOut.connect(meterNode);
+}
+function moveModule(i,dir){const a=state.master.modules,j=i+dir;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];buildMaster();wireMaster();}
+const EFFECT_LIST=[{kind:"delay",label:"DELAY"},{kind:"reverb",label:"REVERB"},{kind:"resonator",label:"RESONATOR"}];
+function newModule(kind){
+  if(kind==="delay")return {kind:"delay",bypass:false,sync:true,divIdx:2,timeMs:300,fb:0.32,tone:0.5,mix:0.25};
+  if(kind==="reverb")return {kind:"reverb",bypass:false,size:0.6,tone:0.3,pre:0.03,mix:0.25};
+  if(kind==="resonator")return {kind:"resonator",bypass:false,notes:[50,53,57],decay:0.6,tone:0.5,mix:0.3};
+  return {kind,bypass:false,mix:0.5};
+}
+function addModule(kind){const m=newModule(kind);state.master.modules.push(m);if(ac)buildModuleNodes(m);buildMaster();wireMaster();}
+function removeModule(i){const m=state.master.modules[i];if(!m)return;if(m._nodes&&m._nodes.all)m._nodes.all.concat([m._nodes.input,m._nodes.output,m._nodes.wet]).forEach(x=>{if(x){try{x.disconnect();}catch(e){}}});state.master.modules.splice(i,1);buildMaster();wireMaster();}
+function openResoKeyboard(m){
+  const ov=document.createElement("div");ov.className="kbd-overlay";
+  const pop=document.createElement("div");pop.className="kbd-pop";
+  const title=document.createElement("div");title.className="kbd-title";
+  const tl=document.createElement("span");tl.textContent="// RESONATOR KEYS \u00b7 up to 5 notes";
+  const close=document.createElement("button");close.className="mfx-b";close.textContent="\u2715 CLOSE";close.onclick=()=>ov.remove();
+  title.append(tl,close);pop.appendChild(title);
+  const piano=document.createElement("div");piano.className="kbd-piano";
+  const WW=26,baseMidi=36,whiteOff=[0,2,4,5,7,9,11],blackAfter={0:1,1:3,3:6,4:8,5:10};
+  const keyEls=[];
+  function refresh(){keyEls.forEach(k=>k.el.classList.toggle("on",m.notes.indexOf(k.midi)>=0));}
+  function toggle(midi){const i=m.notes.indexOf(midi);if(i>=0)m.notes.splice(i,1);else{if(m.notes.length>=5)return;m.notes.push(midi);}resoSend(m);refresh();}
+  for(let o=0;o<4;o++)for(let wi=0;wi<7;wi++){const midi=baseMidi+o*12+whiteOff[wi];const el=document.createElement("div");el.className="kbd-w";el.onclick=()=>toggle(midi);piano.appendChild(el);keyEls.push({el,midi});}
+  let r=0;
+  for(let o=0;o<4;o++)for(let wi=0;wi<7;wi++){if(blackAfter[wi]!==undefined){const midi=baseMidi+o*12+blackAfter[wi];const el=document.createElement("div");el.className="kbd-b";el.style.left=((r+1)*WW-8)+"px";el.onclick=(e)=>{e.stopPropagation();toggle(midi);};piano.appendChild(el);keyEls.push({el,midi});}r++;}
+  pop.appendChild(piano);ov.appendChild(pop);
+  ov.onclick=(e)=>{if(e.target===ov)ov.remove();};
+  document.body.appendChild(ov);refresh();
+}
+function buildMaster(){
   const host=document.getElementById("sumfx");host.innerHTML="";
-  const rack=document.createElement("div");rack.className="rack";
-  const rl=document.createElement("div");rl.className="rl";rl.textContent="// DISTORTION";
-  const kc=document.createElement("div");kc.className="knobs";
-  const def=d("dist",0,1,0);def.label="DIST";
-  kc.appendChild(makeKnob(def,()=>state.sum.dist,(v)=>{state.sum.dist=v;sendSum("dist",v);}));
-  rack.append(rl,kc);host.appendChild(rack);
+  const grid=document.createElement("div");grid.className="mfx-grid";
+  state.master.modules.forEach((m,i)=>grid.appendChild(buildModule(m,i)));
+  grid.appendChild(buildAddSlot());
+  host.appendChild(grid);
+}
+function buildAddSlot(){
+  const box=document.createElement("div");box.className="mfx add";
+  const lab=document.createElement("div");lab.className="mfx-add";lab.textContent="+ ADD FX";box.appendChild(lab);
+  box.onclick=()=>{
+    box.innerHTML="";box.classList.add("open");
+    const t=document.createElement("div");t.className="mfx-add";t.textContent="ADD //";box.appendChild(t);
+    EFFECT_LIST.forEach(fx=>{const b=document.createElement("button");b.className="mfx-b";b.textContent=fx.label;b.onclick=(e)=>{e.stopPropagation();addModule(fx.kind);};box.appendChild(b);});
+    const c=document.createElement("button");c.className="mfx-b";c.textContent="\u2715";c.title="cancel";c.onclick=(e)=>{e.stopPropagation();buildMaster();};box.appendChild(c);
+  };
+  return box;
+}
+function hbtn(label,title,on,fn){const b=document.createElement("button");b.className="mfx-b"+(on?" snd":"");b.textContent=label;b.title=title;b.onclick=fn;return b;}
+function buildModule(m,i){
+  const box=document.createElement("div");box.className="mfx";
+  if(m.kind==="empty"){box.classList.add("empty");const ad=document.createElement("div");ad.className="mfx-add";ad.textContent="+ EMPTY";box.appendChild(ad);return box;}
+  if(m.bypass)box.classList.add("byp");
+  const hd=document.createElement("div");hd.className="mfx-hd";
+  const byp=document.createElement("button");byp.className="mfx-byp"+(m.bypass?"":" active");byp.title="bypass : effect on/off";
+  byp.onclick=()=>{m.bypass=!m.bypass;if(m.kind==="dist")sendSum("dist",m.bypass?0:state.sum.dist);buildMaster();wireMaster();};
+  const ti=document.createElement("div");ti.className="mfx-ti";ti.textContent=({dist:"DISTORTION",filter:"FILTER",delay:"DELAY",reverb:"REVERB"})[m.kind]||m.kind.toUpperCase();
+  hd.append(byp,ti);
+  if(m.kind!=="dist")hd.appendChild(hbtn(m.mode==="send"?"SND":"INS","insert / send : INS sits in the chain, SND runs parallel and leaves the dry signal untouched",m.mode==="send",()=>{m.mode=(m.mode==="send")?"insert":"send";buildMaster();wireMaster();}));
+  if(m.kind==="filter")hd.appendChild(hbtn(ftypeLabel(m.ftype),"filter type : LP / HP / BP",false,()=>{m.ftype=m.ftype==="lp"?"hp":m.ftype==="hp"?"bp":"lp";if(m._nodes)m._nodes.fxIn.type=ftypeToBiquad(m.ftype);buildMaster();}));
+  if(m.kind==="delay")hd.appendChild(hbtn(m.sync?"SYNC":"FREE","time : SYNC rasts to the bpm, FREE is free ms",m.sync,()=>{m.sync=!m.sync;if(m._nodes)m._nodes.dly.delayTime.value=delaySeconds(m);buildMaster();}));
+  if(m.kind==="resonator")hd.appendChild(hbtn("KEYS","keyboard : pick the notes the resonator is tuned to",false,()=>openResoKeyboard(m)));
+  const mv=document.createElement("div");mv.className="mfx-mv";
+  const ml=document.createElement("button");ml.className="mfx-b";ml.textContent="\u25c0";ml.title="move left";ml.onclick=()=>moveModule(i,-1);
+  const mr=document.createElement("button");mr.className="mfx-b";mr.textContent="\u25b6";mr.title="move right";mr.onclick=()=>moveModule(i,1);
+  mv.append(ml,mr);hd.appendChild(mv);
+  if(m.kind!=="dist"&&m.kind!=="filter"){const rm=document.createElement("button");rm.className="mfx-b";rm.textContent="\u2715";rm.title="remove module";rm.onclick=()=>removeModule(i);hd.appendChild(rm);}
+  box.appendChild(hd);
+  const kc=document.createElement("div");kc.className="mfx-knobs";
+  const K=(def,get,set)=>kc.appendChild(makeKnob(def,get,set));
+  if(m.kind==="dist"){
+    const def=d("dist",0,1,0);def.label="DIST";
+    K(def,()=>state.sum.dist,(v)=>{state.sum.dist=v;sendSum("dist",m.bypass?0:v);});
+  }else if(m.kind==="filter"){
+    K(d("cutoff",30,18000,1200,1,"CUTOFF"),()=>m.cutoff,(v)=>{m.cutoff=v;if(m._nodes)m._nodes.fxIn.frequency.value=v;});
+    K(d("reso",0,1,0.3,0,"RESO"),()=>m.reso,(v)=>{m.reso=v;if(m._nodes)m._nodes.fxIn.Q.value=resoToQ(v);});
+  }else if(m.kind==="delay"){
+    if(m.sync){const def=d("dlydiv",0,DIVS.length-1,2);def.label="TIME";K(def,()=>m.divIdx,(v)=>{m.divIdx=Math.round(v);if(m._nodes)m._nodes.dly.delayTime.value=delaySeconds(m);});}
+    else{const def=d("dlyms",30,1500,300);def.label="TIME";K(def,()=>m.timeMs,(v)=>{m.timeMs=v;if(m._nodes)m._nodes.dly.delayTime.value=delaySeconds(m);});}
+    K(d("fb",0,0.95,0.4,0,"FEEDBACK"),()=>m.fb,(v)=>{m.fb=v;if(m._nodes)m._nodes.fb.gain.value=v;});
+    K(d("tone",0,1,0.5,0,"TONE"),()=>m.tone,(v)=>{m.tone=v;if(m._nodes)m._nodes.tone.frequency.value=toneToHz(v);});
+  }else if(m.kind==="reverb"){
+    K(d("size",0,1,0.6,0,"SIZE"),()=>m.size,(v)=>{m.size=v;scheduleReverbIR(m);});
+    K(d("tone",0,1,0.3,0,"TONE"),()=>m.tone,(v)=>{m.tone=v;scheduleReverbIR(m);});
+    K(d("pre",0,0.2,0.03,0,"PRE"),()=>m.pre,(v)=>{m.pre=v;if(m._nodes)m._nodes.pre.delayTime.value=Math.max(0,v);});
+  }else if(m.kind==="resonator"){
+    K(d("decay",0,1,0.6,0,"DECAY"),()=>m.decay,(v)=>{m.decay=v;if(m._nodes&&m._nodes.svf)m._nodes.svf.port.postMessage({type:"decay",value:v});});
+    K(d("tone",0,1,0.5,0,"TONE"),()=>m.tone,(v)=>{m.tone=v;if(m._nodes&&m._nodes.svf)m._nodes.svf.port.postMessage({type:"tone",value:v});});
+  }
+  if(m.kind!=="dist"){const md=d("mix",0,1,0.25,0);md.label="MIX";K(md,()=>(m.mix!=null?m.mix:0.25),(v)=>{m.mix=v;if(m._nodes){m._nodes.dry.gain.value=1-v;m._nodes.wet.gain.value=v;}});}
+  box.appendChild(kc);
+  return box;
 }
 
 function switchKit(i){
@@ -936,7 +1264,7 @@ function setPattern(i){state.curPattern=i;state.page=0;setPage(0);refreshStrip()
 
 // ---- transport ----
 document.getElementById("play").onclick=()=>{state.playing?stopSeq():startSeq();};
-document.getElementById("bpm").oninput=e=>{state.bpm=+e.target.value;document.getElementById("bpmval").textContent=state.bpm;};
+document.getElementById("bpm").oninput=e=>{state.bpm=+e.target.value;document.getElementById("bpmval").textContent=state.bpm;updateDelayTimes();};
 document.getElementById("swing").oninput=e=>{state.swing=+e.target.value;document.getElementById("swingval").textContent=state.swing;};
 document.addEventListener("keydown",e=>{if(e.code==="Space"&&e.target.tagName!=="INPUT"){e.preventDefault();state.playing?stopSeq():startSeq();}});
 let clip=null;
@@ -1003,7 +1331,7 @@ async function renderShot(v){
   const code=document.getElementById("worklet-code").textContent;
   const url="data:text/javascript;charset=utf-8,"+encodeURIComponent(code);
   await ctx.audioWorklet.addModule(url);
-  const node=new AudioWorkletNode(ctx,"brachiniste-engine",{outputChannelCount:[2],processorOptions:{kit:state.kit,renderVoice:v,pan:0,params:state.voices[v].vals}});
+  const node=new AudioWorkletNode(ctx,"brachiniste-engine",{outputChannelCount:[2],processorOptions:{kit:state.kit,renderVoice:v,pan:0,params:effVals(state.voices[v])}});
   node.connect(ctx.destination);
   const buf=await ctx.startRendering();
   const L=buf.getChannelData(0), R=buf.getChannelData(1);
@@ -1198,12 +1526,136 @@ let skinState="violet";
 function skinCycle(){const root=document.documentElement,o=["violet","amber","ghost"],lab={violet:"VIOLET",amber:"AMBER",ghost:"GHOST"};skinState=o[(o.indexOf(skinState)+1)%3];root.classList.toggle("inv",skinState==="amber");root.classList.toggle("ghost",skinState==="ghost");const b=document.getElementById("skinBtn");if(b)b.textContent="SKIN: "+lab[skinState];}
 document.getElementById("skinBtn").onclick=()=>skinCycle();
 bgInit();document.getElementById("bgBtn").onclick=()=>bgCycle();document.getElementById("colBtn").onclick=()=>colCycle();
-buildMeter();buildKit();buildEditor();buildSum();buildStrip();buildSeq();
+buildMeter();buildKit();buildEditor();buildMaster();buildStrip();buildSeq();
 setStatus("READY // KIT 1 · "+VOICES+" VOICES");
 document.getElementById("projurl").value=AT_PROJECT;
 document.getElementById("uplink").onclick=()=>atConnect(true);
 document.getElementById("export").onclick=()=>runExport();
 atConnect(false);
+
+// ============================================================
+// INFO / TOOLTIP PANEL :: drecksler feat-panel ported 1:1
+// (text is placeholder · mechanics + layering first)
+// ============================================================
+window.TIP_VOICE={
+  "Kick1":"KICK 1 : main kick, body + pitch-drop synthesised",
+  "Kick2":"KICK 2 : second kick, layer it or stand alone",
+  "Snare":"SNARE : noise + tone, snap and buzz from the knobs",
+  "Clap":"CLAP : stacked noise bursts, spread = hands lining up",
+  "CL Hat":"CLOSED HAT : short metallic tick",
+  "OP Hat":"OPEN HAT : longer noise wash, decay holds it open",
+  "Tom1":"TOM 1 : pitched drum, tune sets where it sits",
+  "Tom2":"TOM 2 : second tom, tune them apart",
+  "Wood":"WOOD : dry rim click, cuts through without weight"
+};
+window.TIP_PARAM={
+  decay:"DECAY : how long the voice rings, short = tight, long = wash",
+  tune:"TUNE : the pitch, drag the full range",
+  tone:"TONE : timbre, dark to bright",
+  gain:"GAIN : voice level into the mix",
+  hp:"HP : highpass, thins out the lows",
+  lp:"LP : lowpass, darkens the top"
+};
+window.TIP_FX={
+  drive:"DRIVE : pushes the voice into the waveshaper, grit + loudness",
+  saturate:"SATURATE : soft warmth, rounds the edge",
+  sat:"SATURATE : soft warmth, rounds the edge",
+  crush:"CRUSH : bit-depth reduction, a harsh broken edge",
+  redux:"REDUX : sample-rate reduction, aliased dirt",
+  fold:"FOLD : wavefolder, metallic harmonics",
+  punch:"PUNCH : transient lift on the attack",
+  body:"BODY : low-end weight under the hit"
+};
+const TIP={
+  STEP:"STEP : tap = on, again = accent, again = off · drag up/down = velocity · wheel = ratchet",
+  PATTERN:"PATTERN : eight slots, each holds its own steps, sounds stay global",
+  BARS:"BARS : 1 / 2 / 4 per pattern, longer = more steps",
+  PAGE:"PAGE : step through when the grid runs past one screen",
+  CLEAR:"CLEAR : wipe the steps of this pattern, sounds stay",
+  KIT:"KIT : swap the whole voice set, steps stay",
+  PLAY:"PLAY : runs the loop, hit again to stop",
+  BPM:"BPM : tempo, drag or type",
+  SWING:"SWING : pushes off-beats late, 0 = straight",
+  BG:"BG : background visual, cycles OFF / LIQUID / POWDER / CUBE / LOGO",
+  COLOR:"COLOR : effect colour, AMBER / VIOLET / MULTI",
+  SKIN:"SKIN : chassis look, VIOLET / AMBER / GHOST",
+  TEXT:"TEXT : this explainer box on / off",
+  UPLINK:"UPLINK : connect to your audiotool account",
+  EXPORT:"EXPORT : one-shots + pattern into audiotool's machiniste"
+};
+// device info shown at rest, typed like the drecksler tutorial lines
+const DEVICE_INFO=[
+  [["p","> "],["k","BRACHINSKI"],["t"," // procedural drum machine"]],
+  [["p","$ "],["t","nine voices, each one synthesised: no samples"]],
+  [["p","$ "],["t","pick a voice in the grid, shape it in the editor"]],
+  [["p","$ "],["k","PARAMS"],["t"," build the body, "],["k","FX"],["t"," dirty it up"]],
+  [["p","$ "],["t","write the grid: tap = on, tap = accent, tap = off"]],
+  [["p","$ "],["v","PLAY"],["t"," runs the loop, "],["v","BPM"],["t"," + "],["v","SWING"],["t"," set the feel"]],
+  [["c","# patterns hold their own steps, the kit stays global"]],
+  [["p","$ "],["v","EXPORT"],["t"," drops one-shots + steps into the machiniste"]],
+  [["c","// hover any control. the machine talks back."]]
+];
+const featPanel=document.getElementById("featPanel"),featLines=document.getElementById("featLines"),featHover=document.getElementById("featHover");
+let featTimer=null;
+function showDeviceInfo(){
+  if(!featLines)return;
+  if(featTimer){clearInterval(featTimer);featTimer=null;}
+  featLines.innerHTML="";const queue=[];
+  for(const line of DEVICE_INFO){
+    const ln=document.createElement("div");ln.className="feat-line";featLines.appendChild(ln);
+    for(const seg of line){const sp=document.createElement("span");sp.className="f-"+seg[0];ln.appendChild(sp);for(const ch of seg[1])queue.push({sp,ch});}
+  }
+  const cur=document.createElement("span");cur.className="feat-cur";
+  queue.length&&queue[0].sp.parentElement.appendChild(cur);
+  let qi=0;
+  featTimer=setInterval(()=>{
+    let n=2;while(n--&&qi<queue.length){const q=queue[qi++];q.sp.textContent+=q.ch;if(cur.parentElement!==q.sp.parentElement)q.sp.parentElement.appendChild(cur);}
+    if(qi>=queue.length){clearInterval(featTimer);featTimer=null;featLines.appendChild(cur);}
+  },16);
+}
+let hoverTimer=null,hoverLast=null;
+function setHoverDesc(txt){
+  if(!featHover||txt===hoverLast)return;hoverLast=txt;
+  if(hoverTimer){clearInterval(hoverTimer);hoverTimer=null;}
+  if(!txt){featHover.classList.add("empty");featHover.innerHTML="";return;}
+  featHover.classList.remove("empty");featHover.innerHTML="";
+  const p=document.createElement("span");p.className="f-p";p.textContent="? ";
+  const s=document.createElement("span");s.className="fh-txt";
+  featHover.appendChild(p);featHover.appendChild(s);
+  let i=0;hoverTimer=setInterval(()=>{s.textContent+=txt.slice(i,i+3);i+=3;if(i>=txt.length){clearInterval(hoverTimer);hoverTimer=null;}},12);
+}
+function setT(id,txt){const e=document.getElementById(id);if(e&&!e.dataset.desc&&txt)e.title=txt;}
+function tagControls(){
+  document.querySelectorAll(".sel[data-v]").forEach(b=>{const vo=state.voices[+b.dataset.v];if(vo&&!b.dataset.desc&&!b.title)b.title=(TIP_VOICE[vo.name]||"VOICE : click = select + audition · shape it in the editor");});
+  document.querySelectorAll(".mute[data-v]").forEach(b=>{if(!b.dataset.desc&&!b.title)b.title="MUTE : silence this voice in the loop";});
+  document.querySelectorAll("#strip .pat").forEach(b=>{if(!b.dataset.desc&&!b.title)b.title=TIP.PATTERN;});
+  document.querySelectorAll("#strip .bar").forEach(b=>{if(!b.dataset.desc&&!b.title)b.title=TIP.BARS;});
+  document.querySelectorAll("#strip .pg").forEach(b=>{if(!b.dataset.desc&&!b.title)b.title=TIP.PAGE;});
+  document.querySelectorAll("#strip .clr").forEach(b=>{if(!b.dataset.desc&&!b.title)b.title=TIP.CLEAR;});
+  document.querySelectorAll("#kitrow .cell-btn").forEach(b=>{if(!b.dataset.desc&&!b.title)b.title=TIP.KIT;});
+  const rows=document.getElementById("rows");if(rows&&!rows.dataset.desc)rows.dataset.desc=TIP.STEP;
+  setT("play",TIP.PLAY);setT("bpm",TIP.BPM);setT("swing",TIP.SWING);
+  setT("export",TIP.EXPORT);setT("uplink",TIP.UPLINK);
+  setT("bgBtn",TIP.BG);setT("colBtn",TIP.COLOR);setT("skinBtn",TIP.SKIN);setT("textBtn",TIP.TEXT);
+}
+const WIDE=()=>!!(window.matchMedia&&window.matchMedia("(min-width:1890px)").matches);
+function applyTips(root){
+  if(!WIDE())return;
+  (root||document).querySelectorAll("[title]").forEach(el=>{if(el.closest(".feat-panel"))return;el.dataset.desc=el.title;el.removeAttribute("title");});
+}
+function tipsRefresh(){tagControls();applyTips(document);}
+// re-tag after any dynamic rebuild (voice select, kit switch, etc.)
+["buildKit","buildStrip","buildSeq","buildEditor","buildMaster"].forEach(fn=>{const o=window[fn];if(typeof o==="function"){window[fn]=function(){const r=o.apply(this,arguments);tipsRefresh();return r;};}});
+// TEXT toggle in the ctrl-bar
+(function(){const tb=document.getElementById("textBtn");if(tb)tb.onclick=()=>{const off=document.body.classList.toggle("text-off");tb.textContent="TEXT: "+(off?"OFF":"ON");};})();
+// hover wiring (panel only active >=1890; native title tooltips below that)
+if(WIDE()){
+  document.addEventListener("mouseover",(e)=>{const t=(e.target&&e.target.closest)?e.target.closest("[data-desc]"):null;setHoverDesc(t?t.dataset.desc:null);});
+}
+setHoverDesc(null);
+buildEditor();           // rebuild so knobs pick up titles now that TIP_* exist
+tipsRefresh();
+showDeviceInfo();
 </script>
 </body>
 </html>
