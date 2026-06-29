@@ -156,10 +156,11 @@ body{
 .ntype button{font-family:var(--mono);font-size:9px;letter-spacing:1px;background:#150e22;border:1px solid var(--line);color:var(--dim);border-radius:3px;padding:6px 9px;cursor:pointer}
 .ntype button.on{color:#1a0d05;border-color:var(--amber);background:var(--amber);box-shadow:0 0 8px var(--amber-glow)}
 
-.racks{display:flex;gap:18px;flex-wrap:wrap}
+.racks{display:flex;gap:18px;flex-wrap:nowrap;align-items:flex-start}
 .rack{display:flex;flex-direction:column;gap:8px;background:rgba(0,0,0,.22);border:1px solid var(--line);border-radius:6px;padding:9px 11px 11px}
+.rack.params{width:560px}.rack.fx{width:378px}
 .rack .rl{font-size:9px;letter-spacing:2px;color:var(--amber);opacity:.8}
-.knobs{display:flex;gap:11px}
+.knobs{display:flex;gap:11px;flex-wrap:wrap;row-gap:12px}
 .knob{display:flex;flex-direction:column;align-items:center;gap:5px;width:50px}
 .dial{
   width:46px;height:46px;border-radius:50%;position:relative;cursor:ns-resize;touch-action:none;
@@ -210,7 +211,8 @@ body{
 .cell-btn.clr{width:auto;padding:0 12px;letter-spacing:1px}
 #bgfx{position:fixed;inset:0;z-index:0;pointer-events:none}
 #ctrlbar{position:fixed;top:14px;right:16px;z-index:60;display:flex;gap:8px}
-#ctrlbar button{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--dim);background:rgba(20,13,32,.82);border:1px solid var(--line);border-radius:5px;padding:7px 12px;cursor:pointer}
+#ctrlbar button{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--dim);background:rgba(20,13,32,.82);border:1px solid var(--line);border-radius:5px;padding:7px 10px;text-align:center;box-sizing:border-box;cursor:pointer}
+#ctrlbar #bgBtn,#ctrlbar #colBtn{width:104px}#ctrlbar #skinBtn{width:120px}
 #ctrlbar button:hover{color:var(--ink);border-color:var(--line-hi)}
 html.inv{--chassis1:#ffc900;--chassis2:#ffbe1a;--chassis-edge:#e0991a;--amber:#b06bff;--amber-deep:#7c3aed;--amber-glow:rgba(176,107,255,.5);--line:#caa24e;--line-hi:#e6bf6a}
 html.inv .btn.play.on{background:linear-gradient(180deg,#c89bff,#9a5cf0);color:#180826}
@@ -228,6 +230,10 @@ html.inv .chassis::before,html.inv .chassis::after{background:radial-gradient(ci
 html.inv .chassis::before{box-shadow:inset 0 -1px 2px rgba(0,0,0,.6),0 1px 1px rgba(0,0,0,.5),760px 0 0 0 #7a4400}
 html.inv .crt{background:radial-gradient(ellipse 88% 78% at center,transparent 74%,rgba(120,55,0,.12) 100%),repeating-linear-gradient(0deg,rgba(120,60,0,.025) 0 1px,transparent 1px 3px)}
 html.inv .chassis{box-shadow:0 0 0 1px rgba(150,80,0,.32),0 20px 50px rgba(0,0,0,.42),inset 0 2px 0 rgba(255,255,255,.38),inset 0 -2px 7px rgba(190,95,0,.16)}
+html.ghost .chassis{background:transparent;border-color:rgba(176,112,255,.45);box-shadow:0 0 0 1px rgba(176,112,255,.3)}
+html.ghost .chassis::before,html.ghost .chassis::after{opacity:.45}
+html.ghost .island{background:rgba(14,10,22,.34)}
+html.ghost .crt{opacity:.14}
 .step.play::after{content:"";position:absolute;inset:0;border-radius:3px;box-shadow:0 0 0 2px var(--signal),0 0 14px rgba(255,92,200,.6)}
 
 .foot{display:flex;align-items:center;justify-content:space-between;padding:4px 12px 2px;font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.55)}
@@ -242,7 +248,7 @@ html.inv .chassis{box-shadow:0 0 0 1px rgba(150,80,0,.32),0 20px 50px rgba(0,0,0
 </head>
 <body>
 <canvas id="bgfx"></canvas>
-<div id="ctrlbar"><button id="bgBtn" title="background effect">BG: OFF</button><button id="invertBtn" title="swap amber / violet palette">INVERT</button></div>
+<div id="ctrlbar"><button id="bgBtn" title="background effect">BG: OFF</button><button id="colBtn" title="effect colour">FX: AMBER</button><button id="skinBtn" title="chassis skin">SKIN: VIOLET</button></div>
 <div class="chassis">
   <div class="crt"></div>
 
@@ -300,7 +306,7 @@ html.inv .chassis{box-shadow:0 0 0 1px rgba(150,80,0,.32),0 20px 50px rgba(0,0,0
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 028</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 039</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -627,7 +633,7 @@ registerProcessor("brachiniste-engine", BrachinisteEngine);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="028";
+const REV="039";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=9;
 
 function d(key,min,max,def,log,label,rev){return {key,min,max,def,log:!!log,label,rev:!!rev};}
@@ -733,7 +739,7 @@ function meterLoop(){
 }
 
 // ---- scheduler (sample-accurate via worklet event queue) ----
-let curStep=0,nextTime=0,timer=null;
+let curStep=0,nextTime=0,timer=null,absStep=0;
 const LOOK=0.025,AHEAD=0.12,playQ=[];
 function sec16(){return (60/state.bpm)/4;}
 function schedule(){
@@ -752,6 +758,7 @@ function schedule(){
       }
     }
     playQ.push({step:curStep,time:t});
+    if(BG.mode==="logo"&&absStep>0&&absStep%(2*STEPS_PER_BAR)===0){const dl=Math.max(0,(t-ac.currentTime)*1000);setTimeout(logoMorph,dl);} absStep++;
     nextTime+=sec16();curStep=(curStep+1)%N;
   }
   timer=setTimeout(schedule,LOOK*1000);
@@ -759,7 +766,7 @@ function schedule(){
 async function startSeq(){
   try{await ensureAudio();}catch(e){return;}
   if(ac.state==="suspended")await ac.resume();
-  state.playing=true;curStep=0;nextTime=ac.currentTime+0.08;lastLit=-1;
+  state.playing=true;curStep=0;absStep=0;nextTime=ac.currentTime+0.08;lastLit=-1;
   const pb=document.getElementById("play");pb.classList.add("on");pb.textContent="STOP";
   document.getElementById("status").classList.add("run");
   setStatus("RUN // PTN "+(state.curPattern+1)+" · "+state.bpm+" BPM");
@@ -829,13 +836,13 @@ function buildEditor(){
   const vo=state.voices[state.selected],vid=state.selected;
   const params=vo.defs.filter(df=>!FX_KEYS[df.key]), fx=vo.defs.filter(df=>FX_KEYS[df.key]);
   const racks=document.createElement("div");racks.className="racks";
-  const mk=(label,defs)=>{const rack=document.createElement("div");rack.className="rack";
+  const mk=(label,defs,cls)=>{const rack=document.createElement("div");rack.className="rack "+cls;
     const rl=document.createElement("div");rl.className="rl";rl.textContent=label;
     const kc=document.createElement("div");kc.className="knobs";
     defs.forEach(def=>{kc.appendChild(makeKnob(def,()=>vo.vals[def.key],(val)=>{vo.vals[def.key]=val;sendParam(vid,def.key,val);}));});
     rack.append(rl,kc);return rack;};
-  racks.appendChild(mk("// PARAMS",params));
-  if(fx.length)racks.appendChild(mk("// FX",fx));
+  racks.appendChild(mk("// PARAMS",params,"params"));
+  if(fx.length)racks.appendChild(mk("// FX",fx,"fx"));
   ed.appendChild(racks);
 }
 
@@ -1082,7 +1089,7 @@ async function runExport(){
 }
 
 // ---- background effect :: POWDER (Chladni cymatics) · LIQUID (oil-in-water metaballs), beat-driven ----
-const BG={mode:"off",canvas:null,c:null,W:0,H:0,dpr:1,modes:[],blobs:[],level:0,run:false,last:0,buf:null,bc:null,bw:0,bh:0,img:null,raf:0};
+const BG={mode:"off",canvas:null,c:null,W:0,H:0,dpr:1,modes:[],blobs:[],level:0,run:false,last:0,buf:null,bc:null,bw:0,bh:0,img:null,raf:0,logoTgt:0,logoPunch:0,logoFlicker:0,morphT:0,morphTgt:null,slots:null,WA:"SNAD INDUSTRIES",WB:"BRACHINSKI",fxColor:"amber",tintRGB:null,H2hue:null};
 const BGMODE=[[2,1],[2,3],[4,3],[5,4],[8,7],[7,6],[3,2],[3,4],[6,5]];        // powder :: per-voice Chladni plate mode
 const BGLOW=[1,1,0,0,0,0,1,1,1];                                             // liquid :: 1 = low/mid (big swell), 0 = high (surface ripple)
 function bgInitBlobs(){BG.blobs=[];for(let i=0;i<7;i++)BG.blobs.push({
@@ -1093,17 +1100,29 @@ function bgResize(){const cv=BG.canvas;BG.dpr=Math.min(2,window.devicePixelRatio
   BG.bw=200;BG.bh=Math.max(48,Math.round(200*BG.H/BG.W));
   BG.buf=document.createElement("canvas");BG.buf.width=BG.bw;BG.buf.height=BG.bh;BG.bc=BG.buf.getContext("2d");BG.img=BG.bc.createImageData(BG.bw,BG.bh);
   for(const M of BG.modes){M.cnx=null;M.cny=null;}
-  bgInitBlobs(); BG.c.clearRect(0,0,BG.W,BG.H);}
-function bgInit(){BG.canvas=document.getElementById("bgfx");BG.c=BG.canvas.getContext("2d");bgResize();window.addEventListener("resize",bgResize);}
+  bgInitBlobs(); BG.gx=16;BG.gy=16; if(!BG.H2||BG.H2.length!==256)BG.H2=new Float32Array(256); if(!BG.H2hue||BG.H2hue.length!==256){BG.H2hue=new Float32Array(256);BG.H2hue.fill(42);} BG.c.clearRect(0,0,BG.W,BG.H);}
+function bgInit(){BG.canvas=document.getElementById("bgfx");BG.c=BG.canvas.getContext("2d");
+  BG.curWord=BG.WA; BG.logoTgt=0; BG.energy=new Float32Array(16); BG.lhit=new Float32Array(16); BG.lkick=new Float32Array(16);
+  bgResize();window.addEventListener("resize",bgResize);}
+const BGHUE=[14,38,196,168,224,268,70,96,140];
+const LRANK=[0,1,6,5,7,8,2,3,4];                                            // per voice :: pitch rank low->high for letter spread
+function hrand(n){ n=(n^0x9e3779b9)>>>0; n=Math.imul(n,0x85ebca6b)>>>0; n^=n>>>13; n=Math.imul(n,0xc2b2ae35)>>>0; n^=n>>>16; return (n>>>0)/4294967296; }                              // per voice :: low->high = warm->cool
+function hsl2rgb(hh,s,l){hh/=360;s/=100;l/=100;const a=s*Math.min(l,1-l),f=n=>{const k=(n+hh*12)%12;return Math.round((l-a*Math.max(-1,Math.min(k-3,9-k,1)))*255);};return [f(0),f(8),f(4)];}
+const BGCOLS=BGHUE.map(x=>hsl2rgb(x,88,62));
 function bgHit(voice,vel){ if(BG.mode==="off")return;
+  if(BG.fxColor==="multi")BG.tintRGB=BGCOLS[voice];
   if(BG.mode==="powder"){ const md=BGMODE[voice]||[3,2]; BG.modes.push({n:md[0],m:md[1],amp:vel,cnx:null}); if(BG.modes.length>7)BG.modes.shift(); return; }
+  if(BG.mode==="cube"){ const GX=BG.gx,GY=BG.gy,Hh=BG.H2; const ci=2+Math.round((voice/8)*(GX-5)), cj=Math.round(GY*0.5+(BGLOW[voice]?0:(voice%2?3:-3))); const rad=BGLOW[voice]?2.6:1.4, amp=vel*(BGLOW[voice]?1:0.7);
+    for(let i=0;i<GX;i++)for(let j=0;j<GY;j++){const dx=i-ci,dy=j-cj,dd=dx*dx+dy*dy; if(dd<rad*rad*2){Hh[i*GY+j]=Math.min(1.4,Hh[i*GY+j]+amp*Math.exp(-dd/(rad*rad)));BG.H2hue[i*GY+j]=BGHUE[voice];}} return; }
+  if(BG.mode==="logo"){ const L=BG.curWord.length, now=performance.now(), base=LRANK[voice]/8*(L-1), ci=Math.max(0,Math.min(L-1,Math.round(base+(Math.random()*2-1)*L*0.28))), rad=BGLOW[voice]?3.8:1.8, amp=vel*(BGLOW[voice]?1:0.7), kick=voice<2; for(let j=0;j<L;j++){const dd=(j-ci)*(j-ci); if(dd<rad*rad*2){BG.energy[j]=Math.min(1.6,BG.energy[j]+amp*Math.exp(-dd/(rad*rad))); BG.lhit[j]=now; if(kick)BG.lkick[j]=now;}} return; }
   if(!BG.blobs.length)return;                                                // liquid
   if(BGLOW[voice]){ const b=BG.blobs[(Math.random()*BG.blobs.length)|0]; b.rb+=vel*BG.bw*0.13; b.vx+=(Math.random()-0.5)*0.7; b.vy+=(Math.random()-0.5)*0.7; }
   else { for(const b of BG.blobs){ b.rb+=vel*BG.bw*0.018; b.vx+=(Math.random()-0.5)*0.9; b.vy+=(Math.random()-0.5)*0.9; } } }
 function bgPaint(now){ if(!BG.run)return; const dt=Math.min(0.05,(now-BG.last)/1000); BG.last=now;
   const c=BG.c,W=BG.W,H=BG.H,bw=BG.bw,bh=BG.bh,PI=Math.PI;
-  const inv=document.documentElement.classList.contains("inv");
-  const cr=inv?176:255, cg=inv?112:188, cb=inv?255:58;
+  let cr,cg,cb; if(BG.fxColor==="violet"){cr=176;cg=112;cb=255;} else if(BG.fxColor==="multi"){const t=BG.tintRGB||[255,188,58];cr=t[0];cg=t[1];cb=t[2];} else {cr=255;cg=188;cb=58;}
+  if(BG.mode==="cube"){ bgCube(c,W,H); BG.raf=requestAnimationFrame(bgPaint); return; }
+  if(BG.mode==="logo"){ bgLogo(c,W,H,dt); BG.raf=requestAnimationFrame(bgPaint); return; }
   const d=BG.img.data;
   if(BG.mode==="powder"){
     let tot=0; for(const M of BG.modes){M.amp*=Math.pow(0.1,dt);tot+=M.amp;}
@@ -1133,15 +1152,52 @@ function bgPaint(now){ if(!BG.run)return; const dt=Math.min(0.05,(now-BG.last)/1
   BG.bc.putImageData(BG.img,0,0);
   c.clearRect(0,0,W,H);c.imageSmoothingEnabled=true;c.drawImage(BG.buf,0,0,bw,bh,0,0,W,H);
   BG.raf=requestAnimationFrame(bgPaint);}
+function bgLogo(c,W,H,dt){
+  const word=BG.curWord, L=word.length, E=BG.energy;
+  for(let i=0;i<L;i++){ E[i]*=Math.exp(-dt*12); if(E[i]<0.05)E[i]=0; }       // fast decay :: hard rhythm, no fade
+  let col; if(BG.fxColor==="violet")col="rgb(176,112,255)"; else if(BG.fxColor==="multi"){const t=BG.tintRGB||[255,188,58];col="rgb("+t[0]+","+t[1]+","+t[2]+")";} else col="rgb(255,188,58)";
+  c.clearRect(0,0,W,H);
+  const fam="'Anton','Archivo Black','Arial Black',sans-serif";
+  let fs=300; c.font="900 "+fs+"px "+fam; const refW=c.measureText("SNAD INDUSTRIES").width||1; fs=fs*(W*0.94/refW); c.font="900 "+fs+"px "+fam;  // old big size, same for both words
+  c.textAlign="center"; c.textBaseline="middle"; c.fillStyle=col; c.globalAlpha=1; c.shadowBlur=0;
+  const adv=new Array(L); let total=0;                                       // each word on its OWN proportional width
+  for(let i=0;i<L;i++){ const w=c.measureText(word[i]).width; adv[i]=total+w/2; total+=w; }
+  const off=W/2-total/2, baseY=H/2;
+  for(let i=0;i<L;i++){ const ch=word[i]; if(ch===" ")continue; if(E[i]<=0)continue;  // hard binary on/off :: no shake, no slice, no stamp
+    c.fillText(ch, off+adv[i], baseY); }
+}
+function logoMorph(){ BG.logoTgt^=1; BG.curWord=BG.logoTgt?BG.WB:BG.WA; }
+function bgCube(c,W,H){
+  const GX=BG.gx,GY=BG.gy,Hh=BG.H2;
+  for(let k=0;k<Hh.length;k++)Hh[k]*=0.9;                                    // heights fall back
+  const multi=BG.fxColor==="multi", baseHue=BG.fxColor==="violet"?272:42, compHue=(baseHue+180)%360;
+  const tw=W*0.045, th=tw*0.5, ch=th*3.6, cx=W*0.5, cy=H*0.5-(GX+GY)*th*0.5+th*2;
+  c.clearRect(0,0,W,H); c.lineJoin="round";
+  for(let dpth=0;dpth<=GX+GY-2;dpth++){                                      // back-to-front (painter)
+    for(let i=Math.max(0,dpth-(GY-1)); i<=Math.min(GX-1,dpth); i++){
+      const j=dpth-i, hgt=Hh[i*GY+j]; if(hgt<0.02)continue;
+      const sx=cx+(i-j)*tw, sy=cy+(i+j)*th, Hpx=hgt*ch, hue=multi?(BG.H2hue[i*GY+j]||baseHue):baseHue+hgt*34, comp=!multi&&hgt>0.78;
+      c.beginPath();c.moveTo(sx,sy-th-Hpx);c.lineTo(sx+tw,sy-Hpx);c.lineTo(sx,sy+th-Hpx);c.lineTo(sx-tw,sy-Hpx);c.closePath();
+      c.fillStyle= comp ? "hsl("+compHue+",88%,66%)" : "hsl("+hue+",80%,"+(46+hgt*16).toFixed(0)+"%)"; c.fill();   // top :: analogue ramp, complementary peak
+      c.beginPath();c.moveTo(sx-tw,sy-Hpx);c.lineTo(sx,sy+th-Hpx);c.lineTo(sx,sy+th);c.lineTo(sx-tw,sy);c.closePath();
+      c.fillStyle="hsl("+hue+",68%,"+(19+hgt*9).toFixed(0)+"%)"; c.fill();   // left face (shaded)
+      c.beginPath();c.moveTo(sx+tw,sy-Hpx);c.lineTo(sx,sy+th-Hpx);c.lineTo(sx,sy+th);c.lineTo(sx+tw,sy);c.closePath();
+      c.fillStyle="hsl("+hue+",72%,"+(29+hgt*11).toFixed(0)+"%)"; c.fill();  // right face
+    }
+  }
+}
 function bgStart(){if(BG.run)return;BG.run=true;BG.last=performance.now();BG.raf=requestAnimationFrame(bgPaint);}
 function bgStop(){BG.run=false;cancelAnimationFrame(BG.raf);BG.c&&BG.c.clearRect(0,0,BG.W,BG.H);}
 function bgSet(m){BG.mode=m;const b=document.getElementById("bgBtn");if(b)b.textContent="BG: "+m.toUpperCase();if(m==="off")bgStop();else bgStart();}
-function bgCycle(){const o=["off","liquid","powder"];bgSet(o[(o.indexOf(BG.mode)+1)%3]);}
+function bgCycle(){const o=["off","liquid","powder","cube","logo"];bgSet(o[(o.indexOf(BG.mode)+1)%5]);}
+function colCycle(){const o=["amber","violet","multi"],lab={amber:"AMBER",violet:"VIOLET",multi:"MULTI"};BG.fxColor=o[(o.indexOf(BG.fxColor)+1)%3];const b=document.getElementById("colBtn");if(b)b.textContent="FX: "+lab[BG.fxColor];}
 
 // ---- boot ----
 document.getElementById("revfoot").textContent="REV "+REV;
-document.getElementById("invertBtn").onclick=()=>document.documentElement.classList.toggle("inv");
-bgInit();document.getElementById("bgBtn").onclick=()=>bgCycle();
+let skinState="violet";
+function skinCycle(){const root=document.documentElement,o=["violet","amber","ghost"],lab={violet:"VIOLET",amber:"AMBER",ghost:"GHOST"};skinState=o[(o.indexOf(skinState)+1)%3];root.classList.toggle("inv",skinState==="amber");root.classList.toggle("ghost",skinState==="ghost");const b=document.getElementById("skinBtn");if(b)b.textContent="SKIN: "+lab[skinState];}
+document.getElementById("skinBtn").onclick=()=>skinCycle();
+bgInit();document.getElementById("bgBtn").onclick=()=>bgCycle();document.getElementById("colBtn").onclick=()=>colCycle();
 buildMeter();buildKit();buildEditor();buildSum();buildStrip();buildSeq();
 setStatus("READY // KIT 1 · "+VOICES+" VOICES");
 document.getElementById("projurl").value=AT_PROJECT;
