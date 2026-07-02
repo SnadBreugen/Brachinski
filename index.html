@@ -109,6 +109,9 @@ body{
 .status.run .dot{background:var(--signal);box-shadow:0 0 8px var(--signal);animation:blink 1s steps(1) infinite}
 @keyframes blink{50%{opacity:.3}}
 .meter{display:flex;align-items:center;gap:7px}
+.mvol{-webkit-appearance:none;appearance:none;width:78px;height:4px;background:var(--line);border-radius:2px;outline:none;cursor:pointer}
+.mvol::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:9px;height:15px;background:var(--amber);border-radius:2px;cursor:pointer}
+.mvol::-moz-range-thumb{width:9px;height:15px;background:var(--amber);border:none;border-radius:2px;cursor:pointer}
 .meter .ml{font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.6)}
 .meter .leds{display:flex;gap:2px}
 .meter .led{width:9px;height:13px;border-radius:1px;background:#1c1330;box-shadow:inset 0 1px 1px rgba(0,0,0,.6)}
@@ -335,7 +338,7 @@ html.ghost .crt{opacity:.14}
 <div id="ctrlbarL"><button id="textBtn" title="explainer text on/off">TEXT: ON</button></div>
 <div id="hidebar"><button id="hideBtn" title="hide the device, show only the background">HIDE</button></div>
 <div id="ctrlbar"><button id="bgBtn" title="background effect">BG: OFF</button><button id="colBtn" title="effect colour">FX: AMBER</button><button id="skinBtn" title="chassis skin">SKIN: VIOLET</button></div>
-<div id="psWarn"><div class="ps-box"><div class="ps-t">// PHOTOSENSITIVE WARNING</div><div class="ps-b">this machine flashes, strobes and pulses in time with the music. some background visuals contain rapid flashing. if you are sensitive to flashing lights, take care.</div><button id="psOk" class="ps-ok">[ UNDERSTOOD ]</button></div></div>
+<div id="psWarn"><div class="ps-box"><div class="ps-t">// PHOTOSENSITIVE WARNING</div><div class="ps-b">the background visuals flash, strobe and pulse in time with the music. if you are sensitive to flashing lights, do not switch the background visuals on. the drum machine itself runs fine without them. take care.</div><button id="psOk" class="ps-ok">[ UNDERSTOOD ]</button></div></div>
 <div class="chassis">
   <div class="crt"></div>
 
@@ -347,7 +350,7 @@ html.ghost .crt{opacity:.14}
     </div>
     <div class="statuswrap">
       <div class="status" id="status"><span class="dot"></span><span id="statustxt">BOOT // STANDBY</span></div>
-      <div class="meter"><span class="ml">MASTER</span><div class="leds" id="meter"></div></div>
+      <div class="meter"><span class="ml">MASTER</span><input id="mvol" class="mvol" type="range" min="0" max="1" step="0.01" value="1" title="master volume"><div class="leds" id="meter"></div></div>
     </div>
   </div>
 
@@ -394,7 +397,7 @@ html.ghost .crt{opacity:.14}
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 114</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 120</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -896,7 +899,7 @@ registerProcessor("glitch-fx", GlitchFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="114";
+const REV="120";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=9;
 
 function d(key,min,max,def,log,label,rev){return {key,min,max,def,log:!!log,label,rev:!!rev};}
@@ -948,9 +951,9 @@ const state={
   bpm:120,swing:0,playing:false,selected:0,curPattern:0,page:0,kit:0,
   mute:Array(VOICES).fill(false),
   sum:{dist:0},
-  master:{modules:[
+  master:{vol:1,modules:[
     {kind:"dist",bypass:false},
-    {kind:"filter",bypass:false,cutoff:1200,reso:0.3,ftype:"lp",mix:1}
+    {kind:"filter",bypass:false,cutoff:18000,reso:0.3,ftype:"lp",mix:1}
   ]},
   kits:KITS.map(k=>mkVoices(k.voices)),
   voices:null,
@@ -964,7 +967,7 @@ let history=[], hidx=-1, restoring=false;
 function snapshot(){
   return {
     bpm:state.bpm, swing:state.swing, selected:state.selected, curPattern:state.curPattern, page:state.page, kit:state.kit,
-    mute:state.mute.slice(), sum:{dist:state.sum.dist},
+    mute:state.mute.slice(), sum:{dist:state.sum.dist}, masterVol:state.master.vol,
     modules: JSON.parse(JSON.stringify(state.master.modules,(k,v)=>k==="_nodes"?undefined:v)),
     kits: state.kits.map(kit=>kit.map(vo=>({vals:Object.assign({},vo.vals),fxMode:vo.fxMode,mute:vo.mute}))),
     patterns: state.patterns.map(p=>({bars:p.bars,steps:p.steps.map(r=>r.slice()),sub:p.sub.map(r=>r.slice())}))
@@ -981,6 +984,7 @@ function restore(snap){
   state.patterns=snap.patterns.map(p=>({bars:p.bars,steps:p.steps.map(r=>r.slice()),sub:p.sub.map(r=>r.slice())}));
   state.master.modules.forEach(m=>{const n=m._nodes;if(n){(n.all||[]).concat([n.input,n.output,n.wet,n.dry]).forEach(x=>{if(x){try{x.disconnect();}catch(e){}}});}delete m._nodes;});
   state.master.modules=JSON.parse(JSON.stringify(snap.modules));
+  state.master.vol=(snap.masterVol!=null?snap.masterVol:1);{const mv=document.getElementById("mvol");if(mv)mv.value=state.master.vol;if(masterOut)masterOut.gain.value=state.master.vol;}
   if(ac){ initMasterNodes(); wireMaster(); syncAll(); }
   buildKit(); buildEditor(); buildMaster(); buildStrip(); buildSeq();
   const pg=Math.min(snap.page,numPages()-1); state.page=pg<0?0:pg; setPage(state.page); refreshStrip();
@@ -1320,7 +1324,7 @@ function buildModuleNodes(m){
     glitchSend(m);
   }
 }
-function initMasterNodes(){if(!ac)return;state.master.modules.forEach(m=>{if(m.kind!=="dist"&&m.kind!=="empty")buildModuleNodes(m);});}
+function initMasterNodes(){if(!ac)return;if(masterOut)masterOut.gain.value=(state.master.vol!=null?state.master.vol:1);state.master.modules.forEach(m=>{if(m.kind!=="dist"&&m.kind!=="empty")buildModuleNodes(m);});}
 function wireMaster(){
   if(!ac||!masterIn||!masterOut)return;
   try{masterIn.disconnect();}catch(e){}
@@ -1555,7 +1559,7 @@ function appendModuleKnobs(m,kc){
     const def=d("dist",0,1,0);def.label="DIST";
     K(def,()=>state.sum.dist,(v)=>{state.sum.dist=v;sendSum("dist",m.bypass?0:v);});
   }else if(m.kind==="filter"){
-    K(d("cutoff",30,18000,1200,1,"CUTOFF"),()=>m.cutoff,(v)=>{m.cutoff=v;if(m._nodes)m._nodes.fxIn.frequency.value=v;});
+    K(d("cutoff",30,18000,18000,1,"CUTOFF"),()=>m.cutoff,(v)=>{m.cutoff=v;if(m._nodes)m._nodes.fxIn.frequency.value=v;});
     K(d("reso",0,1,0.3,0,"RESO"),()=>m.reso,(v)=>{m.reso=v;if(m._nodes)m._nodes.fxIn.Q.value=resoToQ(v);});
   }else if(m.kind==="delay"){
     if(m.sync){const def=d("dlydiv",0,DIVS.length-1,2);def.label="TIME";K(def,()=>m.divIdx,(v)=>{m.divIdx=Math.round(v);if(m._nodes)m._nodes.dly.delayTime.value=delaySeconds(m);});}
@@ -1857,20 +1861,23 @@ function bgHit(voice,vel,lead){ if(BG.mode==="off")return;
   if(BG.mode==="glyphs"){ if(!BG.arc)arcInit(); const W=BG.W,H=BG.H, rowY=H*0.5, drop=H*0.46, ld=(lead&&lead>0.02)?lead:0.1;
     BG.arc.incoming[voice]={hue:(BG.fxColor==="multi"?(BGHUE[voice]||42):(BG.fxColor==="violet"?272:42)), glyph:voice, y:rowY-drop, vy:drop/ld}; return; }
   if(BG.mode==="credits"){ if(!BG.credits)BG.credits=[]; const W=BG.W,H=BG.H,R=Math.random;
-    const real=(state.voices&&state.voices[voice]&&state.voices[voice].name)?state.voices[voice].name.toUpperCase():"HIT";
-    const POOLS=[["VOID","SNAD","RAW","NULL","404","DRT","DUST","RITE","NO","OK","BRA"],["\u30d4\u30a8\u30fc\u30eb","\u30d6\u30d5\u30a1\u30f3","\u30f4\u30a9\u30a4\u30c9","\u30c9\u30e9\u30e0","\u30d3\u30fc\u30c8","\u30ce\u30a4\u30ba","\u30b9\u30ca\u30c9"],["\u041f\u0423\u0421\u0422\u041e\u0422\u0410","\u0421\u041d\u0410\u0414","\u0420\u0418\u0422\u041c","\u0425\u0410\u041e\u0421","\u0417\u0412\u0423\u041a","\u041d\u041e\u041b\u042c"],["\u0936\u0942\u0928\u094d\u092f","\u0927\u094d\u0935\u0928\u093f","\u0928\u093e\u0926","\u0924\u093e\u0932"],["\u039a\u0395\u039d\u039f","\u03a7\u0391\u039f\u03a3","\u0397\u03a7\u039f\u03a3","\u039c\u0397\u0394\u0395\u039d"],["\u2206","\u2207","\u220e","\u2593","\u2588","\u2715","\u25fc"]];
+    const CONCEPTS=["DRUM SYNTH","PROCEDURAL","NINE VOICES","NO SAMPLES","STEP SEQUENCER","SUB STEPS","SWING","3 KITS","KIT SWITCHER","GLITCH","STUTTER","REVERB","COMB","RESONATOR","DELAY","FILTER","DISTORTION","MASTER FX","SEND","INSERT","M/S WIDTH","LASER","IMPACT","CUBES","POWDER","LIQUID","PHOSPHOR","WIREFRAME","BRUTALISM","GLYPHS","AUDIOTOOL","MACHINISTE","NEXUS","ONE SHOTS","LOOP EXPORT","OWN SAMPLES","PERCUSSION KIT","SESSION ONLY","NASWALT","HAUS VOM NIKOLAUS","NO PENTAGRAM","KEIN FADE","IN DA FACE","KERNIG","DREH-SCHLAG","NACHLEUCHTEN","ENTER THE VOID","STRG SHIFT R","VOID","RAW","NULL","404","DUST","RITE","XEROX","NEON DRIFT","BEAT DUST","DATA GHOST","NULLZONE","SANDBURGEN","QoQ"];
+    const INTL=["\u30b9\u30ca\u30c3\u30c9\u30fb\u30a4\u30f3\u30c0\u30b9\u30c8\u30ea\u30fc\u30ba","\u30d6\u30e9\u30ad\u30f3\u30b9\u30ad\u30fc","\u30b5\u30f3\u30c9\u30d0\u30fc\u30b0","\u30c9\u30e9\u30e0","\u30d3\u30fc\u30c8","\u30ce\u30a4\u30ba","\u0421\u041d\u0410\u0414 \u0418\u041d\u0414\u0410\u0421\u0422\u0420\u0418\u0417","\u0420\u0418\u0422\u041c","\u0417\u0412\u0423\u041a","\u0428\u0423\u041c","\u041f\u0423\u0421\u0422\u041e\u0422\u0410","\u0936\u0942\u0928\u094d\u092f","\u0927\u094d\u0935\u0928\u093f","\u0924\u093e\u0932","\u039a\u0395\u039d\u039f","\u0397\u03a7\u039f\u03a3","\u03a7\u0391\u039f\u03a3","\u03a1\u03a5\u0398\u039c\u039f\u03a3","\u2206","\u2207","\u220e","\u2593","\u2588"];
+    const voiceName=(state.voices&&state.voices[voice]&&state.voices[voice].name)?state.voices[voice].name.toUpperCase():null;
     if(BG.creditsN==null)BG.creditsN=0; BG.creditsN++;
     let text;
-    const cr=R();
-    if(!BG.ralfDone && BG.creditsN>6 && R()<0.08){ text="RALF NOETZEL"; BG.ralfDone=true; }   // exactly once, never first
-    else if(cr<0.10){ const CRED=["SNAD INDUSTRIES","BRACHINSKI"]; if(BG.atArtist)CRED.push(String(BG.atArtist).toUpperCase()); text=CRED[(R()*CRED.length)|0]; }
-    else if(cr<0.46){ text=real; }
-    else { const p=POOLS[(R()*POOLS.length)|0]; text=p[(R()*p.length)|0]; }
+    if(!BG.ralfDone && BG.creditsN>8 && R()<0.06){ text="RALF NOETZEL"; BG.ralfDone=true; }        // exactly once, never first
+    else { const r=R();
+      if(r<0.09){ const CRED=["SNAD INDUSTRIES","BRACHINSKI"]; if(BG.atArtist)CRED.push(String(BG.atArtist).toUpperCase()); text=CRED[(R()*CRED.length)|0]; }
+      else if(r<0.19 && voiceName){ text=voiceName; }                                              // voice names, sparse
+      else if(r<0.74){ text=CONCEPTS[(R()*CONCEPTS.length)|0]; }
+      else { text=INTL[(R()*INTL.length)|0]; }
+    }
     const PAL=creditsPal();
     const FONTS=['900 {}px Arial,sans-serif','{}px "Courier New",monospace','italic 900 {}px Arial,sans-serif','{}px Impact,"Arial Black",sans-serif'];
     const br=R(), bgtype=br<0.45?"none":br<0.57?"block":br<0.78?"stripes":"bars";
-    const long=text.length>10, size=long?H*(0.12+R()*0.06):H*(0.26+R()*0.24);
-    BG.credits.push({ text, col:PAL[(R()*PAL.length)|0], bg:bgtype, bcol:PAL[(R()*PAL.length)|0], size, y:H*(0.5+(R()*2-1)*0.06), rot:(R()<0.85?0:(R()<0.5?-1:1)*0.06), font:FONTS[(R()*FONTS.length)|0], life:0.14+R()*0.06, age:0 });
+    const L=text.length, size=L>16?H*(0.07+R()*0.03):L>9?H*(0.12+R()*0.06):H*(0.24+R()*0.22);
+    BG.credits.push({ text, col:PAL[(R()*PAL.length)|0], bg:bgtype, bcol:PAL[(R()*PAL.length)|0], size, y:H*(0.5+(R()*2-1)*0.06), rot:(R()<0.85?0:(R()<0.5?-1:1)*0.06), font:FONTS[(R()*FONTS.length)|0], life:0.14+R()*0.06, age:0, tex:(R()*8)|0 });
     if(BG.credits.length>4)BG.credits.shift(); return; }
   if(BG.mode==="impact"){ if(!BG.impacts)BG.impacts=[]; const hue=BG.fxColor==="multi"?(BGHUE[voice]||42):(BG.fxColor==="violet"?272:42), W=BG.W,H=BG.H, R=Math.random;
     const col=voice%3, row=(voice/3|0)%3, cx=W*(col+0.5)/3+(R()*2-1)*W*0.06, cy=H*(row+0.5)/3+(R()*2-1)*H*0.06, ld=(lead&&lead>0.02)?lead:0.1, bw=Math.min(W,H)*(0.10+vel*0.06);
@@ -2129,6 +2136,7 @@ let skinState="violet";
 function skinCycle(){const root=document.documentElement,o=["violet","amber","ghost"],lab={violet:"VIOLET",amber:"AMBER",ghost:"GHOST"};skinState=o[(o.indexOf(skinState)+1)%3];root.classList.toggle("inv",skinState==="amber");root.classList.toggle("ghost",skinState==="ghost");const b=document.getElementById("skinBtn");if(b)b.textContent="SKIN: "+lab[skinState];}
 document.getElementById("skinBtn").onclick=()=>skinCycle();
 bgInit();document.getElementById("bgBtn").onclick=()=>bgCycle();document.getElementById("colBtn").onclick=()=>colCycle();
+(function(){var mv=document.getElementById("mvol");if(mv){mv.value=(state.master.vol!=null?state.master.vol:1);mv.oninput=function(){state.master.vol=parseFloat(mv.value);if(masterOut)masterOut.gain.value=state.master.vol;};mv.onchange=function(){if(typeof commit==="function")commit();};}})();
 document.getElementById("hideBtn").onclick=()=>{const r=document.documentElement;r.classList.toggle("zen");const b=document.getElementById("hideBtn");if(b)b.textContent=r.classList.contains("zen")?"SHOW":"HIDE";};
 (function(){var el=document.getElementById("psWarn"),b=document.getElementById("psOk"),ok=false;try{ok=!!localStorage.getItem("brachinski_ps_ok");}catch(e){}if(!ok&&el)el.classList.add("show");if(b)b.onclick=function(){try{localStorage.setItem("brachinski_ps_ok","1");}catch(e){}if(el)el.classList.remove("show");};})();
 buildMeter();buildKit();buildEditor();buildMaster();buildStrip();buildSeq();histInit();
