@@ -116,6 +116,9 @@ body{
 #finbar button{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--dim);background:#140d20;border:1px solid var(--line);border-radius:5px;padding:8px 12px;cursor:pointer;white-space:nowrap}
 #finbar button:hover{color:var(--ink);border-color:var(--line-hi)}
 #finbar button.on{color:var(--ink);border-color:var(--amber);background:#1c1330;box-shadow:0 0 0 1px var(--amber) inset}
+.finmix{display:inline-flex;align-items:center;gap:6px;margin-left:8px}
+.finmix .mvol{width:90px}
+.finmixlab{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--dim)}
 .meter .ml{font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.6)}
 .meter .leds{display:flex;gap:2px}
 .meter .led{width:9px;height:13px;border-radius:1px;background:#1c1330;box-shadow:inset 0 1px 1px rgba(0,0,0,.6)}
@@ -358,7 +361,7 @@ html.ghost .crt{opacity:.14}
     </div>
     <div class="statuswrap">
       <div class="status" id="status"><span class="dot"></span><span id="statustxt">BOOT // STANDBY</span></div>
-      <div class="meter"><span class="ml">MASTER</span><input id="mvol" class="mvol" type="range" min="0" max="1" step="0.01" value="1" title="master volume"><div class="leds" id="meter"></div></div>
+      <div class="meter"><span class="ml">MASTER</span><input id="mvol" class="mvol" type="range" min="0" max="1" step="0.01" value="0.8" title="master volume"><div class="leds" id="meter"></div></div>
     </div>
   </div>
 
@@ -394,7 +397,7 @@ html.ghost .crt{opacity:.14}
     <span class="tag">// FINALIZER</span>
     <span class="screw tl"></span><span class="screw bl"></span><span class="screw br"></span>
     <div id="finbar"></div>
-    <div class="hint">// one-click master finish on the summed mix · compressor · drive · stereo width · limiter</div>
+    <div class="hint">// one-click master finish on the summed mix · EQ · compressor · drive · width · limiter · AMOUNT scales the chain</div>
   </div>
 
   <div class="island">
@@ -412,7 +415,7 @@ html.ghost .crt{opacity:.14}
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 135</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 139</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -653,8 +656,7 @@ function makeKit3(){ return makeKit1(); }
 function softclip(x){ const a=x<0?-x:x; if(a<=0.7)return x; return (x<0?-1:1)*(0.7+0.3*Math.tanh((a-0.7)/0.3)); }
 
 // per-voice param smoothing for Kit 2 :: glide to target, kills zipper while staying live
-function kit2Smooth(vo){ const t=vo._t, c=0.006; for(const k in t){ const cur=vo[k]; vo[k]=cur+(t[k]-cur)*c; } }
-// per-voice HP/LP for Kit 2 :: TPT zero-delay one-pole cascade (12 dB/oct, stable; cutoff may glide, recompute per sample)
+function kit2Smooth(vo){ const t=vo._t, c=0.006; for(const k in t){ const cur=vo[k]; vo[k]=cur+(t[k]-cur)*c; } }// per-voice HP/LP for Kit 2 :: TPT zero-delay one-pole cascade (12 dB/oct, stable; cutoff may glide, recompute per sample)
 function kit2Filt(vo,x){
   const hp=vo.hp||20, lp=vo.lp||18000;
   if(lp<17500){
@@ -684,17 +686,47 @@ function kit2FX(vo,x){
 }
 
 // ═══════════════════════════════════════════════════════════════
+// KIT 4 :: user samples · playback voice (pitch/trim/reverse/env), kit2 FX chain on top
+// ═══════════════════════════════════════════════════════════════
+class SampleVoice {
+  constructor(){ this.active=false; this.buf=null; this.fileSR=sampleRate;
+    this.pitch=0; this.att=0; this.dec=6; this.start=0; this.end=1; this.rev=0; this.gain=0.8; this.pan=0;
+    this.hp=20; this.lp=18000; this.drive=0; this.sat=0; this.redux=0; this.fold=0; this.punch=0; this.body=0;
+    this._t={}; ["gain","pan","hp","lp","drive","sat","redux","fold","punch","body"].forEach(k=>{this._t[k]=this[k];}); }
+  set(key,val){ if(this._t[key]!==undefined)this._t[key]=val; else this[key]=val; }
+  setSample(data,sr){ this.buf=data; this.fileSR=sr||sampleRate; this.active=false; }
+  trigger(vel){ if(!this.buf)return; const n=this.buf.length;
+    const s=Math.min(this.start,this.end), e=Math.max(this.start,this.end);
+    this.sF=Math.max(0,Math.floor(s*(n-1))); this.eF=Math.min(n-1,Math.ceil(e*(n-1)));
+    if(this.eF-this.sF<8)return;
+    this.rv=this.rev>=0.5; this.pos=this.rv?this.eF:this.sF;
+    this.vel=vel; this.age=0; this.envD=1; this.dc=dCoef(this.dec); this.active=true; }
+  tick(){ if(!this.buf){this.active=false;return 0;}
+    const rate=(this.fileSR/sampleRate)*Math.pow(2,this.pitch/12);
+    const aFr=this.att*sampleRate, envA=(aFr>1&&this.age<aFr)?(this.age/aFr):1;
+    this.envD*=this.dc;
+    const p=this.pos, pi=p|0, pf=p-pi;
+    const s1=this.buf[pi]||0, s2=this.buf[pi+1]!==undefined?this.buf[pi+1]:s1;
+    const x=(s1+pf*(s2-s1))*envA*this.envD*this.gain*this.vel;
+    this.pos+=this.rv?-rate:rate; this.age++;
+    if(this.rv?(this.pos<=this.sF):(this.pos>=this.eF))this.active=false;
+    if(this.envD<0.0004)this.active=false;
+    return x; }
+}
+function makeKit4(){ return Array.from({length:9},()=>new SampleVoice()); }
+
+// ═══════════════════════════════════════════════════════════════
 // processor :: holds 3 kits, routes to the active one
 // ═══════════════════════════════════════════════════════════════
 class BrachinisteEngine extends AudioWorkletProcessor {
   constructor(options){
     super();
-    this.kits=[ makeKit1(), makeKit2(), makeKit3() ];
+    this.kits=[ makeKit1(), makeKit2(), makeKit3(), makeKit4() ];
     this.kit=0;
     this.dist=0; this.frame=0; this.queue=[];
     const po=options&&options.processorOptions;
     if(po){
-      if(typeof po.kit==="number") this.kit=Math.max(0,Math.min(2,po.kit));
+      if(typeof po.kit==="number") this.kit=Math.max(0,Math.min(3,po.kit));
       if(typeof po.renderVoice==="number"){
         const v=this.voices()[po.renderVoice];
         if(v){
@@ -712,7 +744,8 @@ class BrachinisteEngine extends AudioWorkletProcessor {
     if(m.type==="note"){ this.queue.push({atFrame:m.atFrame||0,voice:m.voice,vel:m.vel}); this.queue.sort((a,b)=>a.atFrame-b.atFrame); }
     else if(m.type==="param"){ const v=this.voices()[m.voice]; if(v){ if(v.set)v.set(m.key,m.value); else if(m.key in v)v[m.key]=m.value; } }
     else if(m.type==="sum"){ if(m.key==="dist")this.dist=m.value; }
-    else if(m.type==="kit"){ this.kit=Math.max(0,Math.min(2,m.index|0)); for(const v of this.voices())v.active=false; this.queue.length=0; }
+    else if(m.type==="kit"){ this.kit=Math.max(0,Math.min(3,m.index|0)); for(const v of this.voices())v.active=false; this.queue.length=0; }
+    else if(m.type==="sample"){ const v=this.kits[3][m.voice|0]; if(v)v.setSample(m.data,m.sr); }
     else if(m.type==="reset"){ for(const v of this.voices())v.active=false; this.queue.length=0; }
   }
   process(inputs,outputs){
@@ -721,7 +754,7 @@ class BrachinisteEngine extends AudioWorkletProcessor {
       const f=this.frame+i;
       while(this.queue.length&&this.queue[0].atFrame<=f){ const ev=this.queue.shift(); const v=vs[ev.voice]; if(v)v.trigger(ev.vel); }
       let l=0,r=0;
-      for(let v=0;v<vs.length;v++){ const vo=vs[v]; if(!vo.active)continue; if(this.kit===1)kit2Smooth(vo); let s=vo.tick(); if(this.kit===1){s=kit2Filt(vo,s);s=kit2FX(vo,s);} const pan=vo.pan||0;
+      for(let v=0;v<vs.length;v++){ const vo=vs[v]; if(!vo.active)continue; const k23=(this.kit===1||this.kit===3); if(k23)kit2Smooth(vo); let s=vo.tick(); if(k23){s=kit2Filt(vo,s);s=kit2FX(vo,s);} const pan=vo.pan||0;
         l+=s*Math.cos((pan+1)*0.25*Math.PI); r+=s*Math.sin((pan+1)*0.25*Math.PI); }
       if(this.dist>0.001){ const drive=1+this.dist*3; const dl=l*drive,dr=r*drive;
         l=dl<-3?-1:dl>3?1:dl*(27+dl*dl)/(27+9*dl*dl); r=dr<-3?-1:dr>3?1:dr*(27+dr*dr)/(27+9*dr*dr); }
@@ -914,7 +947,7 @@ registerProcessor("glitch-fx", GlitchFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="135";
+const REV="139";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=9;
 
 function d(key,min,max,def,log,label,rev){return {key,min,max,def,log:!!log,label,rev:!!rev};}
@@ -958,7 +991,28 @@ const KIT1V=[
  k1voice("WOOD",{pitch:820,penv:0.35,pdec:0.012,wave:0.4,oscDecay:0.06,oscLevel:0.85,noiseLevel:0.12,noiseColor:2400,noiseDecay:0.03,drive:0.3,tone:13000,level:0.72})
 ];
 const KIT3V=KIT1V; // placeholder until percussion set lands
-const KITS=[{name:"KIT 1",voices:KIT1V},{name:"KIT 2",voices:KIT2V},{name:"KIT 3",voices:KIT3V}];
+const KIT4V=Array.from({length:9},(_,i)=>({name:"SLOT "+(i+1),defs:[
+ d("pitch",-24,24,0,0,"PITCH"),d("att",0,0.5,0,0,"ATT"),d("dec",0.01,6,6,1,"DEC"),
+ d("start",0,1,0,0,"START"),d("end",0,1,1,0,"END"),d("rev",0,1,0,0,"REV"),
+ d("gain",0.01,1,0.8),d("pan",-1,1,0),HP(20),LP(18000),...FXD()]}));
+const KITS=[{name:"KIT 1",voices:KIT1V},{name:"KIT 2",voices:KIT2V},{name:"KIT 3",voices:KIT3V},{name:"KIT 4 · SAMPLES",voices:KIT4V}];
+const userSamples=Array(9).fill(null);   // {data:Float32Array, sr, name} · session store, re-sent to worklet on engine start
+function sendSample(v){ if(!engineNode||!userSamples[v])return; const u=userSamples[v]; const copy=new Float32Array(u.data); engineNode.port.postMessage({type:"sample",voice:v,sr:u.sr,data:copy},[copy.buffer]); }
+async function loadSampleFile(file,slot){
+  try{ await ensureAudio(); }catch(e){ setStatus("AUDIO ENGINE needed for decode"); return; }
+  try{
+    const ab=await file.arrayBuffer();
+    const audio=await ac.decodeAudioData(ab);
+    const n=audio.length, ch=audio.numberOfChannels, mono=new Float32Array(n);
+    for(let c=0;c<ch;c++){ const dta=audio.getChannelData(c); for(let i=0;i<n;i++)mono[i]+=dta[i]/ch; }   // downmix to mono (engine voices are mono + pan)
+    userSamples[slot]={data:mono,sr:audio.sampleRate,name:file.name};
+    sendSample(slot);
+    const nm=(file.name||"SAMPLE").replace(/\.[^.]+$/,"").toUpperCase().slice(0,12);
+    state.kits[3][slot].name=nm||("SLOT "+(slot+1));
+    if(state.kit===3){ buildKit(); buildEditor(); }
+    setStatus("KIT 4 // SLOT "+(slot+1)+" &larr; "+nm);
+  }catch(e){ console.error(e); setStatus("DECODE failed :: "+(e&&e.message||"unsupported file")); }
+}
 
 function emptyPattern(){return {bars:1,steps:Array.from({length:VOICES},()=>new Array(MAX_STEPS).fill(0)),sub:Array.from({length:VOICES},()=>new Array(MAX_STEPS).fill(1))};}
 function mkVoices(arr){return arr.map(v=>({name:v.name,defs:v.defs,fxMode:v.fxMode,vals:Object.assign(Object.fromEntries(v.defs.map(x=>[x.key,x.def])),v.extra||{}),mute:false}));}
@@ -966,11 +1020,11 @@ const state={
   bpm:120,swing:0,playing:false,selected:0,curPattern:0,page:0,kit:0,
   mute:Array(VOICES).fill(false),
   sum:{dist:0},
-  master:{vol:1,modules:[
+  master:{vol:0.8,modules:[
     {kind:"dist",bypass:false},
     {kind:"filter",bypass:false,cutoff:18000,reso:0.3,ftype:"lp",mix:1}
   ]},
-  fin:{preset:"off"},
+  fin:{preset:"off",amount:1},
   kits:KITS.map(k=>mkVoices(k.voices)),
   voices:null,
   patterns:Array.from({length:PATTERNS},emptyPattern)
@@ -983,7 +1037,7 @@ let history=[], hidx=-1, restoring=false;
 function snapshot(){
   return {
     bpm:state.bpm, swing:state.swing, selected:state.selected, curPattern:state.curPattern, page:state.page, kit:state.kit,
-    mute:state.mute.slice(), sum:{dist:state.sum.dist}, masterVol:state.master.vol, finPreset:state.fin.preset,
+    mute:state.mute.slice(), sum:{dist:state.sum.dist}, masterVol:state.master.vol, finPreset:state.fin.preset, finAmt:state.fin.amount,
     modules: JSON.parse(JSON.stringify(state.master.modules,(k,v)=>k==="_nodes"?undefined:v)),
     kits: state.kits.map(kit=>kit.map(vo=>({vals:Object.assign({},vo.vals),fxMode:vo.fxMode,mute:vo.mute}))),
     patterns: state.patterns.map(p=>({bars:p.bars,steps:p.steps.map(r=>r.slice()),sub:p.sub.map(r=>r.slice())}))
@@ -1001,7 +1055,7 @@ function restore(snap){
   state.master.modules.forEach(m=>{const n=m._nodes;if(n){(n.all||[]).concat([n.input,n.output,n.wet,n.dry]).forEach(x=>{if(x){try{x.disconnect();}catch(e){}}});}delete m._nodes;});
   state.master.modules=JSON.parse(JSON.stringify(snap.modules));
   state.master.vol=(snap.masterVol!=null?snap.masterVol:1);{const mv=document.getElementById("mvol");if(mv)mv.value=state.master.vol;if(masterOut)masterOut.gain.value=state.master.vol;}
-  state.fin.preset=(snap.finPreset!=null?snap.finPreset:"off");if(typeof buildFinbar==="function")buildFinbar();if(fin)applyFinalizer();
+  state.fin.preset=(snap.finPreset!=null?snap.finPreset:"off");state.fin.amount=(snap.finAmt!=null?snap.finAmt:1);if(typeof buildFinbar==="function")buildFinbar();if(fin)applyFinalizer();
   if(ac){ initMasterNodes(); wireMaster(); syncAll(); }
   buildKit(); buildEditor(); buildMaster(); buildStrip(); buildSeq();
   const pg=Math.min(snap.page,numPages()-1); state.page=pg<0?0:pg; setPage(state.page); refreshStrip();
@@ -1022,36 +1076,56 @@ function numPages(){return curPat().bars;}
 let ac=null,engineNode=null,meterNode=null,meterBuf=null,masterIn=null,masterOut=null,masterSendBus=null,fin=null;
 const FINPRESETS={
   off:null,
-  glue:{thr:-18,ratio:2.5,attack:0.02,release:0.25,knee:24,drive:0.12,width:1.0,makeup:1.22},
-  loud:{thr:-22,ratio:4,attack:0.005,release:0.14,knee:14,drive:0.12,width:1.0,makeup:1.40},
-  punch:{thr:-20,ratio:3,attack:0.035,release:0.11,knee:6,drive:0.12,width:1.05,makeup:1.28},
-  wide:{thr:-17,ratio:2.3,attack:0.02,release:0.25,knee:22,drive:0.06,width:2.4,makeup:1.24},
-  wdist:{thr:-22,ratio:4,attack:0.004,release:0.11,knee:10,drive:0.5,width:1.9,makeup:1.30},
-  clean:{thr:-14,ratio:1.6,attack:0.03,release:0.3,knee:24,drive:0.0,width:1.0,makeup:1.28}
+  // each preset is its own world: own EQ freqs, wide gain spreads, distinct comp characters
+  glue:   {lsF:100, lmF:400, prF:2500, hsF:8000,  hp:26,ls:1,   lm:0,   pr:0.5, hs:0.5,lp:20000, thr:-16,ratio:2,  attack:0.03, release:0.30,knee:30, drive:0.08,width:1.0, haas:0,     makeup:1.405},
+  punch:  {lsF:80,  lmF:300, prF:3500, hsF:9000,  hp:42,ls:3,   lm:-2.5,pr:4,   hs:1,  lp:20000, thr:-22,ratio:4,  attack:0.04, release:0.07,knee:4,  drive:0.06,width:1.0, haas:0,     makeup:0.869},
+  loud:   {lsF:110, lmF:250, prF:3000, hsF:9500,  hp:30,ls:2,   lm:0,   pr:1.5, hs:2,  lp:20000, thr:-30,ratio:8,  attack:0.002,release:0.15,knee:8,  drive:0.20,width:1.0, haas:0,     makeup:1.081},
+  air:    {lsF:100, lmF:500, prF:5000, hsF:11500, hp:34,ls:0,   lm:-1,  pr:1.5, hs:5.5,lp:20000, thr:-12,ratio:1.5,attack:0.03, release:0.30,knee:24, drive:0.0, width:1.2, haas:0,     makeup:1.623},
+  warm:   {lsF:120, lmF:250, prF:4000, hsF:8000,  hp:24,ls:4,   lm:1.5, pr:-1.5,hs:-3.5,lp:15000,thr:-18,ratio:2.5,attack:0.015,release:0.20,knee:20, drive:0.25,width:1.0, haas:0,     makeup:0.873},
+  wide:   {lsF:100, lmF:300, prF:3000, hsF:10000, hp:30,ls:0,   lm:0,   pr:0,   hs:2,  lp:20000, thr:-15,ratio:2,  attack:0.02, release:0.25,knee:20, drive:0.04,width:2.2, haas:0.014, makeup:1.402},
+  wdist:  {lsF:100, lmF:250, prF:3000, hsF:9000,  hp:30,ls:1.5, lm:0,   pr:2,   hs:0,  lp:20000, thr:-20,ratio:3,  attack:0.005,release:0.12,knee:10, drive:0.35,width:1.5, haas:0,     makeup:0.707},
+  boombox:{lsF:100, lmF:250, prF:2500, hsF:7000,  hp:44,ls:4,   lm:4,   pr:2,   hs:-5, lp:10000, thr:-26,ratio:6,  attack:0.004,release:0.09,knee:10, drive:0.40,width:0.85,haas:0,     makeup:0.702},
+  lofi:   {lsF:150, lmF:350, prF:2500, hsF:6000,  hp:80,ls:1.5, lm:3,   pr:-2.5,hs:-10,lp:4500,  thr:-20,ratio:3,  attack:0.01, release:0.20,knee:12, drive:0.35,width:0.6, haas:0,     makeup:0.969}
 };
 function finDriveCurve(d){const n=1024,c=new Float32Array(n),k=1+d*7,t=Math.tanh(k);for(let i=0;i<n;i++){const x=(i/(n-1))*2-1;c[i]=Math.tanh(k*x)/t;}return c;}
 function buildFinalizer(){
   if(fin||!ac)return;
-  const finIn=ac.createGain(),comp=ac.createDynamicsCompressor(),drive=ac.createWaveShaper(),makeup=ac.createGain(),limiter=ac.createWaveShaper(),finOut=ac.createGain();
-  const split=ac.createChannelSplitter(2),merge=ac.createChannelMerger(2),midG=ac.createGain(),sideG=ac.createGain(),rInv=ac.createGain(),sideW=ac.createGain(),sideNeg=ac.createGain();
-  midG.gain.value=0.5;sideG.gain.value=0.5;rInv.gain.value=-1;sideW.gain.value=1;sideNeg.gain.value=-1;
+  const finIn=ac.createGain();
+  const hp=ac.createBiquadFilter();hp.type="highpass";hp.frequency.value=28;hp.Q.value=0.7;
+  const ls=ac.createBiquadFilter();ls.type="lowshelf";ls.frequency.value=95;
+  const lm=ac.createBiquadFilter();lm.type="peaking";lm.frequency.value=250;lm.Q.value=1;
+  const pr=ac.createBiquadFilter();pr.type="peaking";pr.frequency.value=3000;pr.Q.value=1;
+  const hs=ac.createBiquadFilter();hs.type="highshelf";hs.frequency.value=9000;
+  const lp=ac.createBiquadFilter();lp.type="lowpass";lp.frequency.value=20000;lp.Q.value=0.7;
+  const comp=ac.createDynamicsCompressor(),drive=ac.createWaveShaper();
+  const split=ac.createChannelSplitter(2),merge=ac.createChannelMerger(2),midG=ac.createGain(),sideG=ac.createGain(),rInv=ac.createGain(),sideDelay=ac.createDelay(0.05),sideW=ac.createGain(),sideNeg=ac.createGain();
+  const makeup=ac.createGain(),limiter=ac.createWaveShaper(),finOut=ac.createGain();
+  midG.gain.value=0.5;sideG.gain.value=0.5;rInv.gain.value=-1;sideW.gain.value=1;sideNeg.gain.value=-1;sideDelay.delayTime.value=0;
   drive.curve=finDriveCurve(0);
   {const n=1024,c=new Float32Array(n),t=Math.tanh(1.3);for(let i=0;i<n;i++){const x=(i/(n-1))*2-1;c[i]=Math.tanh(1.3*x)/t;}limiter.curve=c;}   // soft-clip ceiling
-  finIn.connect(comp);comp.connect(drive);drive.connect(split);
+  finIn.connect(hp);hp.connect(ls);ls.connect(lm);lm.connect(pr);pr.connect(hs);hs.connect(lp);lp.connect(comp);comp.connect(drive);drive.connect(split);
   split.connect(midG,0);split.connect(midG,1);
   split.connect(sideG,0);split.connect(rInv,1);rInv.connect(sideG);
-  sideG.connect(sideW);
+  sideG.connect(sideDelay);sideDelay.connect(sideW);
   midG.connect(merge,0,0);sideW.connect(merge,0,0);
   midG.connect(merge,0,1);sideW.connect(sideNeg);sideNeg.connect(merge,0,1);
   merge.connect(makeup);makeup.connect(limiter);limiter.connect(finOut);
-  fin={finIn,comp,drive,makeup,limiter,finOut,sideW};
+  fin={finIn,hp,ls,lm,pr,hs,lp,comp,drive,sideDelay,sideW,makeup,limiter,finOut};
   applyFinalizer();
 }
 function applyFinalizer(){
   if(!fin)return;const p=FINPRESETS[state.fin.preset];
-  if(!p){ fin.comp.threshold.value=0;fin.comp.ratio.value=1;fin.comp.knee.value=0;fin.comp.attack.value=0.003;fin.comp.release.value=0.25;fin.drive.curve=finDriveCurve(0);fin.sideW.gain.value=1;fin.makeup.gain.value=1;return; }
-  fin.comp.threshold.value=p.thr;fin.comp.ratio.value=p.ratio;fin.comp.knee.value=p.knee;fin.comp.attack.value=p.attack;fin.comp.release.value=p.release;
-  fin.drive.curve=finDriveCurve(p.drive);fin.sideW.gain.value=p.width;fin.makeup.gain.value=p.makeup;
+  if(!p){ fin.hp.frequency.value=20;fin.ls.gain.value=0;fin.lm.gain.value=0;fin.pr.gain.value=0;fin.hs.gain.value=0;fin.lp.frequency.value=20000;
+    fin.comp.threshold.value=0;fin.comp.ratio.value=1;fin.comp.knee.value=0;fin.comp.attack.value=0.003;fin.comp.release.value=0.25;
+    fin.drive.curve=finDriveCurve(0);fin.sideDelay.delayTime.value=0;fin.sideW.gain.value=1;fin.makeup.gain.value=1;return; }
+  const a=(state.fin.amount!=null?state.fin.amount:1);                       // amount morphs the whole chain: one signal path, zero phase issues
+  fin.ls.frequency.value=p.lsF||95; fin.lm.frequency.value=p.lmF||250; fin.pr.frequency.value=p.prF||3000; fin.hs.frequency.value=p.hsF||9000;
+  fin.hp.frequency.value=20*Math.pow(p.hp/20,a); fin.lp.frequency.value=20000*Math.pow(p.lp/20000,a);
+  fin.ls.gain.value=p.ls*a; fin.lm.gain.value=p.lm*a; fin.pr.gain.value=p.pr*a; fin.hs.gain.value=p.hs*a;
+  fin.comp.threshold.value=p.thr*a; fin.comp.ratio.value=1+(p.ratio-1)*a; fin.comp.knee.value=p.knee;
+  fin.comp.attack.value=p.attack; fin.comp.release.value=p.release;
+  fin.drive.curve=finDriveCurve(p.drive*a); fin.sideDelay.delayTime.value=(p.haas||0)*a; fin.sideW.gain.value=1+(p.width-1)*a;
+  fin.makeup.gain.value=1+(p.makeup-1)*a;
 }
 async function ensureAudio(){
   if(ac) return;
@@ -1068,6 +1142,7 @@ async function ensureAudio(){
     meterNode.connect(ac.destination);
     wireMaster();
     engineNode.port.postMessage({type:"kit",index:state.kit});
+    for(let v=0;v<9;v++)sendSample(v);   // re-send user samples after engine (re)start
     syncAll();
     requestAnimationFrame(meterLoop);
   }catch(err){
@@ -1217,7 +1292,17 @@ function buildEditor(){
   const head=document.createElement("div");head.className="editor-head";
   const idx=document.createElement("span");idx.className="voice-idx";idx.textContent=(state.selected+1);
   const nm=document.createElement("span");nm.className="voice-name";nm.textContent=state.voices[state.selected].name;
-  head.append(idx,nm);ed.appendChild(head);
+  head.append(idx,nm);
+  if(state.kit===3){
+    const ld=document.createElement("button");ld.className="cell-btn";ld.style.marginLeft="10px";ld.textContent=userSamples[state.selected]?"RELOAD":"LOAD";ld.title="load a sample into this slot (or drop a file anywhere on the editor)";
+    const fi=document.createElement("input");fi.type="file";fi.accept="audio/*";fi.style.display="none";
+    fi.onchange=()=>{ if(fi.files&&fi.files[0])loadSampleFile(fi.files[0],state.selected); };
+    ld.onclick=()=>fi.click();
+    head.append(ld,fi);
+    ed.ondragover=(e)=>{e.preventDefault();};
+    ed.ondrop=(e)=>{e.preventDefault();const df=e.dataTransfer;if(df&&df.files&&df.files[0])loadSampleFile(df.files[0],state.selected);};
+  } else { ed.ondragover=null; ed.ondrop=null; }
+  ed.appendChild(head);
   const vo=state.voices[state.selected],vid=state.selected;
   const params=vo.defs.filter(df=>!FX_KEYS[df.key]), fx=vo.defs.filter(df=>FX_KEYS[df.key]);
   // per-kit fixed frames: widest param/fx count across this kit, so racks don't jump between voices
@@ -1835,6 +1920,7 @@ async function atConnect(interactive){
 
 // ---- 2 + 3 :: OPEN + TRANSMIT ----
 async function runExport(){
+  if(state.kit===3){ atlog("KIT 4 export not wired yet :: sample kit exports come with the loop-export stage"); return; }
   const ex=document.getElementById("export"); ex.disabled=true;
   const at = atSession || await atConnect(true);
   if(!at){ ex.disabled=false; return; }
@@ -2112,7 +2198,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=135","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=139","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
@@ -2232,7 +2318,14 @@ function skinCycle(){const root=document.documentElement,o=["violet","amber","gh
 document.getElementById("skinBtn").onclick=()=>skinCycle();
 bgInit();document.getElementById("bgBtn").onclick=()=>bgCycle();document.getElementById("colBtn").onclick=()=>colCycle();
 (function(){var mv=document.getElementById("mvol");if(mv){mv.value=(state.master.vol!=null?state.master.vol:1);mv.oninput=function(){state.master.vol=parseFloat(mv.value);if(masterOut)masterOut.gain.value=state.master.vol;};mv.onchange=function(){if(typeof commit==="function")commit();};}})();
-function buildFinbar(){const bar=document.getElementById("finbar");if(!bar)return;bar.innerHTML="";const items=[["off","OFF"],["glue","GLUE"],["loud","LOUD"],["punch","PUNCH"],["wide","WIDE"],["wdist","W.DIST"],["clean","CLEAN"]];items.forEach(function(it){const b=document.createElement("button");b.textContent=it[1];b.dataset.fin=it[0];if(state.fin.preset===it[0])b.classList.add("on");b.onclick=function(){state.fin.preset=it[0];var kids=bar.children;for(var i=0;i<kids.length;i++)kids[i].classList.toggle("on",kids[i].dataset.fin===it[0]);if(fin)applyFinalizer();wireMaster();if(typeof commit==="function")commit();};bar.appendChild(b);});}
+function buildFinbar(){const bar=document.getElementById("finbar");if(!bar)return;bar.innerHTML="";const items=[["off","OFF"],["glue","GLUE"],["punch","PUNCH"],["loud","LOUD"],["air","AIR"],["warm","WARM"],["wide","WIDE"],["wdist","W.DIST"],["boombox","BOOMBOX"],["lofi","LOFI"]];items.forEach(function(it){const b=document.createElement("button");b.textContent=it[1];b.dataset.fin=it[0];if(state.fin.preset===it[0])b.classList.add("on");b.onclick=function(){state.fin.preset=it[0];var kids=bar.children;for(var i=0;i<kids.length;i++){if(kids[i].dataset&&kids[i].dataset.fin!==undefined)kids[i].classList.toggle("on",kids[i].dataset.fin===it[0]);}if(fin)applyFinalizer();wireMaster();if(typeof commit==="function")commit();};bar.appendChild(b);});
+  const wrap=document.createElement("span");wrap.className="finmix";
+  const lab=document.createElement("span");lab.className="finmixlab";lab.textContent="AMOUNT";
+  const sl=document.createElement("input");sl.type="range";sl.min="0";sl.max="1";sl.step="0.01";sl.value=String(state.fin.amount!=null?state.fin.amount:1);sl.className="mvol";sl.title="finalizer amount: morphs the whole chain, phase-clean";
+  const pct=document.createElement("span");pct.className="finmixlab";pct.textContent=Math.round((state.fin.amount!=null?state.fin.amount:1)*100)+"%";
+  sl.oninput=function(){state.fin.amount=parseFloat(sl.value);pct.textContent=Math.round(state.fin.amount*100)+"%";if(fin)applyFinalizer();};
+  sl.onchange=function(){if(typeof commit==="function")commit();};
+  wrap.appendChild(lab);wrap.appendChild(sl);wrap.appendChild(pct);bar.appendChild(wrap);}
 buildFinbar();
 document.getElementById("hideBtn").onclick=()=>{const r=document.documentElement;r.classList.toggle("zen");const b=document.getElementById("hideBtn");if(b)b.textContent=r.classList.contains("zen")?"SHOW":"HIDE";};
 (function(){var el=document.getElementById("psWarn"),b=document.getElementById("psOk"),ok=false;try{ok=!!localStorage.getItem("brachinski_ps_ok");}catch(e){}if(!ok&&el)el.classList.add("show");if(b)b.onclick=function(){try{localStorage.setItem("brachinski_ps_ok","1");}catch(e){}if(el)el.classList.remove("show");};})();
