@@ -422,7 +422,7 @@ html.ghost .crt{opacity:.14}
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 157</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 163</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -565,7 +565,7 @@ function makeKit1(){ return KIT1_PRESETS.map(p=>new GenVoice(p)); }
 // ═══════════════════════════════════════════════════════════════
 class KickVoice {
   constructor(soft){ this.phase=0;this.ampEnv=0;this.amp=0;this.pitchEv=0;this.nz=0;this.active=false;
-    this.decay=soft?0.35:0.45;this.tune=soft?0.3:0.5;this.tone=0.05;this.gain=soft?0.7:0.9;this.soft=soft;this.pan=0; }
+    this.decay=soft?0.35:0.10;this.tune=soft?0.3:0.28;this.tone=0.05;this.gain=soft?0.7:0.9;this.soft=soft;this.pan=0; }
   trigger(vel){ this.ampEnv=vel;this.pitchEv=1;this.active=true; }                 // no phase reset :: continuous waveform on retrigger (declick)
   tick(){ if(!this.active)return 0;
     const baseFreq=this.soft?20+this.tune*60:30+this.tune*90;
@@ -581,7 +581,7 @@ class KickVoice {
 }
 class SnareVoice {
   constructor(){ this.env=0;this.envPhase=0;this.envPeak=0;this.lpZ=0;this.hpZ=0;this.hpZ2=0;this.active=false;
-    this.attack=0.001;this.decay=0.12;this.noise=0;this.gain=0.75;this.pan=0; }
+    this.attack=0.001;this.decay=0.062;this.noise=0;this.gain=0.82;this.pan=0; }
   trigger(vel){ this.env=0;this.envPhase=0;this.envPeak=vel;this.lpZ=0;this.hpZ=0;this.hpZ2=0;this.active=true; }
   tick(){ if(!this.active)return 0;
     if(this.envPhase===0){ this.env+=(this.envPeak-this.env)*(1/(this.attack*sampleRate)); if(this.env>=this.envPeak*0.99)this.envPhase=1; }
@@ -629,7 +629,7 @@ class TomVoice {
 }
 class WoodVoice {
   constructor(){ this.phase1=0;this.phase2=0;this.env=0;this.lpZ=0;this.active=false;
-    this.decay=0.045;this.tune=0.6;this.gain=0.6;this.pan=0.4;this.click=0; }
+    this.decay=0.015;this.tune=1.0;this.gain=0.45;this.pan=0.4;this.click=0; }
   trigger(vel){ this.env=vel;this.phase1=0;this.phase2=0;this.lpZ=0;this.active=true;this.click=vel; }
   tick(){ if(!this.active)return 0;
     const freq1=300+this.tune*600;
@@ -642,13 +642,16 @@ class WoodVoice {
     return this.lpZ*this.env*this.gain; }
 }
 function makeKit2(){
-  const k=[ new KickVoice(false),new KickVoice(true),new SnareVoice(),new ClapVoice(),
-    new HihatVoice(0.035),new HihatVoice(0.3),new TomVoice(0.45,0.3),new TomVoice(0.3,-0.3),new WoodVoice() ];
+  const k=[ new KickVoice(false),new KickVoice(true),new SnareVoice(),new HihatVoice(0.024),
+    new HihatVoice(0.035),new HihatVoice(0.3),new TomVoice(0.28,0.3),new TomVoice(0.21,-0.3),new WoodVoice() ];
   k[5].pan=0.3;
-  k.forEach(vo=>{ vo.hp=20; vo.lp=18000; vo.drive=0; vo.sat=0; vo.redux=0; vo.fold=0; vo.punch=0; vo.body=0; });
-  k[2].hp=120; k[3].hp=300; k[4].hp=3000; k[5].hp=2500;          // noise voices: brighter HP defaults
+  k[6].decay=0.027; k[7].decay=0.047;                             // toms: tighter default decay (REV159) · range unchanged, dial up if wanted
+  k.forEach(vo=>{ vo.hp=20; vo.lp=18000; vo.hpq=0; vo.lpq=0; vo.drive=0; vo.sat=0; vo.redux=0; vo.fold=0; vo.punch=0; vo.body=0; });
+  k[2].hp=1700; k[3].hp=3000; k[4].hp=3000; k[5].hp=2500;          // noise voices: brighter HP defaults · snare 1.7k · shaker 3.0k (REV162)
   [0,1,6,7,8].forEach(i=>k[i].lp=5000);                          // tonal voices (kicks/toms/wood): lower LP ceiling, default = off
-  const K2SMOOTH=["gain","hp","lp","tune","tone","drive","sat","fold","punch","body"];
+  k[2].drive=0.22; k[2].punch=0.24; k[2].body=0.21;             // snare default FX (REV161)
+  k[3].tune=0.98; k[3].noise=0.18; k[3].gain=1.0; k[3].pan=-0.30; k[3].attack=0.010;   // shaker default (ex-clap · closed-hihat engine · REV162)
+  const K2SMOOTH=["gain","hp","lp","hpq","lpq","tune","tone","drive","sat","fold","punch","body"];
   k.forEach(vo=>{ vo._t={}; K2SMOOTH.forEach(key=>{ if(vo[key]!==undefined)vo._t[key]=vo[key]; });   // smoothing targets (after defaults)
     vo.set=function(key,val){ if(this._t[key]!==undefined)this._t[key]=val; else this[key]=val; }; }); // smoothed keys glide; others immediate
   return k;
@@ -675,18 +678,34 @@ function bipFilt(vo,s){                                                        /
   vo._f1+=(s-vo._f1)*a; vo._f2+=(vo._f1-vo._f2)*a; return s-vo._f2;
 }// per-voice HP/LP for Kit 2 :: TPT zero-delay one-pole cascade (12 dB/oct, stable; cutoff may glide, recompute per sample)
 function kit2Filt(vo,x){
-  const hp=vo.hp||20, lp=vo.lp||18000;
+  const hp=vo.hp||20, lp=vo.lp||18000, lpq=vo.lpq||0, hpq=vo.hpq||0;
   if(lp<17500){
-    if(vo._lz1===undefined){vo._lz1=0;vo._lz2=0;}
-    const g=Math.tan(Math.PI*Math.min(lp,sampleRate*0.49)/sampleRate), G=g/(1+g);
-    let v=(x-vo._lz1)*G, y=v+vo._lz1; vo._lz1=y+v;
-    v=(y-vo._lz2)*G; y=v+vo._lz2; vo._lz2=y+v; x=y;
+    if(lpq>0.001){                                                             // resonant LP (TPT-SVF) :: snare L.RES · q 0.6..24.6
+      if(vo._sl1===undefined){vo._sl1=0;vo._sl2=0;}
+      const g=Math.tan(Math.PI*Math.min(lp,sampleRate*0.49)/sampleRate), q=0.6+lpq*lpq*24, k=1/q;
+      const a1=1/(1+g*(g+k)), a2=g*a1, a3=g*a2;
+      const v3=x-vo._sl2, v1=a1*vo._sl1+a2*v3, v2=vo._sl2+a2*vo._sl1+a3*v3;
+      vo._sl1=2*v1-vo._sl1; vo._sl2=2*v2-vo._sl2; x=v2;
+    } else {
+      if(vo._lz1===undefined){vo._lz1=0;vo._lz2=0;}
+      const g=Math.tan(Math.PI*Math.min(lp,sampleRate*0.49)/sampleRate), G=g/(1+g);
+      let v=(x-vo._lz1)*G, y=v+vo._lz1; vo._lz1=y+v;
+      v=(y-vo._lz2)*G; y=v+vo._lz2; vo._lz2=y+v; x=y;
+    }
   }
   if(hp>25){
-    if(vo._hz1===undefined){vo._hz1=0;vo._hz2=0;}
-    const g=Math.tan(Math.PI*Math.min(hp,sampleRate*0.49)/sampleRate), G=g/(1+g);
-    let v=(x-vo._hz1)*G, l1=v+vo._hz1; vo._hz1=l1+v; let h=x-l1;
-    v=(h-vo._hz2)*G; let l2=v+vo._hz2; vo._hz2=l2+v; x=h-l2;
+    if(hpq>0.001){                                                             // resonant HP (TPT-SVF) :: snare H.RES · q 0.6..24.6
+      if(vo._sh1===undefined){vo._sh1=0;vo._sh2=0;}
+      const g=Math.tan(Math.PI*Math.min(hp,sampleRate*0.49)/sampleRate), q=0.6+hpq*hpq*24, k=1/q;
+      const a1=1/(1+g*(g+k)), a2=g*a1, a3=g*a2;
+      const v3=x-vo._sh2, v1=a1*vo._sh1+a2*v3, v2=vo._sh2+a2*vo._sh1+a3*v3;
+      vo._sh1=2*v1-vo._sh1; vo._sh2=2*v2-vo._sh2; x=x-k*v1-v2;
+    } else {
+      if(vo._hz1===undefined){vo._hz1=0;vo._hz2=0;}
+      const g=Math.tan(Math.PI*Math.min(hp,sampleRate*0.49)/sampleRate), G=g/(1+g);
+      let v=(x-vo._hz1)*G, l1=v+vo._hz1; vo._hz1=l1+v; let h=x-l1;
+      v=(h-vo._hz2)*G; let l2=v+vo._hz2; vo._hz2=l2+v; x=h-l2;
+    }
   }
   return x;
 }
@@ -1041,7 +1060,7 @@ registerProcessor("rumble-fx", RumbleFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="157";
+const REV="163";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=9;
 
 function d(key,min,max,def,log,label,rev){return {key,min,max,def,log:!!log,label,rev:!!rev};}
@@ -1049,15 +1068,15 @@ function d(key,min,max,def,log,label,rev){return {key,min,max,def,log:!!log,labe
 const HP=(def)=>d("hp",20,8000,def,1,"HP"), LP=(def)=>d("lp",200,18000,def,1,"LP",true), LPt=(def)=>d("lp",80,5000,def,1,"LP",true);
 const FXD=()=>[d("drive",0,1,0),d("sat",0,1,0),d("redux",0,1,0),d("fold",0,1,0),d("punch",0,1,0),d("body",0,1,0)];
 const KIT2V=[
- {name:"KICK 1",defs:[d("decay",0.01,2,0.45,1),d("tune",0.1,1,0.5),d("tone",0.01,1,0.05),d("gain",0.01,1,0.9),HP(20),LPt(5000),...FXD()]},
+ {name:"KICK 1",defs:[d("decay",0.01,2,0.10,1),d("tune",0.1,1,0.28),d("tone",0.01,1,0.05),d("gain",0.01,1,0.9),HP(20),LPt(5000),...FXD()]},
  {name:"KICK 2",defs:[d("decay",0.01,2,0.35,1),d("tune",0.1,1,0.3),d("gain",0.01,1,0.7),HP(20),LPt(5000),...FXD()]},
- {name:"SNARE", defs:[d("attack",0.001,0.05,0.001,1),d("decay",0.01,1,0.12,1),d("noise",0,1,0),d("gain",0.01,1,0.75),d("pan",-1,1,0),HP(120),LP(18000),...FXD()]},
- {name:"CLAP",  defs:[d("decay",0.05,0.6,0.2,1),d("spread",0.004,0.03,0.012),d("tone",0,1,0.5),d("gain",0.01,1,0.7),d("pan",-1,1,0),HP(300),LP(18000),...FXD()]},
+ {name:"SNARE", defs:[d("attack",0.001,0.05,0.001,1),d("decay",0.01,1,0.062,1),d("noise",0,1,0),d("gain",0.01,1,0.82),d("pan",-1,1,0),HP(1700),d("hpq",0,1,0,0,"H.RES"),LP(18000),d("lpq",0,1,0,0,"L.RES"),d("drive",0,1,0.22),d("sat",0,1,0),d("redux",0,1,0),d("fold",0,1,0),d("punch",0,1,0.24),d("body",0,1,0.21)]},
+ {name:"SHAKER",defs:[d("attack",0.001,0.02,0.010,1),d("decay",0.005,0.5,0.024,1),d("tune",0.1,1,0.98),d("noise",0,1,0.18),d("gain",0.01,1,1),d("pan",-1,1,-0.3),HP(3000),LP(18000),...FXD()]},
  {name:"CL HAT",defs:[d("attack",0.001,0.02,0.001,1),d("decay",0.005,0.5,0.035,1),d("tune",0.1,1,0.85),d("noise",0,1,0),d("gain",0.01,1,0.5),d("pan",-1,1,-0.3),HP(3000),LP(18000),...FXD()]},
  {name:"OP HAT",defs:[d("attack",0.001,0.02,0.001,1),d("decay",0.05,0.8,0.3,1),d("tune",0.1,1,0.85),d("noise",0,1,0),d("gain",0.01,1,0.5),d("pan",-1,1,0.3),HP(2500),LP(18000),...FXD()]},
- {name:"TOM 1", defs:[d("decay",0.01,2,0.5,1),d("tune",0.1,1,0.45),d("gain",0.01,1,0.8),d("pan",-1,1,0.3),HP(20),LPt(5000),...FXD()]},
- {name:"TOM 2", defs:[d("decay",0.01,2,0.5,1),d("tune",0.1,1,0.3),d("gain",0.01,1,0.8),d("pan",-1,1,-0.3),HP(20),LPt(5000),...FXD()]},
- {name:"WOOD",  defs:[d("decay",0.01,0.4,0.045,1),d("tune",0.1,1,0.6),d("gain",0.01,1,0.6),d("pan",-1,1,0.4),HP(20),LPt(5000),...FXD()]}
+ {name:"TOM 1", defs:[d("decay",0.01,2,0.027,1),d("tune",0.1,1,0.28),d("gain",0.01,1,0.8),d("pan",-1,1,0.3),HP(20),LPt(5000),...FXD()]},
+ {name:"TOM 2", defs:[d("decay",0.01,2,0.047,1),d("tune",0.1,1,0.21),d("gain",0.01,1,0.8),d("pan",-1,1,-0.3),HP(20),LPt(5000),...FXD()]},
+ {name:"WOOD",  defs:[d("decay",0.01,0.4,0.015,1),d("tune",0.1,1,1),d("gain",0.01,1,0.45),d("pan",-1,1,0.4),HP(20),LPt(5000),...FXD()]}
 ];
 // KIT 1 :: ported original uTonic voices (osc + filtered noise + per-voice FX chain)
 const K1KEYS=[
@@ -2422,7 +2441,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=157","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=163","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
