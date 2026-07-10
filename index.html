@@ -444,7 +444,7 @@ html.ghost .crt{opacity:.14}
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 240</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 241</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -1170,7 +1170,7 @@ registerProcessor("rumble-fx", RumbleFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="240";
+const REV="241";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=9;
 
 function d(key,min,max,def,log,label,rev){return {key,min,max,def,log:!!log,label,rev:!!rev};}
@@ -2322,27 +2322,27 @@ async function renderLoop(opt){
   await ensureAudio(); if(ac.state==="suspended")await ac.resume();
   const sr=ac.sampleRate, bpm=state.bpm, bars=curPat().bars, stepsPerLoop=bars*STEPS_PER_BAR;
   const loopSec=stepsPerLoop*(60/bpm/4), loopSamp=Math.round(loopSec*sr);
-  const recNode=new AudioWorkletNode(ac,"loop-recorder",{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[2]});
-  try{masterOut.disconnect(meterNode);}catch(e){}
-  masterOut.connect(recNode); recNode.connect(meterNode);        // insert recorder into the path -> guaranteed signal + live monitoring continues
-  const done=new Promise(res=>{ recNode.port.onmessage=(e)=>res(e.data); });
-  const wasPlaying=state.playing; if(wasPlaying)stopSeq();
-  startSeq();
-  const loop0=loop0Time;
-  recNode.port.postMessage("start");
-  const captureEnd=loop0+(warmup+loops)*loopSec;               // warmup fills reverb/delay tails, then the clean take
-  await new Promise(r=>setTimeout(r, Math.max(0,(captureEnd-ac.currentTime+0.3))*1000));
-  recNode.port.postMessage("stop");
-  const data=await done;
-  stopSeq();
-  try{recNode.disconnect();}catch(e){} try{masterOut.disconnect(recNode);}catch(e){} masterOut.connect(meterNode);   // restore original routing
-  if(wasPlaying)startSeq();
-  const chunks=data.chunks, startFrame=data.startFrame, totalBlocks=chunks.length/2, total=totalBlocks*128;
-  const bigL=new Float32Array(total), bigR=new Float32Array(total);
-  for(let b=0;b<totalBlocks;b++){ bigL.set(chunks[b*2], b*128); bigR.set(chunks[b*2+1], b*128); }
-  const off=Math.round((loop0+warmup*loopSec)*sr)-startFrame;   // sample offset of the target loop in the contiguous capture
+  const sp=ac.createScriptProcessor(2048,2,2);
+  const capL=[], capR=[]; let t0Rec=-1;
+  sp.onaudioprocess=(e)=>{ if(t0Rec<0)t0Rec=e.playbackTime;                                    // ac time of the first captured sample (for alignment only)
+    capL.push(new Float32Array(e.inputBuffer.getChannelData(0))); capR.push(new Float32Array(e.inputBuffer.getChannelData(1)));
+    const o0=e.outputBuffer.getChannelData(0), o1=e.outputBuffer.getChannelData(1); o0.fill(0); o1.fill(0); };   // side-tap: pass silence, never touch the live path
+  masterOut.connect(sp); sp.connect(ac.destination);
+  const wasPlaying=state.playing;
+  try{
+    if(wasPlaying)stopSeq();
+    startSeq();
+    const captureEnd=loop0Time+(warmup+loops)*loopSec;
+    await new Promise(r=>setTimeout(r, Math.max(0,(captureEnd-ac.currentTime+0.3))*1000));
+  } finally {
+    stopSeq(); try{masterOut.disconnect(sp);}catch(e){} try{sp.disconnect();}catch(e){}
+    if(wasPlaying)startSeq();
+  }
+  const total=capL.reduce((a,b)=>a+b.length,0), bigL=new Float32Array(total), bigR=new Float32Array(total);
+  let o=0; for(let i=0;i<capL.length;i++){ bigL.set(capL[i],o); bigR.set(capR[i],o); o+=capL[i].length; }   // contiguous in capture order = no gaps/clicks
+  const off=Math.max(0, Math.round((loop0Time+warmup*loopSec-t0Rec)*sr));                                   // align target loop to loop start
   const N=loops*loopSamp, L=new Float32Array(N), R=new Float32Array(N);
-  for(let i=0;i<N;i++){ const idx=off+i; if(idx>=0&&idx<total){ L[i]=bigL[idx]; R[i]=bigR[idx]; } }
+  for(let i=0;i<N;i++){ const idx=off+i; if(idx<total){ L[i]=bigL[idx]; R[i]=bigR[idx]; } }
   return encodeWavStereo(L,R,sr);
 }
 function downloadBlob(blob,name){ const u=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=u; a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),2000); }
@@ -2712,7 +2712,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=240","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=241","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
