@@ -173,7 +173,7 @@ body{
 .rack .rl{font-size:9px;letter-spacing:2px;color:var(--amber);opacity:.8}
 .knobs{display:flex;gap:10px;flex-wrap:nowrap}
 /* DRIVE/CRUSH toggle: sits on the // FX header line, over the rightmost knob */
-.fx-sw{position:absolute;top:7px;right:11px;display:flex;align-items:center;gap:5px;background:none;border:none;padding:0;cursor:pointer;font-family:var(--mono);font-size:8px;letter-spacing:1px;line-height:1}
+.fx-sw{position:absolute;top:-15px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:5px;background:none;border:none;padding:0;cursor:pointer;font-family:var(--mono);font-size:8px;letter-spacing:1px;line-height:1;white-space:nowrap;z-index:2}
 .fx-sw .tr{position:relative;width:24px;height:12px;border-radius:7px;background:rgba(0,0,0,.5);border:1px solid var(--line)}
 .fx-sw .nb{position:absolute;top:1px;left:1px;width:8px;height:8px;border-radius:50%;background:var(--amber);box-shadow:0 0 6px var(--amber-glow);transition:left .12s}
 .fx-sw.crush .nb{left:13px;background:var(--signal);box-shadow:0 0 6px var(--signal)}
@@ -191,6 +191,22 @@ body{
 .mfx.add.open{flex-direction:column;opacity:1;justify-content:flex-start;align-items:stretch}
 .mfx.add .mfx-add{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--dim);text-align:center}
 .kbd-overlay{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.65)}
+.rev-ov{position:fixed;inset:0;z-index:220;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.72)}
+.rev-panel{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1.5px solid var(--line-hi);border-radius:9px;padding:18px 18px 14px;width:min(440px,92vw);max-height:82vh;display:flex;flex-direction:column;gap:10px;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+.rev-h{font-family:var(--pixel);font-size:16px;letter-spacing:2px;color:var(--amber);text-shadow:0 0 10px var(--amber-glow)}
+.rev-note{font-family:var(--mono);font-size:10px;letter-spacing:.5px;color:var(--dim)}
+.rev-note.warn{color:var(--signal)}
+.rev-list{display:flex;flex-direction:column;gap:6px;overflow-y:auto;padding:2px 0}
+.rev-row{display:flex;align-items:center;gap:8px}
+.rev-play{flex:0 0 auto;width:28px;height:28px;border-radius:50%;border:1px solid var(--line-hi);background:#100b1c;color:var(--amber);cursor:pointer;font-size:10px}
+.rev-play:hover{background:var(--amber);color:#12100e}
+.rev-name{flex:1;font-family:var(--mono);font-size:12px;color:var(--ink);background:#100b1c;border:1px solid var(--line-hi);border-radius:4px;padding:6px 8px;min-width:0}
+.rev-ext{flex:0 0 auto;font-family:var(--mono);font-size:10px;color:var(--dim)}
+.rev-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
+.rev-btn{font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:8px 14px;border-radius:4px;border:1px solid var(--line-hi);background:#0c0814;color:var(--dim);cursor:pointer}
+.rev-btn:hover{color:#fff}
+.rev-btn.ok{background:var(--amber);color:#12100e;border-color:var(--amber);font-weight:700}
+.rev-btn.ok:hover{box-shadow:0 0 10px var(--amber-glow)}
 .kbd-pop{background:var(--panel);border:1px solid var(--line-hi);border-radius:10px;padding:18px;box-shadow:0 12px 50px rgba(0,0,0,.6)}
 .kbd-title{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--amber);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:30px}
 .kbd-piano{position:relative;display:flex;height:120px;user-select:none}
@@ -422,12 +438,13 @@ html.ghost .crt{opacity:.14}
     <div class="transport" style="gap:12px">
       <button class="btn" id="uplink">UPLINK</button>
       <button class="btn play" id="export" disabled>EXPORT &rarr; MACHINISTE</button>
+      <button class="btn" id="looptest" title="TEMP :: render the loop (fx warmed) and download a wav">LOOP &rarr; WAV</button>
       <span class="readout" id="atstatus" style="flex:1;min-width:200px;text-align:left">// standby</span>
     </div>
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 231</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 237</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -1095,7 +1112,7 @@ class RumbleFX extends AudioWorkletProcessor {
     const combLen=[1557,1617,1491,1422], apLen=[225,341];
     this.combs=combLen.map(L=>({buf:new Float32Array(L),pos:0,store:0,len:L}));
     this.aps=apLen.map(L=>({buf:new Float32Array(L),pos:0,len:L}));
-    this.hpS=0; this.lp1=0; this.lp2=0; this.env=0;
+    this.hpS=0; this.lp1=0; this.lp2=0; this.env=0; this.flt=0; this.ff1=0; this.ff2=0;   // flt = bipolar filter on the tail only
     this.port.onmessage=(e)=>{const m=e.data; if(m&&m.type!==undefined&&(m.type in this))this[m.type]=m.value;};
   }
   process(inputs,outputs){
@@ -1105,6 +1122,9 @@ class RumbleFX extends AudioWorkletProcessor {
     const fb=0.7+this.decay*0.28, damp=0.85-this.tone*0.5, drive=1+this.drive*7;
     const lpCut=60+this.tone*160, lpCoef=1-Math.exp(-6.2832*lpCut/sampleRate);
     const hpCoef=1-Math.exp(-6.2832*28/sampleRate);
+    let fLP=false,fHP=false,fA=0;                                                       // bipolar filter on the effect tail only
+    if(this.flt<-0.01){ fLP=true; const cut=18000*Math.pow(150/18000,-this.flt); fA=1-Math.exp(-6.2832*cut/sampleRate); }
+    else if(this.flt>0.01){ fHP=true; const cut=20*Math.pow(6000/20,this.flt); fA=1-Math.exp(-6.2832*cut/sampleRate); }
     for(let i=0;i<n;i++){
       const dl=inL?inL[i]:0, dr=inR?inR[i]:0, mono=(dl+dr)*0.5;
       const a=mono<0?-mono:mono;
@@ -1119,6 +1139,8 @@ class RumbleFX extends AudioWorkletProcessor {
       let tail=Math.tanh(acc*drive);
       this.hpS+=hpCoef*(tail-this.hpS); tail=tail-this.hpS;                              // HP ~28Hz (kill subsonic)
       this.lp1+=lpCoef*(tail-this.lp1); this.lp2+=lpCoef*(this.lp1-this.lp2); tail=this.lp2;   // 2-pole LP to sub
+      if(fLP){ this.ff1+=fA*(tail-this.ff1); this.ff2+=fA*(this.ff1-this.ff2); tail=this.ff2; }        // FILTER on tail only
+      else if(fHP){ this.ff1+=fA*(tail-this.ff1); this.ff2+=fA*(this.ff1-this.ff2); tail=tail-this.ff2; }
       tail*=1-this.duck*Math.min(1,this.env*6);                                          // duck against the kick -> the pump
       const rum=tail*this.mix*2.4;                                                       // mono rumble added to the dry
       L[i]=dl+rum; if(R)R[i]=dr+rum;
@@ -1135,7 +1157,7 @@ registerProcessor("rumble-fx", RumbleFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="231";
+const REV="237";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=9;
 
 function d(key,min,max,def,log,label,rev){return {key,min,max,def,log:!!log,label,rev:!!rev};}
@@ -1438,7 +1460,7 @@ function meterLoop(){
 }
 
 // ---- scheduler (sample-accurate via worklet event queue) ----
-let curStep=0,nextTime=0,timer=null,absStep=0;
+let curStep=0,nextTime=0,timer=null,absStep=0,loop0Time=0;
 const LOOK=0.025,AHEAD=0.12,playQ=[];
 function sec16(){return (60/state.bpm)/4;}
 function schedule(){
@@ -1482,7 +1504,7 @@ function schedule(){
 async function startSeq(){
   try{await ensureAudio();}catch(e){return;}
   if(ac.state==="suspended")await ac.resume();
-  state.playing=true;curStep=0;absStep=0;nextTime=ac.currentTime+0.08;lastLit=-1;
+  state.playing=true;curStep=0;absStep=0;nextTime=ac.currentTime+0.08;loop0Time=nextTime;lastLit=-1;
   const pb=document.getElementById("play");pb.classList.add("on");pb.textContent="STOP";
   document.getElementById("status").classList.add("run");
   setStatus("RUN // PTN "+(state.curPattern+1)+" · "+state.bpm+" BPM");
@@ -1601,23 +1623,25 @@ function buildEditor(){
   const mk=(label,defs,cls,fixedN)=>{const rack=document.createElement("div");rack.className="rack "+cls;rack.style.width=rackW(fixedN);
     const rl=document.createElement("div");rl.className="rl";rl.textContent=label;rack.appendChild(rl);
     const kc=document.createElement("div");kc.className="knobs";
+    let driveWrap=null;
     defs.forEach(def=>{
       if(setMode){ const gs=setKnobGS(def); kc.appendChild(makeKnob(def,gs.get,gs.set,(cls==="fx"&&hasToggle&&def.key==="drive")?"DRIVE":null,false)); }
       else if(cls==="fx"&&hasToggle&&def.key==="drive"){
         const get=()=>vo.vals[vo.fxMode==="crush"?"crush":"drive"];
         const set=(val)=>{const k=vo.fxMode==="crush"?"crush":"drive";vo.vals[k]=val;sendParam(vid,k,val);};
-        kc.appendChild(makeKnob(def,get,set,vo.fxMode==="crush"?"CRUSH":"DRIVE",true));
+        driveWrap=makeKnob(def,get,set,vo.fxMode==="crush"?"CRUSH":"DRIVE",true); kc.appendChild(driveWrap);
       }else{
         kc.appendChild(makeKnob(def,()=>vo.vals[def.key],(val)=>{vo.vals[def.key]=val;sendParam(vid,def.key,val);},null,true));
       }
     });
     rack.appendChild(kc);
-    if(cls==="fx"&&hasToggle&&!setMode){
+    if(cls==="fx"&&hasToggle&&!setMode&&driveWrap){
+      driveWrap.style.position="relative";
       const sw=document.createElement("button");sw.className="fx-sw"+(vo.fxMode==="crush"?" crush":"");
       sw.title="DRIVE / CRUSH : one knob, two flavours of dirt \u00b7 each holds its own value, only the lit one sounds";
       sw.innerHTML='<span class="sl">DRV</span><span class="tr"><span class="nb"></span></span><span class="sr">CRU</span>';
-      sw.onclick=()=>{vo.fxMode=vo.fxMode==="crush"?"drive":"crush";sendParam(vid,"drive",vo.fxMode==="drive"?vo.vals.drive:0);sendParam(vid,"crush",vo.fxMode==="crush"?vo.vals.crush:0);buildEditor();if(typeof commit==="function")commit();};
-      rack.appendChild(sw);
+      sw.onclick=(e)=>{e.stopPropagation();vo.fxMode=vo.fxMode==="crush"?"drive":"crush";sendParam(vid,"drive",vo.fxMode==="drive"?vo.vals.drive:0);sendParam(vid,"crush",vo.fxMode==="crush"?vo.vals.crush:0);buildEditor();if(typeof commit==="function")commit();};
+      driveWrap.appendChild(sw);
     }
     return rack;};
   racks.appendChild(mk("// PARAMS",params,"params",mp));
@@ -1765,7 +1789,7 @@ function buildModuleNodes(m){
   }
 }
 function rumbleSend(m){ if(!m._nodes||!m._nodes.rum)return; const p=m._nodes.rum.port;
-  ["decay","drive","tone","duck","mix"].forEach(k=>p.postMessage({type:k,value:(m[k]!=null?m[k]:0)})); }
+  ["decay","drive","tone","duck","mix","flt"].forEach(k=>p.postMessage({type:k,value:(m[k]!=null?m[k]:0)})); }
 function initMasterNodes(){if(!ac)return;if(masterOut)masterOut.gain.value=(state.master.vol!=null?state.master.vol:1);buildFinalizer();state.master.modules.forEach(m=>{if(m.kind!=="dist"&&m.kind!=="empty")buildModuleNodes(m);});}
 function wireMaster(){
   if(!ac||!masterIn||!masterOut)return;
@@ -2076,7 +2100,7 @@ function appendModuleKnobs(m,kc){
     K(d("tone",0,1,0.4,0,"TONE"),()=>m.tone,(v)=>{m.tone=v;P("tone");});
     K(d("duck",0,1,0.7,0,"DUCK"),()=>m.duck,(v)=>{m.duck=v;P("duck");});
     K(d("mix",0,1,0.5,0,"MIX"),()=>m.mix,(v)=>{m.mix=v;P("mix");});
-    {const fd=d("flt",-1,1,0,0,"FILTER");fd.detent=0;K(fd,()=>(m.flt!=null?m.flt:0),(v)=>{m.flt=v;applyModFilter(m);});}
+    {const fd=d("flt",-1,1,0,0,"FILTER");fd.detent=0;K(fd,()=>(m.flt!=null?m.flt:0),(v)=>{m.flt=v;P("flt");});}
   }
   if(m.kind!=="dist"&&m.kind!=="glitch"&&m.kind!=="rumble"){const md=d("mix",0,1,0.25,0);md.label="MIX";K(md,()=>(m.mix!=null?m.mix:0.25),(v)=>{m.mix=v;if(m._nodes){m._nodes.dry.gain.value=1-v;m._nodes.wet.gain.value=v;}});}
 }
@@ -2240,6 +2264,7 @@ function setSlug(){
   if(!s){ const d=new Date(), p=n=>String(n).padStart(2,"0"); s=p(d.getMonth()+1)+p(d.getDate())+"-"+p(d.getHours())+p(d.getMinutes()); }
   return s;
 }
+function voiceSlug(v){ const nm=(state.voices[v]&&state.voices[v].name)||("voice"+(v+1)); return nm.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")||("voice"+(v+1)); }   // name from the actual current voice, not the hardcoded set-1 slugs
 
 // ---- WAV + one-shot render (uses CURRENT edited params) ----
 function encodeWav(f32, sr){
@@ -2269,6 +2294,37 @@ async function renderShot(v){
 }
 
 // ---- pattern helpers (machiniste-native: 128 steps, 16th grid) ----
+function encodeWavStereo(L, R, sr){
+  const len=Math.min(L.length,R.length), ab=new ArrayBuffer(44+len*4), dv=new DataView(ab);
+  const w=(o,s)=>{ for(let i=0;i<s.length;i++) dv.setUint8(o+i,s.charCodeAt(i)); };
+  w(0,"RIFF"); dv.setUint32(4,36+len*4,true); w(8,"WAVE"); w(12,"fmt ");
+  dv.setUint32(16,16,true); dv.setUint16(20,1,true); dv.setUint16(22,2,true);
+  dv.setUint32(24,sr,true); dv.setUint32(28,sr*4,true); dv.setUint16(32,4,true); dv.setUint16(34,16,true);
+  w(36,"data"); dv.setUint32(40,len*4,true);
+  let o=44; for(let i=0;i<len;i++){ let l=Math.max(-1,Math.min(1,L[i])), r=Math.max(-1,Math.min(1,R[i])); dv.setInt16(o,l<0?l*0x8000:l*0x7fff,true); dv.setInt16(o+2,r<0?r*0x8000:r*0x7fff,true); o+=4; }
+  return new Blob([ab],{type:"audio/wav"});
+}
+async function renderLoop(opt){
+  opt=opt||{}; const warmup=(opt.warmup!=null?opt.warmup:2), loops=(opt.loops||1);
+  await ensureAudio(); if(ac.state==="suspended")await ac.resume();
+  const sr=ac.sampleRate, bpm=state.bpm, bars=curPat().bars, stepsPerLoop=bars*STEPS_PER_BAR;
+  const loopSec=stepsPerLoop*(60/bpm/4);
+  const rec=ac.createScriptProcessor(4096,2,2); const blocks=[];
+  rec.onaudioprocess=(e)=>{ blocks.push({t:e.playbackTime, L:new Float32Array(e.inputBuffer.getChannelData(0)), R:new Float32Array(e.inputBuffer.getChannelData(1))});
+    const o0=e.outputBuffer.getChannelData(0), o1=e.outputBuffer.getChannelData(1); o0.fill(0); o1.fill(0); };   // pass silence (tap only)
+  masterOut.connect(rec); rec.connect(ac.destination);
+  const wasPlaying=state.playing; if(wasPlaying)stopSeq();
+  startSeq();
+  const t0=loop0Time, captureStart=t0+warmup*loopSec, captureEnd=captureStart+loops*loopSec;   // warmup fills reverb/delay tails, then capture clean
+  await new Promise(r=>setTimeout(r, Math.max(0,(captureEnd-ac.currentTime+0.25))*1000));
+  stopSeq();
+  try{masterOut.disconnect(rec);}catch(e){} try{rec.disconnect();}catch(e){}
+  if(wasPlaying)startSeq();
+  const nSamp=Math.round(loops*loopSec*sr), L=new Float32Array(nSamp), R=new Float32Array(nSamp);
+  for(const b of blocks){ const off=Math.round((b.t-captureStart)*sr); for(let i=0;i<b.L.length;i++){ const idx=off+i; if(idx>=0&&idx<nSamp){ L[idx]=b.L[i]; R[idx]=b.R[i]; } } }
+  return encodeWavStereo(L,R,sr);
+}
+function downloadBlob(blob,name){ const u=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=u; a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),2000); }
 function patternHasContent(p){ return p.steps.some(row=>row.some(s=>s>0)); }
 function steps128(pi, ch, len){
   const row=state.patterns[pi].steps[ch], arr=new Array(128);
@@ -2298,9 +2354,42 @@ async function atConnect(interactive){
 }
 
 // ---- 2 + 3 :: OPEN + TRANSMIT ----
+function reviewSamples(items){
+  return new Promise((resolve,reject)=>{
+    const ov=document.createElement("div"); ov.className="rev-ov";
+    const urls=[]; let current=null;
+    const panel=document.createElement("div"); panel.className="rev-panel";
+    const h=document.createElement("div"); h.className="rev-h"; h.textContent="REVIEW & UPLOAD \u00b7 "+items.length+" sample"+(items.length>1?"s":""); panel.appendChild(h);
+    const note=document.createElement("div"); note.className="rev-note"; note.textContent="audiotool uploads are permanent \u00b7 audition + name each one, then commit"; panel.appendChild(note);
+    const list=document.createElement("div"); list.className="rev-list"; const inputs=[];
+    items.forEach((it)=>{
+      const row=document.createElement("div"); row.className="rev-row";
+      const play=document.createElement("button"); play.className="rev-play"; play.textContent="\u25B6";
+      const url=URL.createObjectURL(it.blob); urls.push(url);
+      play.onclick=()=>{ if(current){current.pause();} current=new Audio(url); current.play(); };
+      const inp=document.createElement("input"); inp.className="rev-name"; inp.value=it.name; inp.spellcheck=false; inputs.push(inp);
+      const ext=document.createElement("span"); ext.className="rev-ext"; ext.textContent=".wav";
+      row.append(play,inp,ext); list.appendChild(row);
+    });
+    panel.appendChild(list);
+    const foot=document.createElement("div"); foot.className="rev-foot";
+    const cancel=document.createElement("button"); cancel.className="rev-btn"; cancel.textContent="CANCEL";
+    const ok=document.createElement("button"); ok.className="rev-btn ok"; ok.textContent="CONFIRM & UPLOAD";
+    const cleanup=()=>{ if(current)current.pause(); urls.forEach(u=>URL.revokeObjectURL(u)); ov.remove(); };
+    cancel.onclick=()=>{ cleanup(); reject(new Error("cancelled")); };
+    ok.onclick=()=>{ const names=inputs.map(x=>x.value.trim().toLowerCase().replace(/[^a-z0-9_\-]+/g,"-").replace(/^-+|-+$/g,""));
+      if(names.some(n=>!n)){ note.textContent="every sample needs a name before upload"; note.className="rev-note warn"; return; }
+      if(new Set(names).size!==names.length){ note.textContent="names must be unique"; note.className="rev-note warn"; return; }
+      cleanup(); resolve(names); };
+    foot.append(cancel,ok); panel.appendChild(foot); ov.appendChild(panel); document.body.appendChild(ov);
+    inputs[0]&&inputs[0].focus();
+  });
+}
 async function runExport(){
   if(state.kit===3){ atlog("KIT 4 export not wired yet :: sample kit exports come with the loop-export stage"); return; }
   const ex=document.getElementById("export"); ex.disabled=true;
+  const rawSet=(document.getElementById("setname").value||"").trim();
+  if(!rawSet){ atlog("STOP :: name the SET first \u00b7 audiotool uploads are permanent, they can't be deleted"); ex.disabled=false; return; }
   const at = atSession || await atConnect(true);
   if(!at){ ex.disabled=false; return; }
   try{
@@ -2311,20 +2400,27 @@ async function runExport(){
     if(doc.start) await doc.start();
 
     const c=at.client||at; const names=[];
-    for(let v=0;v<VOICES;v++){
-      const dn=SLUGS[v]+"_"+set+"_brachinski";
-      atlog("rendering + uploading "+dn+" ("+(v+1)+"/9)");
-      const blob=await renderShot(v);
-      const file=new File([blob], dn+".wav", {type:"audio/wav"});
-      const up=await c.samples.upload({ file, displayName:dn, kind:"one-shot", tags:["brachinski",set], preventTabClose:true });
-      if(up instanceof Error) throw up;
-      const onServer=await up.uploaded; if(onServer instanceof Error) throw onServer;
-      const meta=await up.ready;        if(meta instanceof Error) throw meta;
-      names.push(up.name);
-    }
-
+    // only the voices + patterns that actually have steps
     const usePats=[]; for(let i=0;i<PATTERNS;i++){ if(patternHasContent(state.patterns[i])) usePats.push(i); }
     if(usePats.length===0) usePats.push(state.curPattern);
+    const usedVoices=[]; for(let v=0;v<VOICES;v++){ if(usePats.some(pi=>state.patterns[pi].steps[v].some(s=>s>0))) usedVoices.push(v); }
+    if(usedVoices.length===0){ atlog("no steps set :: nothing to export"); ex.disabled=false; return; }
+    const withTimeout=(p,ms,lbl)=>Promise.race([Promise.resolve(p), new Promise((_,rej)=>setTimeout(()=>rej(new Error(lbl+" timed out ("+(ms/1000)+"s)")),ms))]);
+    async function uploadBlob(blob,dn){ for(let a=1;a<=3;a++){ try{
+        const file=new File([blob], dn+".wav", {type:"audio/wav"});
+        const up=await withTimeout(c.samples.upload({ file, displayName:dn, kind:"one-shot", tags:["brachinski",set], preventTabClose:true }),25000,"upload"); if(up instanceof Error) throw up;
+        const onServer=await withTimeout(up.uploaded,30000,"server-receive"); if(onServer instanceof Error) throw onServer;
+        const meta=await withTimeout(up.ready,30000,"server-process"); if(meta instanceof Error) throw meta;
+        return up.name;
+      }catch(e){ atlog(dn+" try "+a+"/3 failed :: "+(e.message||e)); if(a===3) throw new Error(dn+" gave up after 3 tries :: "+(e.message||e)); await new Promise(r=>setTimeout(r,1500)); atlog("retry "+dn+" ..."); } } }
+    atlog("rendering "+usedVoices.length+" one-shot(s) ...");
+    const items=[];
+    for(let k=0;k<usedVoices.length;k++){ const v=usedVoices[k]; items.push({v, blob:await renderShot(v), name:voiceSlug(v)+"_"+set+"_brachinski"}); }
+    let finalNames;
+    try{ finalNames=await reviewSamples(items); }
+    catch(e){ atlog("export cancelled :: nothing uploaded"); ex.disabled=false; return; }
+    for(let k=0;k<items.length;k++){ const dn=finalNames[k]; atlog("uploading "+dn+" ("+(k+1)+"/"+items.length+")"); names.push(await uploadBlob(items[k].blob,dn)); }
+
     atlog("building machiniste + "+usePats.length+" pattern(s) ...");
     await doc.modify((t)=>{
       const ses=names.map((n)=> t.create("sample",{ sampleName:n }));
@@ -2335,12 +2431,12 @@ async function runExport(){
         t.create("machinistePattern",{
           slot: mach.fields.patternSlots.array[pi].location,
           stepScaleIndex:1, length:len,
-          channelPatterns: Array.from({length:VOICES},(_,ch)=>({ steps: steps128(pi,ch,len) }))
+          channelPatterns: usedVoices.map((vi)=>({ steps: steps128(pi,vi,len) }))
         });
       });
       return mach;
     });
-    atlog("DONE :: machiniste "+set+"_brachinski + "+usePats.length+" pattern(s). open the desktop, reload (F5).");
+    atlog("DONE :: "+usedVoices.length+" voice(s) + "+usePats.length+" pattern(s). open the desktop, reload (F5).");
   }catch(e){ console.error(e); atlog("EXPORT failed :: "+(e.message||e)); ex.disabled=false; }
 }
 
@@ -2595,7 +2691,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=231","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=237","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
@@ -2994,6 +3090,7 @@ setStatus("READY // KIT 1 · "+VOICES+" VOICES");
 document.getElementById("projurl").value=AT_PROJECT;
 document.getElementById("uplink").onclick=()=>atConnect(true);
 document.getElementById("export").onclick=()=>runExport();
+document.getElementById("looptest").onclick=async(e)=>{ const b=e.target; const old=b.textContent; b.disabled=true; b.textContent="RENDERING..."; try{ const wav=await renderLoop({warmup:2,loops:1}); downloadBlob(wav,"brachinski_loop.wav"); b.textContent="DONE"; }catch(err){ console.error(err); b.textContent="FAIL"; } setTimeout(()=>{b.textContent=old;b.disabled=false;},1500); };
 atConnect(false);
 
 // ============================================================
@@ -3001,36 +3098,71 @@ atConnect(false);
 // (text is placeholder · mechanics + layering first)
 // ============================================================
 window.TIP_VOICE={
-  "Kick1":"KICK 1 : main kick, body + pitch-drop synthesised",
-  "Kick2":"KICK 2 : second kick, layer it or stand alone",
-  "Snare":"SNARE : noise + tone, snap and buzz from the knobs",
-  "Clap":"CLAP : stacked noise bursts, spread = hands lining up",
-  "CL Hat":"CLOSED HAT : short metallic tick",
-  "OP Hat":"OPEN HAT : longer noise wash, decay holds it open",
-  "Tom1":"TOM 1 : pitched drum, tune sets where it sits",
-  "Tom2":"TOM 2 : second tom, tune them apart",
-  "Wood":"WOOD : dry rim click, cuts through without weight"
+  "KICK 1":"KICK 1 : main kick, body + pitch-drop synthesised",
+  "KICK 2":"KICK 2 : second kick, layer it or stand alone",
+  "SNARE":"SNARE : noise + tone, snap and buzz from the knobs",
+  "CLAP":"CLAP : stacked noise bursts, spread = hands lining up",
+  "CL HAT":"CLOSED HAT : short metallic tick",
+  "OP HAT":"OPEN HAT : longer noise wash, decay holds it open",
+  "TOM 1":"TOM 1 : pitched drum, tune sets where it sits",
+  "TOM 2":"TOM 2 : second tom, tune them apart",
+  "WOOD":"WOOD : dry rim click, cuts through without weight",
+  "PING 1":"PING : pinged resonator · belly-heavy analog thump",
+  "PING 2":"PING : pinged resonator · low tribal knock",
+  "PING 3":"PING : pinged resonator · round low-mid hit",
+  "PING 4":"PING : pinged resonator · short tight tom",
+  "PING 5":"PING : pinged resonator · resonant mid ring",
+  "PING 6":"PING : pinged resonator · dry percussive pock",
+  "PING 7":"PING : pinged resonator · metallic mid ping",
+  "PING 8":"PING : pinged resonator · short high stab",
+  "PING 9":"PING : pinged resonator · high metallic ping"
 };
 window.TIP_PARAM={
+  pitch:"PITCH : the fundamental note, drag the full range",
+  tune:"TUNE : centre pitch of the voice, drag it up or down",
+  penv:"P.ENV : pitch-envelope depth · the drop at the attack, 0 = flat",
+  pdec:"P.DEC : how fast the pitch drop settles",
+  wave:"WAVE : waveshapes the oscillator, folds in harmonics",
+  oscDecay:"DECAY : how long the tone rings, tight to wash",
   decay:"DECAY : how long the voice rings, short = tight, long = wash",
-  tune:"TUNE : the pitch, drag the full range",
-  tone:"TONE : timbre, dark to bright",
+  oscLevel:"OSC.LVL : oscillator level against the noise part",
+  noiseLevel:"NOISE : noise mixed in · the breath, snap or hiss",
+  noiseColor:"N.COL : noise colour, dark rumble to bright air",
+  noiseDecay:"N.DEC : how long the noise tail holds",
+  reso:"RESO : resonance of the ping · short knock to long ringing tail",
+  fmRatio:"FM RAT : FM ratio · sets the overtone, off-integer = inharmonic metal",
+  fmAmt:"FM AMT : FM depth · how much metallic bite rides the hit",
+  sweep:"SWEEP : attack pitch sweep · the analog wow at the top of the hit",
+  life:"LIFE : organic instability · every hit drifts, never twice the same",
+  tone:"TONE : lowpass on the voice, dark to bright",
+  level:"LEVEL : voice level into the mix",
   gain:"GAIN : voice level into the mix",
-  hp:"HP : highpass, thins out the lows",
-  lp:"LP : lowpass, darkens the top"
+  pan:"PAN : places the voice left to right",
+  flt:"FILTER : bipolar · left = lowpass, right = highpass, centre = off",
+  att:"ATT : fade-in on the sample start",
+  dec:"DEC : how long the sample plays before it fades",
+  redux:"REDUX : sample-rate crush, aliased lo-fi dirt",
+  mode:"MODE : playback engine · SAMPLE plays it, RING ringmods it",
+  duck:"DUCK : how hard the rumble ducks under the kick · the pump",
+  mix:"MIX : dry / wet balance of the effect",
+  cutoff:"CUTOFF : filter frequency, where it opens or closes",
+  feedback:"FEEDBACK : how much output feeds back in · repeats / tail length",
+  time:"TIME : delay time · sync to the groove or drift off it",
+  amount:"AMOUNT : how hard the effect hits the signal"
 };
 window.TIP_FX={
   drive:"DRIVE : pushes the voice into the waveshaper, grit + loudness",
-  saturate:"SATURATE : soft warmth, rounds the edge",
-  sat:"SATURATE : soft warmth, rounds the edge",
+  saturate:"SATURATE : soft warmth, rounds the edge without getting louder",
+  sat:"SATURATE : soft warmth, rounds the edge without getting louder",
   crush:"CRUSH : bit-depth reduction, a harsh broken edge",
   redux:"REDUX : sample-rate reduction, aliased dirt",
   fold:"FOLD : wavefolder, metallic harmonics",
   punch:"PUNCH : transient lift on the attack",
-  body:"BODY : low-end weight under the hit"
+  body:"BODY : low-end weight under the hit",
+  flt:"FILTER : bipolar per-voice filter · lowpass left, highpass right, off centre"
 };
 const TIP={
-  STEP:"STEP : tap = on, again = accent, again = off · drag up/down = velocity · wheel = ratchet",
+  STEP:"STEP : tap = on, again = accent, again = off · drag up/down = velocity · wheel = ratchet · ctrl-drag = copy to another step",
   PATTERN:"PATTERN : eight slots, each holds its own steps, sounds stay global",
   BARS:"BARS : 1 / 2 / 4 per pattern, longer = more steps",
   PAGE:"PAGE : step through when the grid runs past one screen",
@@ -3039,6 +3171,7 @@ const TIP={
   PLAY:"PLAY : runs the loop, hit again to stop",
   BPM:"BPM : tempo, drag or type",
   SWING:"SWING : pushes off-beats late, 0 = straight",
+  SOUNDSET:"SOUND / SET : SOUND edits the picked voice, SET moves the same knob on all nine at once",
   BG:"BG : background visual, cycles OFF / LOGO / LIQUID / POWDER / CUBE / IMPACT / LASER / GLYPHS / CREDITS",
   COLOR:"COLOR : effect colour, AMBER / VIOLET / MULTI",
   SKIN:"SKIN : chassis look, GHOST / SHADOW / INVERT",
