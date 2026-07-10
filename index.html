@@ -448,7 +448,7 @@ html.ghost .crt{opacity:.14}
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 251</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 252</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -1185,7 +1185,7 @@ registerProcessor("rumble-fx", RumbleFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="251";
+const REV="252";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=9;
 
 function d(key,min,max,def,log,label,rev){return {key,min,max,def,log:!!log,label,rev:!!rev};}
@@ -2566,6 +2566,13 @@ const BGCOLS=BGHUE.map(x=>hsl2rgb(x,88,62));
 function bgHit(voice,vel,lead,sub){ if(BG.mode==="off")return;
   if(BG.fxColor==="multi")BG.tintRGB=BGCOLS[voice];
   if(BG.mode==="powder"){ const md=BGMODE[voice]||[3,2]; BG.modes.push({n:md[0],m:md[1],amp:vel,cnx:null}); if(BG.modes.length>7)BG.modes.shift(); return; }
+  if(BG.mode==="datamosh"){ const S=BG._dm; if(!S)return; const W=BG.W,H=BG.H,R=Math.random, big=(voice===0||vel>0.9);
+    const nT=big?2+((R()*2)|0):1;
+    for(let i=0;i<nT;i++){ const h=(big?0.04+R()*0.11:0.015+R()*0.05)*H, y=(R()*(H-h))|0, dir=R()<0.5?-1:1; S.tears.push({y, h, dx:(dir*(0.05+R()*(big?0.24:0.10))*W)|0, step:0.05, life:1}); }
+    if(S.tears.length>16)S.tears.splice(0,S.tears.length-16);
+    const nB=big?3:1; for(let i=0;i<nB;i++){ S.blocks.push({x:(R()*W*0.75)|0, y:(R()*H)|0, w:((0.06+R()*0.22)*W)|0, h:((0.015+R()*0.05)*H)|0, dx:(((R()*2-1)*0.16*W))|0, life:1}); }
+    if(S.blocks.length>18)S.blocks.splice(0,S.blocks.length-18);
+    if(big)S.flash=1; return; }
   if(BG.mode==="fracture"){ fracEnsure(); const R=Math.max(BG.W,BG.H)*0.5, r=FRACRING[voice]!=null?FRACRING[voice]:3, hue=BGHUE[voice]||42;
     BG.fracC[r]=Math.min(1.6,BG.fracC[r]+vel*(BGLOW[voice]?1.0:0.7)); BG.fracH[r]=hue;
     if(voice<2){ BG.fracCore=Math.min(1.8,BG.fracCore+vel*1.1); BG.fracDustBoost=Math.min(4,(BG.fracDustBoost||0)+vel*2.4);
@@ -2644,6 +2651,7 @@ function bgPaint(now){ if(!BG.run)return; const dt=Math.min(0.05,(now-BG.last)/1
   if(BG.mode==="bubbles"){ bgBubbles(c,W,H,dt); BG.raf=requestAnimationFrame(bgPaint); return; }
   if(BG.mode==="fracture"){ bgFracture(c,W,H,dt); BG.raf=requestAnimationFrame(bgPaint); return; }
   if(BG.mode==="microbe"){ bgMicrobe(c,W,H,dt); BG.raf=requestAnimationFrame(bgPaint); return; }
+  if(BG.mode==="datamosh"){ bgDatamosh(c,W,H,dt); BG.raf=requestAnimationFrame(bgPaint); return; }
   const d=BG.img.data;
   if(BG.mode==="powder"){
     let tot=0; for(const M of BG.modes){M.amp*=Math.pow(0.1,dt);tot+=M.amp;}
@@ -2673,6 +2681,31 @@ function bgPaint(now){ if(!BG.run)return; const dt=Math.min(0.05,(now-BG.last)/1
   BG.bc.putImageData(BG.img,0,0);
   c.clearRect(0,0,W,H);c.imageSmoothingEnabled=true;c.drawImage(BG.buf,0,0,bw,bh,0,0,W,H);
   BG.raf=requestAnimationFrame(bgPaint);}
+function bgDatamosh(c,W,H,dt){
+  const S=BG._dm||(BG._dm={tears:[],blocks:[],scroll:0,flash:0,buf:null,bc:null,rows:null,scan:null});
+  let cr,cg,cb; if(BG.fxColor==="violet"){cr=176;cg=112;cb=255;} else if(BG.fxColor==="multi"){const t=BG.tintRGB||[255,188,58];cr=t[0];cg=t[1];cb=t[2];} else {cr=255;cg=188;cb=58;}
+  if(!S.buf||S.buf.width!==(W|0)||S.buf.height!==(H|0)){ S.buf=document.createElement("canvas"); S.buf.width=Math.max(1,W|0); S.buf.height=Math.max(1,H|0); S.bc=S.buf.getContext("2d");
+    S.rows=[]; for(let i=0;i<44;i++)S.rows.push({y:Math.random(), x:Math.random(), w:0.06+Math.random()*0.6, b:0.15+Math.random()*0.8, sp:0.2+Math.random()*1.4});
+    const tile=document.createElement("canvas"); tile.width=1; tile.height=3; const tc=tile.getContext("2d"); tc.fillStyle="rgba(0,0,0,0.5)"; tc.fillRect(0,0,1,1); S.scan=S.bc.createPattern(tile,"repeat"); }
+  const b=S.bc, acc=(a)=>"rgba("+cr+","+cg+","+cb+","+a+")";
+  b.fillStyle="#050308"; b.fillRect(0,0,W,H);                               // base signal -> buffer
+  S.scroll=(S.scroll+dt*46)%H;
+  for(const r of S.rows){ const y=(((r.y*H)+S.scroll*r.sp)%H)|0, x=(r.x*W)|0, w=(r.w*W)|0;
+    b.fillStyle=acc(r.b*0.55); b.fillRect(x,y,w,2);
+    b.fillStyle=acc(r.b*0.16); b.fillRect(0,y,W,1); }
+  if(S.scan){ b.fillStyle=S.scan; b.fillRect(0,0,W,H); }                    // CRT scanlines
+  c.fillStyle="#040209"; c.fillRect(0,0,W,H);
+  c.drawImage(S.buf,0,0);
+  for(let i=S.tears.length-1;i>=0;i--){ const t=S.tears[i];
+    if(t.h>0)c.drawImage(S.buf,0,t.y,W,t.h,t.dx,t.y,W,t.h);                 // horizontal tear = shifted band
+    c.fillStyle=acc(0.07*t.life); c.fillRect(0,t.y,W,t.h);
+    t.step-=dt; if(t.step<=0){ t.dx=(t.dx*0.5)|0; t.step=0.045; }           // hard step-decay of the shift (kernig)
+    t.life-=dt*2.3; if(t.life<=0)S.tears.splice(i,1); }
+  for(let i=S.blocks.length-1;i>=0;i--){ const bl=S.blocks[i];
+    if(bl.w>0&&bl.h>0)c.drawImage(S.buf,bl.x,bl.y,bl.w,bl.h,bl.x+bl.dx,bl.y,bl.w,bl.h);
+    bl.life-=dt*3.2; if(bl.life<=0)S.blocks.splice(i,1); }
+  if(S.flash>0){ c.fillStyle=acc(S.flash*0.09); c.fillRect(0,0,W,H); S.flash-=dt*4.5; }
+}
 function bgLogo(c,W,H,dt){
   const word=BG.curWord, L=word.length, E=BG.energy;
   for(let i=0;i<L;i++){ E[i]*=Math.exp(-dt*12); if(E[i]<0.05)E[i]=0; }       // fast decay :: hard rhythm, no fade
@@ -2787,7 +2820,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=251","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=252","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
@@ -3152,7 +3185,7 @@ function bgMicrobe(c,W,H,dt){ microEnsure(); const M=BG.mic, S=Math.min(W,H), mu
 function bgStart(){if(BG.run)return;BG.run=true;BG.last=performance.now();BG.raf=requestAnimationFrame(bgPaint);}
 function bgStop(){BG.run=false;cancelAnimationFrame(BG.raf);BG.c&&BG.c.clearRect(0,0,BG.W,BG.H);if(BG.refl){BG.refl.cv.width=1;BG.refl.cv.height=1;}}
 function bgSet(m){BG.mode=m;const b=document.getElementById("bgBtn");if(b)b.textContent=(m==="credits"?"":"BG: ")+m.toUpperCase();if(m==="off")bgStop();else bgStart();}
-function bgCycle(){const o=["off","logo","liquid","powder","bubbles","cube","fracture","microbe","impact","laser","glyphs","credits"];bgSet(o[(o.indexOf(BG.mode)+1)%o.length]);}
+function bgCycle(){const o=["off","logo","liquid","powder","bubbles","cube","fracture","microbe","datamosh","impact","laser","glyphs","credits"];bgSet(o[(o.indexOf(BG.mode)+1)%o.length]);}
 function colCycle(){const o=["amber","violet","multi"],lab={amber:"AMBER",violet:"VIOLET",multi:"MULTI"};BG.fxColor=o[(o.indexOf(BG.fxColor)+1)%3];const b=document.getElementById("colBtn");if(b)b.textContent="FX: "+lab[BG.fxColor];}
 
 // ---- boot ----
