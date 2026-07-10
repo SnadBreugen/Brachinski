@@ -444,7 +444,7 @@ html.ghost .crt{opacity:.14}
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 243</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 244</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -887,6 +887,13 @@ class BrachinisteEngine extends AudioWorkletProcessor {
           this.queue.push({atFrame:0,voice:po.renderVoice,vel:1});
         }
       }
+      if(Array.isArray(po.renderNotes)){                                        // offline LOOP render :: whole pattern into the queue
+        if(Array.isArray(po.voiceParams)){ const vs=this.voices();
+          for(let i=0;i<vs.length;i++){ const p=po.voiceParams[i], v=vs[i]; if(v&&p){ for(const k in p){ if(v.set)v.set(k,p[k]); else if(k in v)v[k]=p[k]; } if(v._t)for(const k in v._t)v[k]=v._t[k]; } } }
+        if(typeof po.sumDist==="number")this.dist=po.sumDist;
+        for(const ev of po.renderNotes)this.queue.push({atFrame:ev.atFrame,voice:ev.voice,vel:ev.vel,locks:ev.locks});
+        this.queue.sort((a,b)=>a.atFrame-b.atFrame);
+      }
     }
     this.port.onmessage=(e)=>this.onmsg(e.data);
   }
@@ -1171,7 +1178,7 @@ registerProcessor("rumble-fx", RumbleFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="243";
+const REV="244";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=9;
 
 function d(key,min,max,def,log,label,rev){return {key,min,max,def,log:!!log,label,rev:!!rev};}
@@ -2319,36 +2326,35 @@ function encodeWavStereo(L, R, sr){
   return new Blob([ab],{type:"audio/wav"});
 }
 async function renderLoop(opt){
-  opt=opt||{}; const warmup=(opt.warmup!=null?opt.warmup:2), loops=(opt.loops||1);
-  await ensureAudio(); if(ac.state==="suspended")await ac.resume();
-  const sr=ac.sampleRate, bpm=state.bpm, bars=curPat().bars, stepsPerLoop=bars*STEPS_PER_BAR;
-  const loopSec=stepsPerLoop*(60/bpm/4), loopSamp=Math.round(loopSec*sr);
-  const recNode=new AudioWorkletNode(ac,"loop-recorder",{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[2]});
-  const done=new Promise(res=>{ recNode.port.onmessage=(e)=>res(e.data); });
-  const wasPlaying=state.playing;
-  let data=null;
-  try{
-    try{masterOut.disconnect(meterNode);}catch(e){}
-    masterOut.connect(recNode); recNode.connect(meterNode);          // insert in path :: signal guaranteed, live monitoring passes through
-    if(wasPlaying)stopSeq();
-    startSeq();
-    const captureEnd=loop0Time+(warmup+loops)*loopSec;
-    recNode.port.postMessage("start");
-    await new Promise(r=>setTimeout(r, Math.max(0,(captureEnd-ac.currentTime+0.3))*1000));
-    recNode.port.postMessage("stop");
-    data=await Promise.race([done, new Promise(res=>setTimeout(()=>res(null),8000))]);   // hang-proof
-  } finally {
-    stopSeq();
-    try{recNode.disconnect();}catch(e){}
-    try{masterOut.disconnect(recNode);}catch(e){}
-    try{masterOut.connect(meterNode);}catch(e){}                     // ALWAYS restore the live path
-    if(wasPlaying)startSeq();
+  opt=opt||{};
+  const sr=44100, bpm=state.bpm, bars=curPat().bars, N=bars*STEPS_PER_BAR;
+  const sec16=60/bpm/4, loopSec=N*sec16, loopSamp=Math.round(loopSec*sr);
+  const loopsRender=2, tail=Math.ceil(sr*2.0), totalSamp=loopSamp*loopsRender+tail;   // 2 loops (2nd has the wrap-around tails) + decay tail
+  const pat=curPat(), notes=[];
+  for(let loop=0; loop<loopsRender; loop++){
+    for(let step=0; step<N; step++){
+      const sw=(step%2===1)?sec16*(state.swing/100)*0.66:0;
+      const t=(loop*N+step)*sec16+sw;
+      for(let v=0; v<VOICES; v++){
+        if(state.mute[v])continue;
+        const s=pat.steps[v][step]; if(!s)continue;
+        const vel=s===2?1:0.62, sub=(pat.sub&&pat.sub[v][step])||1, dt=sec16/sub;
+        let locks=null; const lkv=pat.locks&&pat.locks[v];
+        if(lkv){ for(const pk in lkv){ const lv=lkv[pk][step]; if(lv!==undefined)(locks||(locks={}))[pk]=lv; } }
+        for(let k=0;k<sub;k++) notes.push({atFrame:Math.round((t+k*dt)*sr), voice:v, vel, locks});
+      }
+    }
   }
-  if(!data||!data.n){ throw new Error("loop capture returned nothing"); }
-  const bigL=new Float32Array(data.L), bigR=new Float32Array(data.R), total=data.n;
-  const off=Math.round((loop0Time+warmup*loopSec)*sr)-data.startFrame;   // sample offset of the target loop in the contiguous capture
-  const N=loops*loopSamp, L=new Float32Array(N), R=new Float32Array(N);
-  for(let i=0;i<N;i++){ const idx=off+i; if(idx>=0&&idx<total){ L[i]=bigL[idx]; R[i]=bigR[idx]; } }
+  const voiceParams=state.voices.map(vo=>effVals(vo));
+  const ctx=new OfflineAudioContext(2, totalSamp, sr);
+  const code=document.getElementById("worklet-code").textContent;
+  await ctx.audioWorklet.addModule("data:text/javascript;charset=utf-8,"+encodeURIComponent(code));
+  const node=new AudioWorkletNode(ctx,"brachiniste-engine",{outputChannelCount:[2],processorOptions:{kit:state.kit, renderNotes:notes, voiceParams:voiceParams}});
+  node.connect(ctx.destination);
+  const buf=await ctx.startRendering();
+  const bL=buf.getChannelData(0), bR=buf.getChannelData(1);
+  const L=new Float32Array(loopSamp), R=new Float32Array(loopSamp);   // take the 2nd loop :: seamless, carries the wrap-around voice tails
+  for(let i=0;i<loopSamp;i++){ L[i]=bL[loopSamp+i]; R[i]=bR[loopSamp+i]; }
   return encodeWavStereo(L,R,sr);
 }
 function downloadBlob(blob,name){ const u=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=u; a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),2000); }
@@ -2718,7 +2724,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=243","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=244","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
