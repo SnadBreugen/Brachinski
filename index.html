@@ -207,6 +207,10 @@ body{
 .rev-btn:hover{color:#fff}
 .rev-btn.ok{background:var(--amber);color:#12100e;border-color:var(--amber);font-weight:700}
 .rev-btn.ok:hover{box-shadow:0 0 10px var(--amber-glow)}
+.exp-opts{display:flex;flex-direction:column;gap:8px;padding:4px 0}
+.exp-chk{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;color:var(--ink);cursor:pointer;letter-spacing:1px}
+.exp-chk input{width:16px;height:16px;accent-color:var(--amber);cursor:pointer}
+.exp-chk span{color:var(--dim);font-size:10px;letter-spacing:.5px;margin-left:auto}
 .kbd-pop{background:var(--panel);border:1px solid var(--line-hi);border-radius:10px;padding:18px;box-shadow:0 12px 50px rgba(0,0,0,.6)}
 .kbd-title{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--amber);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:30px}
 .kbd-piano{position:relative;display:flex;height:120px;user-select:none}
@@ -438,13 +442,13 @@ html.ghost .crt{opacity:.14}
     <div class="transport" style="gap:12px">
       <button class="btn" id="uplink">UPLINK</button>
       <button class="btn play" id="export" disabled>EXPORT &rarr; MACHINISTE</button>
-      <button class="btn" id="looptest" title="TEMP :: render the loop (fx warmed) and download a wav">LOOP &rarr; WAV</button>
+      <button class="btn" id="looptest" title="export the loop / stems as wav">EXPORT WAV</button>
       <span class="readout" id="atstatus" style="flex:1;min-width:200px;text-align:left">// standby</span>
     </div>
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 245</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 251</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -711,11 +715,12 @@ const KITPERC_PRESETS=[
   {pitch:261.626,penv:0.85,pdec:0.018,wave:0.20,oscDecay:0.16,oscLevel:1,noiseLevel:0.14,noiseType:"highpass",noiseColor:3800,noiseDecay:0.020,drive:0.36,saturate:0.26,body:0.28,punch:0.28,tone:8500,level:0.87,pan:0.2,life:0.42},  // BONGO
   {pitch:311.127,penv:0.9, pdec:0.015,wave:0.24,oscDecay:0.13,oscLevel:1,noiseLevel:0.15,noiseType:"highpass",noiseColor:4400,noiseDecay:0.018,drive:0.38,saturate:0.28,body:0.26,punch:0.30,tone:8500,level:0.86,pan:-0.18,life:0.45} // METAL
 ];
+function seededRng(s){ let a=(s>>>0)||1; return function(){ a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
 const PINGDEF={ tune:80, reso:14, decay:0.4, exc:0.6, fmRatio:1.5, fmAmt:0.35, sweep:0.5, swDec:0.03, drive:0.4, saturate:0.28, tone:4800, level:0.9, pan:0, flt:0, life:0.4 };
 class PingVoice {                                                   // pinged resonator + FM + LIFE :: powerful analog synth percussion, belly not stress
-  constructor(p){ this.p=Object.assign({},PINGDEF,p); this.active=false; this.pan=this.p.pan; this.bp=new Biquad(); this.tn=new Biquad(); }
+  constructor(p){ this.p=Object.assign({},PINGDEF,p); this.active=false; this.pan=this.p.pan; this.bp=new Biquad(); this.tn=new Biquad(); this._rnd=Math.random; }
   set(k,v){ this.p[k]=v; if(k==="pan")this.pan=v; }
-  trigger(vel){ const p=this.p, R=()=>(Math.random()*2-1), lf=p.life||0;
+  trigger(vel,seed){ const p=this.p, lf=p.life||0, rnd=this._rnd=(seed!=null?seededRng(seed):Math.random), R=()=>(rnd()*2-1);   // seed => deterministic (export); live => random
     this.active=true; this.vel=vel; this.pan=p.pan;
     this.f0=Math.max(20,p.tune)*(1+R()*lf*0.05);
     this.q=Math.max(2,p.reso*(1+R()*lf*0.30));
@@ -732,7 +737,7 @@ class PingVoice {                                                   // pinged re
     const fm=Math.sin(this.fmPh*6.2832)*this.fmAmt;                        // FM = inharmonic metallic partials
     this.ph+=(fInst*(1+fm))/sampleRate; if(this.ph>=1)this.ph-=1;
     const carrier=Math.sin(this.ph*6.2832);
-    let exc=this.exc>0.0001?(1+(Math.random()*2-1)*p.exc):0; this.exc*=0.35;// impulse+noise burst
+    let exc=this.exc>0.0001?(1+(this._rnd()*2-1)*p.exc):0; this.exc*=0.35;  // impulse+noise burst
     const ring=this.bp.proc(exc*2.4 + carrier*0.5);                        // resonant ring = analog belly
     let sig=ring*1.3 + carrier*0.25; this.env*=this.decA; sig*=this.env;
     sig=fx("drive",sig,Math.min(1,p.drive*this.jFx)); sig=fx("sat",sig,Math.min(1,p.saturate*this.jFx));
@@ -874,10 +879,11 @@ class BrachinisteEngine extends AudioWorkletProcessor {
     super();
     this.kits=[ makeKit1(), makeKit2(), makeKit3(), makeKit4(), makeKitPerc() ];
     this.kit=0;
-    this.dist=0; this.frame=0; this.queue=[]; this.bus=new Array(9).fill(0);
+    this.dist=0; this.frame=0; this.queue=[]; this.bus=new Array(9).fill(0); this.raw=false;
     const po=options&&options.processorOptions;
     if(po){
       if(typeof po.kit==="number") this.kit=Math.max(0,Math.min(4,po.kit));
+      if(typeof po.sumDist==="number") this.dist=po.sumDist;
       if(typeof po.renderVoice==="number"){
         const v=this.voices()[po.renderVoice];
         if(v){
@@ -891,7 +897,8 @@ class BrachinisteEngine extends AudioWorkletProcessor {
         if(Array.isArray(po.voiceParams)){ const vs=this.voices();
           for(let i=0;i<vs.length;i++){ const p=po.voiceParams[i], v=vs[i]; if(v&&p){ for(const k in p){ if(v.set)v.set(k,p[k]); else if(k in v)v[k]=p[k]; } if(v._t)for(const k in v._t)v[k]=v._t[k]; } } }
         if(typeof po.sumDist==="number")this.dist=po.sumDist;
-        for(const ev of po.renderNotes)this.queue.push({atFrame:ev.atFrame,voice:ev.voice,vel:ev.vel,locks:ev.locks});
+        if(po.raw)this.raw=true;
+        for(const ev of po.renderNotes)this.queue.push({atFrame:ev.atFrame,voice:ev.voice,vel:ev.vel,locks:ev.locks,seed:ev.seed});
         this.queue.sort((a,b)=>a.atFrame-b.atFrame);
       }
     }
@@ -917,7 +924,7 @@ class BrachinisteEngine extends AudioWorkletProcessor {
       while(this.queue.length&&this.queue[0].atFrame<=f){ const ev=this.queue.shift(); const v=vs[ev.voice]; if(v){
           if(v._lockedKeys){ for(const k in v._lockedKeys){ this._snap(v,k,(v._base&&v._base[k]!==undefined)?v._base[k]:v[k]); } }   // p-locks: restore base for previously locked params
           if(ev.locks){ v._lockedKeys=v._lockedKeys||{}; for(const k in ev.locks){ this._snap(v,k,ev.locks[k]); v._lockedKeys[k]=1; } }
-          v.trigger(ev.vel);
+          v.trigger(ev.vel, ev.seed);
         } }
       let l0=0,r0=0,l1=0,r1=0,l2=0,r2=0;
       for(let v=0;v<vs.length;v++){ const vo=vs[v]; if(!vo.active)continue; const k23=(this.kit===1||this.kit===3); if(k23)kit2Smooth(vo); let s=vo.tick(); s=bipFilt(vo,s); if(k23){s=kit2Filt(vo,s);s=kit2FX(vo,s);} const pan=vo.pan||0;
@@ -926,9 +933,9 @@ class BrachinisteEngine extends AudioWorkletProcessor {
         if(b===1){l1+=pl;r1+=pr;} else if(b===2){l2+=pl;r2+=pr;} else {l0+=pl;r0+=pr;} }
       if(this.dist>0.001){ const drive=1+this.dist*3; const dl=l0*drive,dr=r0*drive;   // sum distortion belongs to the master chain -> bus 0 only
         l0=dl<-3?-1:dl>3?1:dl*(27+dl*dl)/(27+9*dl*dl); r0=dr<-3?-1:dr>3?1:dr*(27+dr*dr)/(27+9*dr*dr); }
-      L0[i]=softclip(l0); if(R0)R0[i]=softclip(r0);
-      if(L1){L1[i]=softclip(l1); if(R1)R1[i]=softclip(r1);}
-      if(L2){L2[i]=softclip(l2); if(R2)R2[i]=softclip(r2);}
+      L0[i]=this.raw?l0:softclip(l0); if(R0)R0[i]=this.raw?r0:softclip(r0);
+      if(L1){L1[i]=this.raw?l1:softclip(l1); if(R1)R1[i]=this.raw?r1:softclip(r1);}
+      if(L2){L2[i]=this.raw?l2:softclip(l2); if(R2)R2[i]=this.raw?r2:softclip(r2);}
     }
     this.frame+=n; return true;
   }
@@ -1178,7 +1185,7 @@ registerProcessor("rumble-fx", RumbleFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="245";
+const REV="251";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=9;
 
 function d(key,min,max,def,log,label,rev){return {key,min,max,def,log:!!log,label,rev:!!rev};}
@@ -2302,10 +2309,10 @@ async function renderShot(v){
   const sr=44100, dur=1.6;
   const ctx=new OfflineAudioContext(2, Math.ceil(sr*dur), sr);
   const code=document.getElementById("worklet-code").textContent;
-  const url="data:text/javascript;charset=utf-8,"+encodeURIComponent(code);
-  await ctx.audioWorklet.addModule(url);
-  const node=new AudioWorkletNode(ctx,"brachiniste-engine",{outputChannelCount:[2],processorOptions:{kit:state.kit,renderVoice:v,pan:0,params:effVals(state.voices[v])}});
-  node.connect(ctx.destination);
+  await ctx.audioWorklet.addModule("data:text/javascript;charset=utf-8,"+encodeURIComponent(code));
+  const node=new AudioWorkletNode(ctx,"brachiniste-engine",{outputChannelCount:[2],processorOptions:{kit:state.kit,renderVoice:v,pan:0,params:effVals(state.voices[v]),sumDist:(state.sum&&state.sum.dist)||0}});
+  const ok=buildOfflineMaster(ctx, node, ONESHOT_FX_KINDS);   // mastered one-shot: finalizer + insert + glitch, NO reverb/delay/rumble (tails)
+  if(!ok) node.connect(ctx.destination);
   const buf=await ctx.startRendering();
   const L=buf.getChannelData(0), R=buf.getChannelData(1);
   const mono=new Float32Array(L.length);
@@ -2325,52 +2332,87 @@ function encodeWavStereo(L, R, sr){
   let o=44; for(let i=0;i<len;i++){ let l=Math.max(-1,Math.min(1,L[i])), r=Math.max(-1,Math.min(1,R[i])); dv.setInt16(o,l<0?l*0x8000:l*0x7fff,true); dv.setInt16(o+2,r<0?r*0x8000:r*0x7fff,true); o+=4; }
   return new Blob([ab],{type:"audio/wav"});
 }
-async function renderLoop(opt){
+function buildOfflineMaster(ctx, node, allowKinds){   // build the master chain in ctx via a synchronous global-swap (restored immediately). allowKinds!=null => only those module kinds (finalizer always on)
+  const save={ac, meterNode, masterIn, masterOut, masterSendBus, fin, dryBus, engineNode};
+  const savedMods=state.master.modules, savedNodes=savedMods.map(m=>m._nodes);
+  let ok=false;
+  try{
+    ac=ctx; meterNode=ctx.destination;
+    masterIn=ctx.createGain(); masterOut=ctx.createGain(); masterSendBus=ctx.createGain(); dryBus=ctx.createGain(); fin=null;
+    if(allowKinds) state.master.modules=savedMods.filter(m=>allowKinds.indexOf(m.kind)>=0);
+    state.master.modules.forEach(m=>{ delete m._nodes; });
+    initMasterNodes(); node.connect(masterIn); wireMaster();
+    ok=true;
+  }catch(e){ console.error("offline master build failed :: rendering dry",e); }
+  finally{
+    ac=save.ac; meterNode=save.meterNode; masterIn=save.masterIn; masterOut=save.masterOut; masterSendBus=save.masterSendBus; fin=save.fin; dryBus=save.dryBus; engineNode=save.engineNode;
+    state.master.modules=savedMods; savedMods.forEach((m,i)=>{ m._nodes=savedNodes[i]; });
+  }
+  return ok;
+}
+const ONESHOT_FX_KINDS=["dist","filter","glitch","resonator"];   // one-shots: character FX + glitch; NO reverb/delay/rumble (tail makers)
+async function renderLoopCore(opt){
   opt=opt||{};
+  const onlyVoice=(opt.voiceFilter!=null?opt.voiceFilter:-1), withMaster=!!opt.withMaster, sumDist=(opt.sumDist||0);
   const sr=44100, bpm=state.bpm, bars=curPat().bars, N=bars*STEPS_PER_BAR;
   const sec16=60/bpm/4, loopSec=N*sec16, loopSamp=Math.round(loopSec*sr);
-  const loopsRender=2, tail=Math.ceil(sr*2.0), totalSamp=loopSamp*loopsRender+tail;   // 2 loops (2nd has the wrap-around tails) + decay tail
+  const loopsRender=2, tail=Math.ceil(sr*2.0), totalSamp=loopSamp*loopsRender+tail;   // 2 loops (2nd carries the wrap-around tails) + decay tail
   const pat=curPat(), notes=[];
-  for(let loop=0; loop<loopsRender; loop++){
-    for(let step=0; step<N; step++){
-      const sw=(step%2===1)?sec16*(state.swing/100)*0.66:0;
-      const t=(loop*N+step)*sec16+sw;
-      for(let v=0; v<VOICES; v++){
-        if(state.mute[v])continue;
-        const s=pat.steps[v][step]; if(!s)continue;
-        const vel=s===2?1:0.62, sub=(pat.sub&&pat.sub[v][step])||1, dt=sec16/sub;
-        let locks=null; const lkv=pat.locks&&pat.locks[v];
-        if(lkv){ for(const pk in lkv){ const lv=lkv[pk][step]; if(lv!==undefined)(locks||(locks={}))[pk]=lv; } }
-        for(let k=0;k<sub;k++) notes.push({atFrame:Math.round((t+k*dt)*sr), voice:v, vel, locks});
-      }
+  for(let loop=0; loop<loopsRender; loop++) for(let step=0; step<N; step++){
+    const sw=(step%2===1)?sec16*(state.swing/100)*0.66:0, t=(loop*N+step)*sec16+sw;
+    for(let v=0; v<VOICES; v++){
+      if(onlyVoice>=0 && v!==onlyVoice)continue;
+      if(state.mute[v])continue;
+      const s=pat.steps[v][step]; if(!s)continue;
+      const vel=s===2?1:0.62, sub=(pat.sub&&pat.sub[v][step])||1, dt=sec16/sub;
+      let locks=null; const lkv=pat.locks&&pat.locks[v];
+      if(lkv){ for(const pk in lkv){ const lv=lkv[pk][step]; if(lv!==undefined)(locks||(locks={}))[pk]=lv; } }
+      for(let k=0;k<sub;k++) notes.push({atFrame:Math.round((t+k*dt)*sr), voice:v, vel, locks, seed:(((v+1)*73856093)^((loop*N+step+1)*19349663)^((k+1)*83492791))>>>0});
     }
   }
   const voiceParams=state.voices.map(vo=>effVals(vo));
   const ctx=new OfflineAudioContext(2, totalSamp, sr);
   const code=document.getElementById("worklet-code").textContent;
   await ctx.audioWorklet.addModule("data:text/javascript;charset=utf-8,"+encodeURIComponent(code));
-  const node=new AudioWorkletNode(ctx,"brachiniste-engine",{outputChannelCount:[2],processorOptions:{kit:state.kit, renderNotes:notes, voiceParams:voiceParams, sumDist:(state.sum&&state.sum.dist)||0}});
-  // build the FULL master chain in the offline ctx by briefly swapping the live globals onto it (reuses the tested builders) :: restored synchronously right after, offline graph lives on in ctx
-  const save={ac, meterNode, masterIn, masterOut, masterSendBus, fin, dryBus, engineNode};
-  const savedNodes=state.master.modules.map(m=>m._nodes);
+  const node=new AudioWorkletNode(ctx,"brachiniste-engine",{outputChannelCount:[2],processorOptions:{kit:state.kit, renderNotes:notes, voiceParams:voiceParams, sumDist:sumDist, raw:!!opt.raw}});
   let masterOK=false;
-  try{
-    ac=ctx; meterNode=ctx.destination;
-    masterIn=ctx.createGain(); masterOut=ctx.createGain(); masterSendBus=ctx.createGain(); dryBus=ctx.createGain(); fin=null;
-    state.master.modules.forEach(m=>{ delete m._nodes; });
-    initMasterNodes(); node.connect(masterIn); wireMaster();
-    masterOK=true;
-  }catch(e){ console.error("offline master build failed :: rendering dry",e); }
-  finally{
-    ac=save.ac; meterNode=save.meterNode; masterIn=save.masterIn; masterOut=save.masterOut; masterSendBus=save.masterSendBus; fin=save.fin; dryBus=save.dryBus; engineNode=save.engineNode;
-    state.master.modules.forEach((m,i)=>{ m._nodes=savedNodes[i]; });
-  }
-  if(!masterOK){ try{node.connect(ctx.destination);}catch(e){} }
+  if(withMaster) masterOK=buildOfflineMaster(ctx, node, null);
+  if(!masterOK) node.connect(ctx.destination);
   const buf=await ctx.startRendering();
-  const bL=buf.getChannelData(0), bR=buf.getChannelData(1);
-  const L=new Float32Array(loopSamp), R=new Float32Array(loopSamp);   // take the 2nd loop :: seamless, carries voice + reverb/delay tails from the 1st
+  const bL=buf.getChannelData(0), bR=buf.getChannelData(1), L=new Float32Array(loopSamp), R=new Float32Array(loopSamp);
   for(let i=0;i<loopSamp;i++){ L[i]=bL[loopSamp+i]; R[i]=bR[loopSamp+i]; }
-  return encodeWavStereo(L,R,sr);
+  return {L,R,sr,loopSamp};
+}
+async function renderLoop(opt){ const c=await renderLoopCore({withMaster:true, sumDist:(state.sum&&state.sum.dist)||0}); return encodeWavStereo(c.L,c.R,c.sr); }
+function confirmExport(title, msg, okLabel){
+  return new Promise((resolve)=>{
+    const ov=document.createElement("div"); ov.className="rev-ov";
+    const p=document.createElement("div"); p.className="rev-panel";
+    p.innerHTML='<div class="rev-h">'+title+'</div><div class="rev-note">'+msg+'</div>';
+    const foot=document.createElement("div"); foot.className="rev-foot";
+    const cancel=document.createElement("button"); cancel.className="rev-btn"; cancel.textContent="CANCEL";
+    const ok=document.createElement("button"); ok.className="rev-btn ok"; ok.textContent=okLabel||"OK";
+    foot.append(cancel, ok); p.appendChild(foot); ov.appendChild(p); document.body.appendChild(ov);
+    cancel.onclick=()=>{ ov.remove(); resolve(false); };
+    ok.onclick=()=>{ ov.remove(); resolve(true); };
+  });
+}
+function openExportPopup(){
+  const ov=document.createElement("div"); ov.className="rev-ov";
+  const p=document.createElement("div"); p.className="rev-panel";
+  p.innerHTML='<div class="rev-h">EXPORT LOOP</div><div class="rev-note">one wav \u00b7 full master sum \u00b7 offline render of the current pattern</div>';
+  const foot=document.createElement("div"); foot.className="rev-foot";
+  const cancel=document.createElement("button"); cancel.className="rev-btn"; cancel.textContent="CANCEL";
+  const tl=document.createElement("button"); tl.className="rev-btn"; tl.textContent="\u2192 TIMELINE"; tl.disabled=true; tl.title="audiotool timeline :: needs uplink (coming)";
+  const disk=document.createElement("button"); disk.className="rev-btn ok"; disk.textContent="\u2193 DISK";
+  foot.append(cancel, tl, disk); p.appendChild(foot); ov.appendChild(p); document.body.appendChild(ov);
+  const close=()=>ov.remove();
+  cancel.onclick=close;
+  disk.onclick=async()=>{
+    disk.disabled=true; cancel.disabled=true; disk.textContent="RENDERING...";
+    try{ downloadBlob(await renderLoop(),"brachinski_loop.wav"); close(); }
+    catch(e){ console.error(e); disk.textContent="FAIL"; setTimeout(()=>{disk.textContent="\u2193 DISK";disk.disabled=false;cancel.disabled=false;},1600); }
+  };
 }
 function downloadBlob(blob,name){ const u=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=u; a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),2000); }
 function patternHasContent(p){ return p.steps.some(row=>row.some(s=>s>0)); }
@@ -2438,6 +2480,12 @@ async function runExport(){
   const ex=document.getElementById("export"); ex.disabled=true;
   const rawSet=(document.getElementById("setname").value||"").trim();
   if(!rawSet){ atlog("STOP :: name the SET first \u00b7 audiotool uploads are permanent, they can't be deleted"); ex.disabled=false; return; }
+  const tails=state.master.modules.filter(m=>["reverb","delay","rumble"].indexOf(m.kind)>=0 && !m.bypass);
+  if(tails.length){
+    const kinds=Array.from(new Set(tails.map(m=>m.kind))).join(" / ").toUpperCase();
+    const go=await confirmExport("TAIL FX ACTIVE", kinds+" won't be baked into the one-shots \u00b7 they'd smear per trigger in the machiniste. for the full sound with tails, export the LOOP instead.", "EXPORT ANYWAY");
+    if(!go){ atlog("export cancelled \u00b7 export the loop for tails"); ex.disabled=false; return; }
+  }
   const at = atSession || await atConnect(true);
   if(!at){ ex.disabled=false; return; }
   try{
@@ -2739,7 +2787,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=245","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=251","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
@@ -3138,7 +3186,7 @@ setStatus("READY // KIT 1 · "+VOICES+" VOICES");
 document.getElementById("projurl").value=AT_PROJECT;
 document.getElementById("uplink").onclick=()=>atConnect(true);
 document.getElementById("export").onclick=()=>runExport();
-document.getElementById("looptest").onclick=async(e)=>{ const b=e.target; const old=b.textContent; b.disabled=true; b.textContent="RENDERING..."; try{ const wav=await renderLoop({warmup:2,loops:1}); downloadBlob(wav,"brachinski_loop.wav"); b.textContent="DONE"; }catch(err){ console.error(err); b.textContent="FAIL"; } setTimeout(()=>{b.textContent=old;b.disabled=false;},1500); };
+document.getElementById("looptest").onclick=()=>openExportPopup();
 atConnect(false);
 
 // ============================================================
