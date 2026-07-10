@@ -444,7 +444,7 @@ html.ghost .crt{opacity:.14}
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 244</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 245</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -1178,7 +1178,7 @@ registerProcessor("rumble-fx", RumbleFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="244";
+const REV="245";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=9;
 
 function d(key,min,max,def,log,label,rev){return {key,min,max,def,log:!!log,label,rev:!!rev};}
@@ -2349,11 +2349,26 @@ async function renderLoop(opt){
   const ctx=new OfflineAudioContext(2, totalSamp, sr);
   const code=document.getElementById("worklet-code").textContent;
   await ctx.audioWorklet.addModule("data:text/javascript;charset=utf-8,"+encodeURIComponent(code));
-  const node=new AudioWorkletNode(ctx,"brachiniste-engine",{outputChannelCount:[2],processorOptions:{kit:state.kit, renderNotes:notes, voiceParams:voiceParams}});
-  node.connect(ctx.destination);
+  const node=new AudioWorkletNode(ctx,"brachiniste-engine",{outputChannelCount:[2],processorOptions:{kit:state.kit, renderNotes:notes, voiceParams:voiceParams, sumDist:(state.sum&&state.sum.dist)||0}});
+  // build the FULL master chain in the offline ctx by briefly swapping the live globals onto it (reuses the tested builders) :: restored synchronously right after, offline graph lives on in ctx
+  const save={ac, meterNode, masterIn, masterOut, masterSendBus, fin, dryBus, engineNode};
+  const savedNodes=state.master.modules.map(m=>m._nodes);
+  let masterOK=false;
+  try{
+    ac=ctx; meterNode=ctx.destination;
+    masterIn=ctx.createGain(); masterOut=ctx.createGain(); masterSendBus=ctx.createGain(); dryBus=ctx.createGain(); fin=null;
+    state.master.modules.forEach(m=>{ delete m._nodes; });
+    initMasterNodes(); node.connect(masterIn); wireMaster();
+    masterOK=true;
+  }catch(e){ console.error("offline master build failed :: rendering dry",e); }
+  finally{
+    ac=save.ac; meterNode=save.meterNode; masterIn=save.masterIn; masterOut=save.masterOut; masterSendBus=save.masterSendBus; fin=save.fin; dryBus=save.dryBus; engineNode=save.engineNode;
+    state.master.modules.forEach((m,i)=>{ m._nodes=savedNodes[i]; });
+  }
+  if(!masterOK){ try{node.connect(ctx.destination);}catch(e){} }
   const buf=await ctx.startRendering();
   const bL=buf.getChannelData(0), bR=buf.getChannelData(1);
-  const L=new Float32Array(loopSamp), R=new Float32Array(loopSamp);   // take the 2nd loop :: seamless, carries the wrap-around voice tails
+  const L=new Float32Array(loopSamp), R=new Float32Array(loopSamp);   // take the 2nd loop :: seamless, carries voice + reverb/delay tails from the 1st
   for(let i=0;i<loopSamp;i++){ L[i]=bL[loopSamp+i]; R[i]=bR[loopSamp+i]; }
   return encodeWavStereo(L,R,sr);
 }
@@ -2724,7 +2739,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=244","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=245","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
