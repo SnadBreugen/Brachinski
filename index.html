@@ -444,7 +444,7 @@ html.ghost .crt{opacity:.14}
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 237</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 238</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -927,6 +927,17 @@ class BrachinisteEngine extends AudioWorkletProcessor {
   }
 }
 registerProcessor("brachiniste-engine", BrachinisteEngine);
+class LoopRecorder extends AudioWorkletProcessor {                    // clean on-thread capture of the master out, contiguous, frame-stamped
+  constructor(){ super(); this.chunks=[]; this.on=false; this.startFrame=-1;
+    this.port.onmessage=(e)=>{ const d=e.data;
+      if(d==="start"){ this.chunks=[]; this.on=true; this.startFrame=-1; }
+      else if(d==="stop"){ this.on=false; this.port.postMessage({startFrame:this.startFrame, chunks:this.chunks}); this.chunks=[]; } }; }
+  process(inputs){ if(this.on){ if(this.startFrame<0)this.startFrame=currentFrame; const inp=inputs[0];
+      const L=(inp&&inp[0])?inp[0]:new Float32Array(128), R=(inp&&inp[1])?inp[1]:L;
+      this.chunks.push(new Float32Array(L)); this.chunks.push(new Float32Array(R)); }
+    return true; }
+}
+registerProcessor("loop-recorder", LoopRecorder);
 
 // ═══════════════════════════════════════════════════════════════
 // resonator :: bank of feedback comb filters (one per note)
@@ -1157,7 +1168,7 @@ registerProcessor("rumble-fx", RumbleFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="237";
+const REV="238";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=9;
 
 function d(key,min,max,def,log,label,rev){return {key,min,max,def,log:!!log,label,rev:!!rev};}
@@ -2308,20 +2319,26 @@ async function renderLoop(opt){
   opt=opt||{}; const warmup=(opt.warmup!=null?opt.warmup:2), loops=(opt.loops||1);
   await ensureAudio(); if(ac.state==="suspended")await ac.resume();
   const sr=ac.sampleRate, bpm=state.bpm, bars=curPat().bars, stepsPerLoop=bars*STEPS_PER_BAR;
-  const loopSec=stepsPerLoop*(60/bpm/4);
-  const rec=ac.createScriptProcessor(4096,2,2); const blocks=[];
-  rec.onaudioprocess=(e)=>{ blocks.push({t:e.playbackTime, L:new Float32Array(e.inputBuffer.getChannelData(0)), R:new Float32Array(e.inputBuffer.getChannelData(1))});
-    const o0=e.outputBuffer.getChannelData(0), o1=e.outputBuffer.getChannelData(1); o0.fill(0); o1.fill(0); };   // pass silence (tap only)
-  masterOut.connect(rec); rec.connect(ac.destination);
+  const loopSec=stepsPerLoop*(60/bpm/4), loopSamp=Math.round(loopSec*sr);
+  const recNode=new AudioWorkletNode(ac,"loop-recorder",{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[2]});
+  masterOut.connect(recNode); recNode.connect(ac.destination);   // output is silent (recorder writes nothing) -> tap only
+  const done=new Promise(res=>{ recNode.port.onmessage=(e)=>res(e.data); });
   const wasPlaying=state.playing; if(wasPlaying)stopSeq();
   startSeq();
-  const t0=loop0Time, captureStart=t0+warmup*loopSec, captureEnd=captureStart+loops*loopSec;   // warmup fills reverb/delay tails, then capture clean
-  await new Promise(r=>setTimeout(r, Math.max(0,(captureEnd-ac.currentTime+0.25))*1000));
-  stopSeq();
-  try{masterOut.disconnect(rec);}catch(e){} try{rec.disconnect();}catch(e){}
+  const loop0=loop0Time;
+  recNode.port.postMessage("start");
+  const captureEnd=loop0+(warmup+loops)*loopSec;               // warmup fills reverb/delay tails, then the clean take
+  await new Promise(r=>setTimeout(r, Math.max(0,(captureEnd-ac.currentTime+0.3))*1000));
+  recNode.port.postMessage("stop");
+  const data=await done;
+  stopSeq(); try{masterOut.disconnect(recNode);}catch(e){} try{recNode.disconnect();}catch(e){}
   if(wasPlaying)startSeq();
-  const nSamp=Math.round(loops*loopSec*sr), L=new Float32Array(nSamp), R=new Float32Array(nSamp);
-  for(const b of blocks){ const off=Math.round((b.t-captureStart)*sr); for(let i=0;i<b.L.length;i++){ const idx=off+i; if(idx>=0&&idx<nSamp){ L[idx]=b.L[i]; R[idx]=b.R[i]; } } }
+  const chunks=data.chunks, startFrame=data.startFrame, totalBlocks=chunks.length/2, total=totalBlocks*128;
+  const bigL=new Float32Array(total), bigR=new Float32Array(total);
+  for(let b=0;b<totalBlocks;b++){ bigL.set(chunks[b*2], b*128); bigR.set(chunks[b*2+1], b*128); }
+  const off=Math.round((loop0+warmup*loopSec)*sr)-startFrame;   // sample offset of the target loop in the contiguous capture
+  const N=loops*loopSamp, L=new Float32Array(N), R=new Float32Array(N);
+  for(let i=0;i<N;i++){ const idx=off+i; if(idx>=0&&idx<total){ L[i]=bigL[idx]; R[i]=bigR[idx]; } }
   return encodeWavStereo(L,R,sr);
 }
 function downloadBlob(blob,name){ const u=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=u; a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),2000); }
@@ -2691,7 +2708,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=237","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=238","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
