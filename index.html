@@ -111,6 +111,11 @@ body{
 @keyframes blink{50%{opacity:.3}}
 .meter{display:flex;align-items:center;gap:7px}
 .mvol{-webkit-appearance:none;appearance:none;width:78px;height:4px;background:var(--line);border-radius:2px;outline:none;cursor:pointer}
+.lim-btn{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--dim);background:#0c0814;border:1px solid var(--line);border-radius:4px;padding:4px 9px;margin-left:10px;cursor:pointer;transition:.12s;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.lim-btn:hover{border-color:var(--line-hi);color:var(--ink)}
+.lim-btn.on{color:var(--ink);border-color:var(--line-hi)}
+.lim-led{width:7px;height:7px;border-radius:50%;background:#2a1c10;box-shadow:inset 0 0 2px #000;flex:0 0 auto;transition:.12s}
+.lim-btn.on .lim-led{background:var(--amber);box-shadow:0 0 6px var(--amber-glow)}
 .mvol::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:9px;height:15px;background:var(--amber);border-radius:2px;cursor:pointer}
 .mvol::-moz-range-thumb{width:9px;height:15px;background:var(--amber);border:none;border-radius:2px;cursor:pointer}
 #finbar{display:flex;flex-wrap:wrap;gap:7px;margin:2px 0 10px}
@@ -168,6 +173,15 @@ body{
 .ntype button.on{color:#1a0d05;border-color:var(--amber);background:var(--amber);box-shadow:0 0 8px var(--amber-glow)}
 
 .racks{display:flex;gap:18px;flex-wrap:nowrap;align-items:flex-start}
+.pg-wrap{position:relative}
+.pg-btn{width:46px;height:46px;border-radius:11px;border:1px solid var(--line-hi);background:linear-gradient(180deg,#312712,#20180a);color:#9a8452;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:1px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 1px 2px rgba(0,0,0,.4);transition:.12s}
+.pg-btn:hover{border-color:var(--amber);filter:brightness(1.12)}
+.pg-btn.lit{background:linear-gradient(180deg,#ffc24a,#eb9d24);border-color:var(--amber);color:#1a1206;text-shadow:0 1px 0 rgba(255,255,255,.2)}
+.pg-btn.on{background:linear-gradient(180deg,#ffc24a,#eb9d24);border-color:var(--amber);color:#1a1206;text-shadow:0 1px 0 rgba(255,255,255,.2);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 0 10px var(--amber-glow)}
+.pg-pop{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:12px;background:linear-gradient(180deg,var(--panel2,#140d24),var(--panel,#0d0918));border:1.5px solid var(--line-hi);border-radius:10px;padding:12px 14px 10px;z-index:80;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+.pg-pop-ti{font-family:var(--mono);font-weight:700;font-size:10px;letter-spacing:2px;color:var(--amber);margin-bottom:8px;text-align:center;white-space:nowrap}
+.pg-pop .knobs{display:flex;gap:14px}
+.pg-pop::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);border:7px solid transparent;border-top-color:var(--line-hi)}
 .rack{position:relative;display:flex;flex-direction:column;gap:8px;background:rgba(0,0,0,.22);border:1px solid var(--line);border-radius:6px;padding:9px 11px 11px}
 /* rack widths are set per-kit in JS (buildEditor) so frames stay fixed across voices */
 .rack .rl{font-size:9px;letter-spacing:2px;color:var(--amber);opacity:.8}
@@ -348,6 +362,25 @@ html.zen .chassis,html.zen .feat-panel,html.zen #ctrlbarL{display:none!important
 .feat-hover .f-p,.feat-hover .fh-txt{color:var(--bg);text-shadow:none}
 .fh-txt{color:var(--bg)}
 body.text-off .feat-panel{display:none!important}
+#wipBox{position:fixed;top:130px;right:calc(50% - 924px);width:320px;display:none;z-index:5;font-family:var(--mono);max-height:calc(100vh - 150px);overflow-y:auto;overflow-x:hidden}
+@media (min-width:1890px){#wipBox{display:block}}
+html.zen #wipBox,body.text-off #wipBox{display:none!important}
+.wip-card{border:1px solid var(--line-hi);border-radius:10px;background:linear-gradient(180deg,rgba(255,180,61,.035),rgba(0,0,0,0));padding:14px 15px}
+.wip-tag{font-size:11px;letter-spacing:3px;color:var(--amber);font-weight:700;margin-bottom:8px}
+.wip-body{font-size:11px;line-height:1.7;color:var(--dim);margin-bottom:12px}
+.wip-fb-btn{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:#1a1206;background:var(--amber);border:none;border-radius:5px;padding:8px 12px;cursor:pointer;width:100%;margin-bottom:15px;font-weight:700}
+.wip-fb-btn:hover{filter:brightness(1.1)}
+.wip-credit{font-size:11px;letter-spacing:2px;color:var(--amber);font-weight:700;margin-bottom:3px}
+.wip-intro{font-size:10px;color:var(--dim);font-style:italic;margin-bottom:11px}
+.wip-item{margin-bottom:16px}
+.wip-t2{display:inline-block;box-sizing:border-box;width:46px;text-align:center;font-weight:700;font-size:8px;letter-spacing:1px;padding:2px 0;border-radius:3px;margin-bottom:6px}
+.wip-t2.fixed{background:rgba(255,180,61,.18);color:var(--amber)}
+.wip-t2.new{background:rgba(120,210,230,.16);color:#82d6e6}
+.wip-h{font-size:11px;font-weight:700;color:var(--ink);margin-bottom:3px;letter-spacing:.02em}
+.wip-x{font-size:10.5px;line-height:1.6;color:var(--dim)}
+.wip-ship-head{font-size:10px;letter-spacing:2px;color:var(--dim);margin:15px 0 9px;border-top:1px solid var(--line);padding-top:13px}
+.wip-ship{font-size:10px;line-height:1.5;color:var(--dim);margin-bottom:7px;padding-left:11px;position:relative}
+.wip-ship::before{content:"-";position:absolute;left:0;color:var(--amber)}
 #snadlink{position:fixed;bottom:14px;left:16px;z-index:60;display:block;text-decoration:none;border:1px solid var(--line-hi);border-radius:7px;padding:8px 12px;background:rgba(0,0,0,.4);font-family:var(--mono);transition:.12s}
 #snadlink:hover{border-color:var(--amber);background:rgba(255,180,61,.1)}
 #snadlink .sl-t{color:var(--amber);font-size:12px;font-weight:700;letter-spacing:2px}
@@ -357,7 +390,18 @@ body.text-off .feat-panel{display:none!important}
 #langbar .flag svg{width:22px;height:14px;display:block;border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.4)}
 #langbar .flag:hover{opacity:.85;filter:none}
 #langbar .flag.on{opacity:1;filter:none;background:rgba(255,180,61,.15);box-shadow:inset 0 0 0 1px var(--amber)}
-html.zen #snadlink,html.zen #langbar{display:none!important}
+html.zen #snadlink,html.zen #langbar,html.zen #fbBtn,html.zen #fbPanel{display:none!important}
+#fbBtn{position:fixed;bottom:64px;left:16px;z-index:60;font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--amber);background:rgba(0,0,0,.4);border:1px solid var(--line-hi);border-radius:7px;padding:7px 12px;cursor:pointer;transition:.12s}
+#fbBtn:hover{border-color:var(--amber);background:rgba(255,180,61,.1);color:#fff}
+#fbPanel{position:fixed;bottom:104px;left:16px;z-index:61;width:min(320px,90vw);background:linear-gradient(180deg,var(--panel2,#140d24),var(--panel,#0d0918));border:1.5px solid var(--line-hi);border-radius:9px;padding:14px;display:flex;flex-direction:column;gap:8px;box-shadow:0 12px 40px rgba(0,0,0,.6);font-family:var(--mono)}
+#fbPanel .fb-t{font-size:11px;letter-spacing:2px;color:var(--amber)}
+#fbPanel input,#fbPanel textarea{background:#0a0714;border:1px solid var(--line);border-radius:5px;color:var(--ink,#e9e2f5);font-family:var(--mono);font-size:11px;padding:7px 8px;outline:none}
+#fbPanel input:focus,#fbPanel textarea:focus{border-color:var(--amber)}
+#fbPanel textarea{min-height:80px;resize:vertical}
+#fbPanel .fb-row{display:flex;align-items:center;gap:8px}
+#fbPanel .fb-row button{font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:6px 12px;border-radius:5px;border:1px solid var(--line-hi);background:#100b1c;color:var(--amber);cursor:pointer}
+#fbPanel #fbSend{background:var(--amber);color:#0a0714;border-color:var(--amber);font-weight:700}
+#fbPanel #fbStatus{font-size:9px;letter-spacing:1px;color:var(--dimmer)}
 html.inv{--chassis1:#ffc900;--chassis2:#ffbe1a;--chassis-edge:#e0991a;--amber:#b06bff;--amber-deep:#7c3aed;--amber-glow:rgba(176,107,255,.5);--line:#caa24e;--line-hi:#e6bf6a}
 html.inv .btn.play.on{background:linear-gradient(180deg,#c89bff,#9a5cf0);color:#180826}
 html.inv .step.on{background:linear-gradient(180deg,#c89bff,#9a5cf0);border-color:#d7baff}
@@ -388,7 +432,17 @@ html.ghost .crt{opacity:.14}
 .hint{color:var(--dimmer);font-size:9px;letter-spacing:1px;padding:2px 12px 8px}
 </style>
 <style>
-.kitrow{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.kitrow{display:flex;align-items:flex-end;gap:14px;margin-bottom:14px}
+.kit-block{display:flex;flex-direction:column}
+.kit-hd{font-family:var(--mono);font-weight:700;font-size:13px;letter-spacing:5px;color:var(--ink);margin:0 0 7px 2px}
+.kit-field{display:flex;gap:8px;background:var(--amber);border-radius:10px;padding:9px 11px;box-shadow:0 2px 12px rgba(255,180,61,.28),inset 0 1px 0 rgba(255,255,255,.35)}
+.kit-field .cell-btn{min-width:42px;font-size:15px;padding:9px 11px;background:#140d04;color:#e8c88a;border:1px solid #000;box-shadow:inset 0 1px 2px rgba(0,0,0,.5)}
+.kit-field .cell-btn:hover{color:#fff}
+.kit-field .cell-btn.on{background:#fff;color:#1a1206;border-color:#000;box-shadow:0 0 0 2px rgba(0,0,0,.25)}
+.kit-disp{position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:center;gap:3px;width:150px;flex:0 0 150px;background:linear-gradient(180deg,#0d0916,#070510);border:1px solid var(--line-hi);border-radius:8px;padding:9px 16px;box-shadow:inset 0 2px 10px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.04)}
+.kit-disp::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.22) 0 1px,transparent 1px 3px);pointer-events:none}
+.kit-disp-l{position:relative;font-family:var(--mono);font-size:8px;letter-spacing:3px;color:var(--dim)}
+.kit-disp-v{position:relative;font-family:var(--mono);font-weight:700;font-size:19px;letter-spacing:2px;color:var(--amber);text-shadow:0 0 10px var(--amber-glow),0 0 2px var(--amber);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .kitrow .gl{font-size:9px;letter-spacing:2px;color:var(--dim)}
 #sumfx{display:flex;gap:18px;flex-wrap:wrap}
 </style>
@@ -396,6 +450,7 @@ html.ghost .crt{opacity:.14}
 <body>
 <canvas id="bgfx"></canvas>
 <aside class="feat-panel" id="featPanel" aria-hidden="true"><div id="featLines"></div><div class="feat-hover empty" id="featHover"></div></aside>
+<aside id="wipBox" aria-hidden="true"></aside>
 <div id="ctrlbarL"><button id="textBtn" title="explainer text on/off">TEXT: ON</button></div>
 <div id="hidebar"><button id="hideBtn" title="hide the device, show only the background">HIDE</button></div>
 <div id="ctrlbar"><button id="bgBtn" title="background effect">BG: OFF</button><button id="colBtn" title="effect colour">FX: AMBER</button><button id="skinBtn" title="chassis skin">SKIN: GHOST</button></div>
@@ -412,7 +467,7 @@ html.ghost .crt{opacity:.14}
     </div>
     <div class="statuswrap">
       <div class="status" id="status"><span class="dot"></span><span id="statustxt">BOOT // STANDBY</span></div>
-      <div class="meter"><span class="ml">MASTER</span><input id="mvol" class="mvol" type="range" min="0" max="1" step="0.01" value="0.8" title="master volume"><div class="leds" id="meter"></div></div>
+      <div class="meter"><span class="ml">MASTER</span><input id="mvol" class="mvol" type="range" min="0" max="1" step="0.01" value="0.8" title="master volume"><div class="leds" id="meter"></div><button id="limitBtn" class="lim-btn on" title="master limiter :: catches peaks after the finalizer so the mix never clips \u00b7 transparent, click to bypass"><span class="lim-led"></span>LIMIT</button></div>
     </div>
   </div>
 
@@ -467,7 +522,7 @@ html.ghost .crt{opacity:.14}
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 331</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 361</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -528,7 +583,7 @@ function dCoef(t){ return Math.exp(-6.908/(Math.max(0.0005,t)*sampleRate)); }  /
 // ═══════════════════════════════════════════════════════════════
 const K1DEF={ pitch:200,penv:1,pdec:0.05,wave:0.1,oscDecay:0.3,oscLevel:1,
   noiseLevel:0,noiseType:"highpass",noiseColor:4000,noiseQ:1,noiseDecay:0.1,
-  drive:0.15,saturate:0,crush:0,punch:0,body:0, tone:14000,level:0.85,pan:0, life:0, attack:0.001 };
+  drive:0.15,saturate:0,crush:0,punch:0,body:0, tone:14000,level:0.85,pan:0, life:0, attack:0.001, fmRatio:1, fmAmt:0, fmDecay:0.3 };
 
 class GenVoice {
   constructor(p){ this.p=Object.assign({},K1DEF,p); this.active=false; this.pan=this.p.pan;
@@ -553,6 +608,7 @@ class GenVoice {
     this.pBody= pu>0.001 ? Math.max(0.05,1-pu*0.55) : 1;           // body dips harder (down to ~0.45)
     this.pCoef= dCoef(0.006+pu*0.025);
     this.crH=0; this.crC=0;                                          // crush sample-rate-reduction state
+    this.fmPh=0; this.fmDecEnv=1; this.fmDecA=dCoef(Math.max(0.003,p.fmDecay||0.3));   // FM operator :: modulator phase + decaying index
     this.life=0; this.maxLife=(Math.max(p.oscDecay,p.noiseDecay)+0.2)*sampleRate;
     this.aE=0; { const _a=(p.attack||0); this.aOn=_a>0.0012; this.aInc=this.aOn?(1/(_a*sampleRate)):1; }   // master amp-attack ramp
   }
@@ -564,8 +620,10 @@ class GenVoice {
       this.pf=this.f0+(this.pf-this.f0)*this.pdA;                 // pitch glide fS -> f0
       let pfEff=this.pf; if(this.lf>0.001){ this.driftPh+=this.driftRate; pfEff=this.pf*(1+Math.sin(this.driftPh)*this.lf*0.004); }   // organic intra-hit pitch wander
       const inc=pfEff/sampleRate;
+      let fmOff=0;
+      if(p.fmAmt>0.0001){ this.fmPh+=(pfEff*p.fmRatio)/sampleRate; this.fmPh-=Math.floor(this.fmPh); this.fmDecEnv*=this.fmDecA; fmOff=Math.sin(this.fmPh*6.2831853)*p.fmAmt*8*this.fmDecEnv; }   // phase-mod, index up to 8, decays over the hit
       let a=this.phase+inc*0.5, b=this.phase+inc; a-=Math.floor(a); b-=Math.floor(b);
-      const s1=Math.sin(a*2*Math.PI), s2=Math.sin(b*2*Math.PI);
+      const s1=Math.sin(a*2*Math.PI+fmOff), s2=Math.sin(b*2*Math.PI+fmOff);
       let o = p.wave>0.001 ? (shapeFn("drive",s1,p.wave)+shapeFn("drive",s2,p.wave))*0.5 : s2;
       this.phase=b;
       if(this.oAtk){ this.oEnv+=(p.oscLevel-this.oEnv)*(1-this.oAtkA); if(this.oEnv>=p.oscLevel*0.99)this.oAtk=false; }
@@ -619,12 +677,12 @@ function makeKit1(){ return KIT1_PRESETS.map(p=>new GenVoice(p)); }
 // ═══════════════════════════════════════════════════════════════
 class KickVoice {
   constructor(soft){ this.phase=0;this.ampEnv=0;this.amp=0;this.pitchEv=0;this.nz=0;this.active=false;
-    this.decay=soft?0.35:0.10;this.tune=soft?0.3:0.28;this.tone=0.05;this.gain=soft?0.7:0.9;this.soft=soft;this.pan=0; }
-  trigger(vel){ this.ampEnv=vel;this.pitchEv=1;this.active=true; this.aE=0; { const _a=(this.attack||0); this.aOn=_a>0.0012; this.aInc=this.aOn?(1/(_a*sampleRate)):1; } }                 // no phase reset :: continuous waveform on retrigger (declick)
+    this.decay=soft?0.35:0.10;this.tune=soft?0.3:0.28;this.tone=0.05;this.gain=soft?0.7:0.9;this.soft=soft;this.pan=0;this.olvl=1;this.fmRatio=1;this.fmAmt=0;this.fmDecay=0.3; }
+  trigger(vel){ this.ampEnv=vel;this.pitchEv=1;this.active=true; this.fmPh=0;this.fmDecEnv=1;this.fmDecA=dCoef(Math.max(0.003,this.fmDecay||0.3)); this.aE=0; { const _a=(this.attack||0); this.aOn=_a>0.0012; this.aInc=this.aOn?(1/(_a*sampleRate)):1; } }                 // no phase reset :: continuous waveform on retrigger (declick)
   tick(){ if(!this.active)return 0;
     const baseFreq=this.soft?20+this.tune*60:30+this.tune*90;
     const freq=baseFreq+this.pitchEv*baseFreq*(this.soft?2:3.5);
-    const osc=Math.sin(this.phase*Math.PI*2); this.phase+=freq/sampleRate; if(this.phase>=1)this.phase-=1;
+    let fmOff=0; if(this.fmAmt>0.0001){ this.fmPh+=(freq*this.fmRatio)/sampleRate; this.fmPh-=Math.floor(this.fmPh); this.fmDecEnv*=this.fmDecA; fmOff=Math.sin(this.fmPh*6.2831853)*this.fmAmt*8*this.fmDecEnv; } const osc=Math.sin(this.phase*Math.PI*2+fmOff); this.phase+=freq/sampleRate; if(this.phase>=1)this.phase-=1;
     const rawN=(!this.soft&&this.pitchEv>0.6)?(Math.random()*2-1):0;               // attack noise
     this.nz+=(rawN-this.nz)*0.25; const noise=this.nz*this.pitchEv*this.pitchEv;    // lowpassed + shortened :: no harsh hiss under HP
     this.ampEnv-=this.ampEnv*(1/(this.decay*sampleRate));
@@ -636,7 +694,7 @@ class KickVoice {
 }
 class SnareVoice {
   constructor(){ this.env=0;this.envPhase=0;this.envPeak=0;this.lpZ=0;this.hpZ=0;this.hpZ2=0;this.active=false;
-    this.attack=0.001;this.decay=0.062;this.noise=0;this.gain=0.82;this.pan=0; }
+    this.attack=0.001;this.decay=0.062;this.noise=0;this.gain=0.82;this.pan=0;this.olvl=1; }
   trigger(vel){ this.env=0;this.envPhase=0;this.envPeak=vel;this.lpZ=0;this.hpZ=0;this.hpZ2=0;this.active=true; }
   tick(){ if(!this.active)return 0;
     if(this.envPhase===0){ this.env+=(this.envPeak-this.env)*(1/(this.attack*sampleRate)); if(this.env>=this.envPeak*0.99)this.envPhase=1; }
@@ -648,7 +706,7 @@ class SnareVoice {
 }
 class HihatVoice {
   constructor(decay){ this.env=0;this.envPhase=0;this.envPeak=0;this.lpZ=0;this.hpZ1=0;this.hpZ2=0;this.hpZ3=0;this.active=false;
-    this.attack=0.001;this.decay=decay||0.035;this.tune=0.85;this.noise=0;this.gain=0.5;this.pan=-0.3; }
+    this.attack=0.001;this.decay=decay||0.035;this.tune=0.85;this.noise=0;this.gain=0.5;this.pan=-0.3;this.olvl=1; }
   trigger(vel){ this.env=0;this.envPhase=0;this.envPeak=vel;this.lpZ=0;this.hpZ1=0;this.hpZ2=0;this.hpZ3=0;this.active=true; }
   tick(){ if(!this.active)return 0;
     if(this.envPhase===0){ this.env+=(this.envPeak-this.env)*(1/(this.attack*sampleRate)); if(this.env>=this.envPeak*0.99)this.envPhase=1; }
@@ -672,11 +730,11 @@ class ClapVoice {
 }
 class TomVoice {
   constructor(tune,pan){ this.phase=0;this.ampEnv=0;this.pitchEv=0;this.lpZ=0;this.active=false;
-    this.decay=0.5;this.tune=tune;this.gain=0.75;this.pan=pan; }
-  trigger(vel){ this.ampEnv=vel;this.pitchEv=1;this.phase=0;this.lpZ=0;this.active=true; this.aE=0; { const _a=(this.attack||0); this.aOn=_a>0.0012; this.aInc=this.aOn?(1/(_a*sampleRate)):1; } }
+    this.decay=0.5;this.tune=tune;this.gain=0.75;this.pan=pan;this.olvl=1;this.fmRatio=1;this.fmAmt=0;this.fmDecay=0.3; }
+  trigger(vel){ this.ampEnv=vel;this.pitchEv=1;this.phase=0;this.lpZ=0;this.active=true; this.fmPh=0;this.fmDecEnv=1;this.fmDecA=dCoef(Math.max(0.003,this.fmDecay||0.3)); this.aE=0; { const _a=(this.attack||0); this.aOn=_a>0.0012; this.aInc=this.aOn?(1/(_a*sampleRate)):1; } }
   tick(){ if(!this.active)return 0;
     const baseFreq=50+this.tune*150; const freq=baseFreq+this.pitchEv*baseFreq*1.5;
-    const osc=Math.sin(this.phase*Math.PI*2); this.phase+=freq/sampleRate; if(this.phase>=1)this.phase-=1;
+    let fmOff=0; if(this.fmAmt>0.0001){ this.fmPh+=(freq*this.fmRatio)/sampleRate; this.fmPh-=Math.floor(this.fmPh); this.fmDecEnv*=this.fmDecA; fmOff=Math.sin(this.fmPh*6.2831853)*this.fmAmt*8*this.fmDecEnv; } const osc=Math.sin(this.phase*Math.PI*2+fmOff); this.phase+=freq/sampleRate; if(this.phase>=1)this.phase-=1;
     this.lpZ+=0.7*(osc-this.lpZ);
     this.ampEnv-=this.ampEnv*(1/(this.decay*sampleRate)); this.pitchEv-=this.pitchEv*(1/(this.decay*0.25*sampleRate));
     if(this.ampEnv<0.0001){this.active=false;return 0;}
@@ -685,11 +743,11 @@ class TomVoice {
 }
 class WoodVoice {
   constructor(){ this.phase1=0;this.phase2=0;this.env=0;this.lpZ=0;this.active=false;
-    this.decay=0.015;this.tune=1.0;this.gain=0.45;this.pan=0.4;this.click=0; }
-  trigger(vel){ this.env=vel;this.phase1=0;this.phase2=0;this.lpZ=0;this.active=true;this.click=vel; this.aE=0; { const _a=(this.attack||0); this.aOn=_a>0.0012; this.aInc=this.aOn?(1/(_a*sampleRate)):1; } }
+    this.decay=0.015;this.tune=1.0;this.gain=0.45;this.pan=0.4;this.click=0;this.olvl=1;this.fmRatio=1;this.fmAmt=0;this.fmDecay=0.3; }
+  trigger(vel){ this.env=vel;this.phase1=0;this.phase2=0;this.lpZ=0;this.active=true;this.click=vel; this.fmPh=0;this.fmDecEnv=1;this.fmDecA=dCoef(Math.max(0.003,this.fmDecay||0.3)); this.aE=0; { const _a=(this.attack||0); this.aOn=_a>0.0012; this.aInc=this.aOn?(1/(_a*sampleRate)):1; } }
   tick(){ if(!this.active)return 0;
     const freq1=300+this.tune*600;
-    const o1=Math.sin(this.phase1*Math.PI*2), o2=Math.sin(this.phase2*Math.PI*2)*0.4;
+    let fmOff=0; if(this.fmAmt>0.0001){ this.fmPh+=(freq1*this.fmRatio)/sampleRate; this.fmPh-=Math.floor(this.fmPh); this.fmDecEnv*=this.fmDecA; fmOff=Math.sin(this.fmPh*6.2831853)*this.fmAmt*8*this.fmDecEnv; } const o1=Math.sin(this.phase1*Math.PI*2+fmOff), o2=Math.sin(this.phase2*Math.PI*2+fmOff*0.5)*0.4;
     this.phase1+=freq1/sampleRate; this.phase2+=freq1*2.31/sampleRate;
     if(this.phase1>=1)this.phase1-=1; if(this.phase2>=1)this.phase2-=1;
     const clk=(Math.random()*2-1)*this.click; this.click*=0.6;
@@ -740,7 +798,7 @@ const KITPERC_PRESETS=[
   {pitch:311.127,penv:0.9, pdec:0.015,wave:0.24,oscDecay:0.13,oscLevel:1,noiseLevel:0.15,noiseType:"highpass",noiseColor:4400,noiseDecay:0.018,drive:0.38,saturate:0.28,body:0.26,punch:0.30,tone:8500,level:0.86,pan:-0.18,life:0.45} // METAL
 ];
 function seededRng(s){ let a=(s>>>0)||1; return function(){ a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
-const PINGDEF={ tune:80, reso:14, decay:0.4, exc:0.6, fmRatio:1.5, fmAmt:0.35, sweep:0.5, swDec:0.03, drive:0.4, saturate:0.28, tone:4800, level:0.9, pan:0, flt:0, life:0.10, attack:0.001 };
+const PINGDEF={ tune:80, reso:14, decay:0.4, exc:0.6, fmRatio:1.5, fmAmt:0.14, fmDecay:2, sweep:0.5, swDec:0.03, drive:0.4, saturate:0.28, tone:4800, level:0.9, pan:0, flt:0, life:0.10, attack:0.001 };
 class PingVoice {                                                   // pinged resonator + FM + LIFE :: powerful analog synth percussion, belly not stress
   constructor(p){ this.p=Object.assign({},PINGDEF,p); this.active=false; this.pan=this.p.pan; this.bp=new Biquad(); this.tn=new Biquad(); this._rnd=Math.random; }
   set(k,v){ this.p[k]=v; if(k==="pan")this.pan=v; }
@@ -752,6 +810,7 @@ class PingVoice {                                                   // pinged re
     this.decA=dCoef(Math.max(0.02, baseLen*(p.decay/0.5)*(1+R()*lf*0.35)));// DECAY scales it
     this.swA=dCoef(Math.max(0.005,p.swDec));
     this.fmRatio=p.fmRatio*(1+R()*lf*0.25); this.fmAmt=Math.max(0,p.fmAmt*(1+R()*lf*0.5));
+    this.fmDecEnv=1; this.fmDecA=((p.fmDecay==null||p.fmDecay>=1.99)?1:dCoef(Math.max(0.003,p.fmDecay)));   // max = no fade (matches original constant FM)
     this.jFx=1+R()*lf*0.3; this.jLev=1+R()*lf*0.18; this.dphR=(1+R()*lf*0.4);
     this.env=1; this.fEnv=1; this.exc=1; this.ph=0; this.fmPh=0;
     this.bp.set("bandpass", this.f0, this.q); this.tn.set("lowpass", p.tone, 0.7);
@@ -759,7 +818,7 @@ class PingVoice {                                                   // pinged re
   tick(){ if(!this.active)return 0; const p=this.p;
     this.fEnv*=this.swA; const fInst=this.f0*(1+p.sweep*this.fEnv);        // attack freq sweep (analog wow)
     this.fmPh+=(fInst*this.fmRatio*this.dphR)/sampleRate; if(this.fmPh>=1)this.fmPh-=1;
-    const fm=Math.sin(this.fmPh*6.2832)*this.fmAmt;                        // FM = inharmonic metallic partials
+    this.fmDecEnv*=this.fmDecA; const fm=Math.sin(this.fmPh*6.2832)*this.fmAmt*2.5*this.fmDecEnv;                      // deeper index :: FM reads clearly when dialled up                        // FM = inharmonic metallic partials
     this.ph+=(fInst*(1+fm))/sampleRate; if(this.ph>=1)this.ph-=1;
     const carrier=Math.sin(this.ph*6.2832);
     let exc=this.exc>0.0001?(1+(this._rnd()*2-1)*p.exc):0; this.exc*=0.35;  // impulse+noise burst
@@ -771,15 +830,15 @@ class PingVoice {                                                   // pinged re
     return sig*p.level*this.vel*(this.jLev||1)*(this.aOn?this.aE:1); }
 }
 const PING_PRESETS=[
-  {tune:50, reso:20,decay:0.60,fmRatio:1.00,fmAmt:0.22,sweep:0.50,drive:0.42,saturate:0.30,tone:4200,level:0.92,pan:0,    life:0.10},
-  {tune:60, reso:12,decay:0.40,fmRatio:1.41,fmAmt:0.28,sweep:0.50,drive:0.40,saturate:0.28,tone:4400,level:0.90,pan:-0.2, life:0.10},
-  {tune:74, reso:16,decay:0.50,fmRatio:1.68,fmAmt:0.32,sweep:0.55,drive:0.40,saturate:0.28,tone:4600,level:0.90,pan:0.18, life:0.10},
-  {tune:90, reso:10,decay:0.32,fmRatio:2.00,fmAmt:0.36,sweep:0.58,drive:0.42,saturate:0.30,tone:4900,level:0.89,pan:-0.12,life:0.10},
-  {tune:110,reso:18,decay:0.45,fmRatio:2.13,fmAmt:0.40,sweep:0.60,drive:0.44,saturate:0.30,tone:5200,level:0.89,pan:0.22, life:0.10},
-  {tune:140,reso:9, decay:0.26,fmRatio:2.50,fmAmt:0.44,sweep:0.62,drive:0.44,saturate:0.32,tone:5600,level:0.88,pan:-0.25,life:0.10},
-  {tune:175,reso:14,decay:0.34,fmRatio:2.76,fmAmt:0.48,sweep:0.64,drive:0.46,saturate:0.32,tone:6000,level:0.88,pan:0.15, life:0.10},
-  {tune:220,reso:8, decay:0.20,fmRatio:3.14,fmAmt:0.52,sweep:0.66,drive:0.46,saturate:0.34,tone:6500,level:0.87,pan:-0.18,life:0.10},
-  {tune:280,reso:12,decay:0.28,fmRatio:3.60,fmAmt:0.56,sweep:0.68,drive:0.48,saturate:0.34,tone:7000,level:0.86,pan:0.2,  life:0.10}
+  {tune:50, reso:20,decay:0.60,fmRatio:1.00,fmAmt:0.088,sweep:0.50,drive:0.42,saturate:0.30,tone:4200,level:0.92,pan:0,    life:0.10},
+  {tune:60, reso:12,decay:0.40,fmRatio:1.41,fmAmt:0.112,sweep:0.50,drive:0.40,saturate:0.28,tone:4400,level:0.90,pan:-0.2, life:0.10},
+  {tune:74, reso:16,decay:0.50,fmRatio:1.68,fmAmt:0.128,sweep:0.55,drive:0.40,saturate:0.28,tone:4600,level:0.90,pan:0.18, life:0.10},
+  {tune:90, reso:10,decay:0.32,fmRatio:2.00,fmAmt:0.144,sweep:0.58,drive:0.42,saturate:0.30,tone:4900,level:0.89,pan:-0.12,life:0.10},
+  {tune:110,reso:18,decay:0.45,fmRatio:2.13,fmAmt:0.16,sweep:0.60,drive:0.44,saturate:0.30,tone:5200,level:0.89,pan:0.22, life:0.10},
+  {tune:140,reso:9, decay:0.26,fmRatio:2.50,fmAmt:0.176,sweep:0.62,drive:0.44,saturate:0.32,tone:5600,level:0.88,pan:-0.25,life:0.10},
+  {tune:175,reso:14,decay:0.34,fmRatio:2.76,fmAmt:0.192,sweep:0.64,drive:0.46,saturate:0.32,tone:6000,level:0.88,pan:0.15, life:0.10},
+  {tune:220,reso:8, decay:0.20,fmRatio:3.14,fmAmt:0.208,sweep:0.66,drive:0.46,saturate:0.34,tone:6500,level:0.87,pan:-0.18,life:0.10},
+  {tune:280,reso:12,decay:0.28,fmRatio:3.60,fmAmt:0.224,sweep:0.68,drive:0.48,saturate:0.34,tone:7000,level:0.86,pan:0.2,  life:0.10}
 ];
 function makeKitPerc(){ return PING_PRESETS.map(p=>new PingVoice(p)); }
 
@@ -938,7 +997,7 @@ class BrachinisteEngine extends AudioWorkletProcessor {
           v.trigger(ev.vel, ev.seed);
         } }
       let l0=0,r0=0,l1=0,r1=0,l2=0,r2=0;
-      for(let v=0;v<vs.length;v++){ const vo=vs[v]; if(!vo.active)continue; const k23=(this.kit===1||this.kit===3); if(k23)kit2Smooth(vo); let s=vo.tick(); s=bipFilt(vo,s); if(this.kit===1){s=kit2Filt(vo,s);s=kit2FX(vo,s);} const pan=vo.pan||0;
+      for(let v=0;v<vs.length;v++){ const vo=vs[v]; if(!vo.active)continue; const k23=(this.kit===1||this.kit===3); if(k23)kit2Smooth(vo); let s=vo.tick(); s=bipFilt(vo,s); if(this.kit===1){s=kit2Filt(vo,s);s=kit2FX(vo,s);} if(vo.olvl!==undefined){ vo._olvl=(vo._olvl===undefined?vo.olvl:vo._olvl+(vo.olvl-vo._olvl)*0.01); s*=vo._olvl; } const pan=vo.pan||0;
         const pl=s*Math.cos((pan+1)*0.25*Math.PI), pr=s*Math.sin((pan+1)*0.25*Math.PI);
         const b=multi?(this.bus[v]|0):0;                                        // render nodes with one output stay on bus 0
         if(b===1){l1+=pl;r1+=pr;} else if(b===2){l2+=pl;r2+=pr;} else {l0+=pl;r0+=pr;} }
@@ -1189,6 +1248,36 @@ class RumbleFX extends AudioWorkletProcessor {
 }
 registerProcessor("rumble-fx", RumbleFX);
 
+// FREEVERB :: classic Schroeder/Moorer :: 8 parallel damped combs + 4 series allpass per channel, stereo-decorrelated
+class Freeverb extends AudioWorkletProcessor{
+  constructor(){ super();
+    const sc=sampleRate/44100, spread=Math.round(23*sc);
+    const combT=[1116,1188,1277,1356,1422,1491,1557,1617], apT=[556,441,341,225];
+    const mk=(L)=>{const len=Math.max(1,Math.round(L*sc));return {buf:new Float32Array(len),pos:0,store:0,len:len};};
+    this.combL=combT.map(L=>mk(L)); this.combR=combT.map(L=>mk(L)); this.combR=combT.map(L=>mk(L+23));
+    this.apL=apT.map(L=>mk(L)); this.apR=apT.map(L=>mk(L+23));
+    this.feedback=0.84; this.damp1=0.2; this.damp2=0.8; this.gain=0.018; this.makeup=2.6;
+    this.port.onmessage=(e)=>{const d=e.data; if(!d)return;
+      if(d.type==="room"){ this.feedback=0.7+Math.max(0,Math.min(1,d.value))*0.281; }
+      else if(d.type==="damp"){ const dm=Math.max(0,Math.min(1,d.value))*0.4; this.damp1=dm; this.damp2=1-dm; } };
+  }
+  _comb(c,x){ const y=c.buf[c.pos]; c.store=y*this.damp2+c.store*this.damp1; c.buf[c.pos]=x+c.store*this.feedback; if(++c.pos>=c.len)c.pos=0; return y; }
+  _allp(a,x){ const y=a.buf[a.pos]; a.buf[a.pos]=x+y*0.5; if(++a.pos>=a.len)a.pos=0; return y-x; }
+  process(inputs,outputs){ const inp=inputs[0], out=outputs[0]; if(!out||!out[0])return true;
+    const oL=out[0], oR=out[1]||out[0], n=oL.length;
+    const iL=(inp&&inp[0])?inp[0]:null, iR=(inp&&inp[1])?inp[1]:iL;
+    for(let i=0;i<n;i++){
+      const mono=(((iL?iL[i]:0)+(iR?iR[i]:0))*0.5)*this.gain;
+      let l=0; for(let k=0;k<this.combL.length;k++)l+=this._comb(this.combL[k],mono);
+      for(let k=0;k<this.apL.length;k++)l=this._allp(this.apL[k],l);
+      let r=0; for(let k=0;k<this.combR.length;k++)r+=this._comb(this.combR[k],mono);
+      for(let k=0;k<this.apR.length;k++)r=this._allp(this.apR[k],r);
+      oL[i]=l*this.makeup; oR[i]=r*this.makeup;
+    }
+    return true; }
+}
+registerProcessor("freeverb", Freeverb);
+
 </script>
 
 <script>
@@ -1196,7 +1285,7 @@ registerProcessor("rumble-fx", RumbleFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="331";
+const REV="361";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=9;
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -1204,28 +1293,29 @@ function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!lo
 const HP=(def)=>d("hp",20,8000,def,1,"HP"), LP=(def)=>d("lp",200,18000,def,1,"LP",true), LPt=(def)=>d("lp",80,5000,def,1,"LP",true);
 const FXD=()=>[d("drive",0,1,0),d("sat",0,1,0),d("redux",0,1,0),d("fold",0,1,0),d("punch",0,1,0),d("body",0,1,0)];
 const KIT2V=[
- {name:"KICK 1",defs:[d("attack",0.001,0.05,0.001,1,"ATT",false,0.65),d("decay",0.01,2,0.10,1),d("tune",0.1,1,0.28),d("tone",0.01,1,0.05),d("gain",0.01,1,0.9),HP(20),LPt(5000),...FXD()]},
- {name:"KICK 2",defs:[d("attack",0.001,0.05,0.001,1,"ATT",false,0.65),d("decay",0.01,2,0.35,1),d("tune",0.1,1,0.3),d("gain",0.01,1,0.7),HP(20),LPt(5000),...FXD()]},
- {name:"SNARE", defs:[d("attack",0.001,0.05,0.001,1,null,false,0.65),d("decay",0.01,1,0.062,1),d("noise",0,1,0),d("gain",0.01,1,0.82),d("pan",-1,1,0),HP(1700),d("hpq",0,1,0,0,"H.RES"),LP(18000),d("lpq",0,1,0,0,"L.RES"),d("drive",0,1,0.22),d("sat",0,1,0),d("redux",0,1,0),d("fold",0,1,0),d("punch",0,1,0.24),d("body",0,1,0.21)]},
- {name:"SHAKER",defs:[d("attack",0.001,0.02,0.010,1,null,false,0.65),d("decay",0.005,0.5,0.024,1),d("tune",0.1,1,0.98),d("noise",0,1,0.18),d("gain",0.01,1,1),d("pan",-1,1,-0.3),HP(3000),LP(18000),...FXD()]},
- {name:"CL HAT",defs:[d("attack",0.001,0.02,0.001,1,null,false,0.65),d("decay",0.005,0.5,0.035,1),d("tune",0.1,1,0.85),d("noise",0,1,0),d("gain",0.01,1,0.5),d("pan",-1,1,-0.3),HP(3000),LP(18000),...FXD()]},
- {name:"OP HAT",defs:[d("attack",0.001,0.02,0.001,1,null,false,0.65),d("decay",0.05,0.8,0.3,1),d("tune",0.1,1,0.85),d("noise",0,1,0),d("gain",0.01,1,0.5),d("pan",-1,1,0.3),HP(2500),LP(18000),...FXD()]},
- {name:"TOM 1", defs:[d("attack",0.001,0.05,0.001,1,"ATT",false,0.65),d("decay",0.01,2,0.027,1),d("tune",0.1,1,0.28),d("gain",0.01,1,0.8),d("pan",-1,1,0.3),HP(20),LPt(5000),...FXD()]},
- {name:"TOM 2", defs:[d("attack",0.001,0.05,0.001,1,"ATT",false,0.65),d("decay",0.01,2,0.047,1),d("tune",0.1,1,0.21),d("gain",0.01,1,0.8),d("pan",-1,1,-0.3),HP(20),LPt(5000),...FXD()]},
- {name:"WOOD",  defs:[d("attack",0.001,0.05,0.001,1,"ATT",false,0.65),d("decay",0.01,0.4,0.015,1),d("tune",0.1,1,1),d("gain",0.01,1,0.45),d("pan",-1,1,0.4),HP(20),LPt(5000),...FXD()]}
+ {name:"KICK 1",defs:[d("attack",0.001,0.05,0.001,1,"ATT",false,0.65),d("decay",0.01,2,0.10,1),d("tune",0.1,1,0.28),d("tone",0.01,1,0.05),d("gain",0.01,1,0.9),HP(20),LPt(5000),d("fmRatio",0.25,12,1,0,"FM RAT"),d("fmAmt",0,1,0,0,"FM AMT"),d("fmDecay",0.003,2,0.3,1,"FM DEC"),...FXD(),d("olvl",0,1.5,1,0,"LEVEL")]},
+ {name:"KICK 2",defs:[d("attack",0.001,0.05,0.001,1,"ATT",false,0.65),d("decay",0.01,2,0.35,1),d("tune",0.1,1,0.3),d("gain",0.01,1,0.7),HP(20),LPt(5000),d("fmRatio",0.25,12,1,0,"FM RAT"),d("fmAmt",0,1,0,0,"FM AMT"),d("fmDecay",0.003,2,0.3,1,"FM DEC"),...FXD(),d("olvl",0,1.5,1,0,"LEVEL")]},
+ {name:"SNARE", defs:[d("attack",0.001,0.05,0.001,1,null,false,0.65),d("decay",0.01,1,0.062,1),d("noise",0,1,0),d("gain",0.01,1,0.82),d("pan",-1,1,0),HP(1700),d("hpq",0,1,0,0,"H.RES"),LP(18000),d("lpq",0,1,0,0,"L.RES"),d("drive",0,1,0.22),d("sat",0,1,0),d("redux",0,1,0),d("fold",0,1,0),d("punch",0,1,0.24),d("body",0,1,0.21),d("olvl",0,1.5,1,0,"LEVEL")]},
+ {name:"SHAKER",defs:[d("attack",0.001,0.02,0.010,1,null,false,0.65),d("decay",0.005,0.5,0.024,1),d("tune",0.1,1,0.98),d("noise",0,1,0.18),d("gain",0.01,1,1),d("pan",-1,1,-0.3),HP(3000),LP(18000),...FXD(),d("olvl",0,1.5,1,0,"LEVEL")]},
+ {name:"CL HAT",defs:[d("attack",0.001,0.02,0.001,1,null,false,0.65),d("decay",0.005,0.5,0.035,1),d("tune",0.1,1,0.85),d("noise",0,1,0),d("gain",0.01,1,0.5),d("pan",-1,1,-0.3),HP(3000),LP(18000),...FXD(),d("olvl",0,1.5,1,0,"LEVEL")]},
+ {name:"OP HAT",defs:[d("attack",0.001,0.02,0.001,1,null,false,0.65),d("decay",0.05,0.8,0.3,1),d("tune",0.1,1,0.85),d("noise",0,1,0),d("gain",0.01,1,0.5),d("pan",-1,1,0.3),HP(2500),LP(18000),...FXD(),d("olvl",0,1.5,1,0,"LEVEL")]},
+ {name:"TOM 1", defs:[d("attack",0.001,0.05,0.001,1,"ATT",false,0.65),d("decay",0.01,2,0.027,1),d("tune",0.1,1,0.28),d("gain",0.01,1,0.8),d("pan",-1,1,0.3),HP(20),LPt(5000),d("fmRatio",0.25,12,1,0,"FM RAT"),d("fmAmt",0,1,0,0,"FM AMT"),d("fmDecay",0.003,2,0.3,1,"FM DEC"),...FXD(),d("olvl",0,1.5,1,0,"LEVEL")]},
+ {name:"TOM 2", defs:[d("attack",0.001,0.05,0.001,1,"ATT",false,0.65),d("decay",0.01,2,0.047,1),d("tune",0.1,1,0.21),d("gain",0.01,1,0.8),d("pan",-1,1,-0.3),HP(20),LPt(5000),d("fmRatio",0.25,12,1,0,"FM RAT"),d("fmAmt",0,1,0,0,"FM AMT"),d("fmDecay",0.003,2,0.3,1,"FM DEC"),...FXD(),d("olvl",0,1.5,1,0,"LEVEL")]},
+ {name:"WOOD",  defs:[d("attack",0.001,0.05,0.001,1,"ATT",false,0.65),d("decay",0.01,0.4,0.015,1),d("tune",0.1,1,1),d("gain",0.01,1,0.45),d("pan",-1,1,0.4),HP(20),LPt(5000),d("fmRatio",0.25,12,1,0,"FM RAT"),d("fmAmt",0,1,0,0,"FM AMT"),d("fmDecay",0.003,2,0.3,1,"FM DEC"),...FXD(),d("olvl",0,1.5,1,0,"LEVEL")]}
 ];
 // KIT 1 :: ported original uTonic voices (osc + filtered noise + per-voice FX chain)
 const K1KEYS=[
  ["pitch",30,3000,1,"PITCH"],["penv",0,5,0,"P.ENV"],["pdec",0.004,0.4,1,"P.DEC"],["attack",0.001,0.05,1,"ATT",false,0.7],
  ["wave",0,1,0,"WAVE"],["oscDecay",0.02,1.4,1,"OSC.DEC",false,0.6],["oscLevel",0,1,0,"OSC.LVL"],
+ ["fmRatio",0.25,12,0,"FM RAT"],["fmAmt",0,1,0,"FM AMT"],["fmDecay",0.003,2,1,"FM DEC"],
  ["noiseLevel",0,1,0,"NOISE"],["noiseColor",150,16000,1,"N.COL"],["noiseDecay",0.004,0.9,1,"N.DEC",false,0.42],
  ["saturate",0,1,0,"SAT"],["punch",0,1,0,"PUNCH",false,0.72],["body",0,1,0,"BODY"],["drive",0,1,0,"DRIVE"],
  ["tone",200,16000,1,"TONE"],["level",0,1,0,"LEVEL"],["pan",-1,1,0,"PAN"]
 ];
-const K1BASE={pitch:200,penv:1,pdec:0.05,wave:0.1,oscDecay:0.3,oscLevel:1,noiseLevel:0,noiseColor:4000,noiseDecay:0.1,drive:0.15,saturate:0,crush:0,punch:0,body:0,tone:14000,level:0.85,pan:0,attack:0.001};
+const K1BASE={pitch:200,penv:1,pdec:0.05,wave:0.1,oscDecay:0.3,oscLevel:1,noiseLevel:0,noiseColor:4000,noiseDecay:0.1,drive:0.15,saturate:0,crush:0,punch:0,body:0,tone:14000,level:0.85,pan:0,attack:0.001,fmRatio:1,fmAmt:0,fmDecay:0.3};
 function k1voice(name,preset){const m=Object.assign({},K1BASE,preset);
   const oscOn=m.oscLevel>0.0001, nzOn=m.noiseLevel>0.0001;
-  const OSC=["pitch","penv","pdec","wave","oscDecay","oscLevel"], NZ=["noiseLevel","noiseColor","noiseDecay"];
+  const OSC=["pitch","penv","pdec","wave","oscDecay","oscLevel","fmRatio","fmAmt","fmDecay"], NZ=["noiseLevel","noiseColor","noiseDecay"];
   const defs=K1KEYS.filter(a=>OSC.indexOf(a[0])>=0?oscOn:(NZ.indexOf(a[0])>=0?nzOn:true)).map(a=>d(a[0],a[1],a[2],m[a[0]],a[3],a[4],false,a[5]));
   return {name,defs,fxMode:"drive",extra:{crush:m.crush}};}
 const KIT1V=[
@@ -1258,20 +1348,20 @@ KIT3V.slice(0,4).forEach(v=>{ v.defs=v.defs.map(df=>                            
   df.key==="oscDecay" ? d("oscDecay",0.02,2.5,df.def,1,"DECAY",false,0.6) : df ); });
 function pvoice(name,pp){ return { name, fxMode:"drive", extra:{}, defs:[
   d("tune",30,320,pp.tune,1,"TUNE"), d("reso",3,28,pp.reso,0,"RESO"), d("decay",0.05,1.2,pp.decay,1,"DECAY"), d("attack",0.001,0.15,0.001,1,"ATT"),
-  d("fmRatio",0.5,8,pp.fmRatio,0,"FM RAT"), d("fmAmt",0,1,pp.fmAmt,0,"FM AMT"),
+  d("fmRatio",0.5,8,pp.fmRatio,0,"FM RAT"), d("fmAmt",0,1,pp.fmAmt,0,"FM AMT"), d("fmDecay",0.003,2,(pp.fmDecay!=null?pp.fmDecay:2),1,"FM DEC"),
   d("drive",0,1,pp.drive,0,"DRIVE"), d("saturate",0,1,pp.saturate,0,"SAT"), Object.assign(d("flt",-1,1,0,0,"FILTER"),{detent:0}),
   d("tone",180,12000,pp.tone,1,"TONE"), d("level",0,1,pp.level,0,"LEVEL"), d("pan",-1,1,pp.pan,0,"PAN"), d("life",0,1,pp.life,0,"LIFE")
 ] }; }
 const KITPERCV=[
- pvoice("PING 1",{tune:50, reso:20,decay:0.60,fmRatio:1.00,fmAmt:0.22,sweep:0.50,drive:0.42,saturate:0.30,tone:4200,level:0.92,pan:0,    life:0.10}),
- pvoice("PING 2",{tune:60, reso:12,decay:0.40,fmRatio:1.41,fmAmt:0.28,sweep:0.50,drive:0.40,saturate:0.28,tone:4400,level:0.90,pan:-0.2, life:0.10}),
- pvoice("PING 3",{tune:74, reso:16,decay:0.50,fmRatio:1.68,fmAmt:0.32,sweep:0.55,drive:0.40,saturate:0.28,tone:4600,level:0.90,pan:0.18, life:0.10}),
- pvoice("PING 4",{tune:90, reso:10,decay:0.32,fmRatio:2.00,fmAmt:0.36,sweep:0.58,drive:0.42,saturate:0.30,tone:4900,level:0.89,pan:-0.12,life:0.10}),
- pvoice("PING 5",{tune:110,reso:18,decay:0.45,fmRatio:2.13,fmAmt:0.40,sweep:0.60,drive:0.44,saturate:0.30,tone:5200,level:0.89,pan:0.22, life:0.10}),
- pvoice("PING 6",{tune:140,reso:9, decay:0.26,fmRatio:2.50,fmAmt:0.44,sweep:0.62,drive:0.44,saturate:0.32,tone:5600,level:0.88,pan:-0.25,life:0.10}),
- pvoice("PING 7",{tune:175,reso:14,decay:0.34,fmRatio:2.76,fmAmt:0.48,sweep:0.64,drive:0.46,saturate:0.32,tone:6000,level:0.88,pan:0.15, life:0.10}),
- pvoice("PING 8",{tune:220,reso:8, decay:0.20,fmRatio:3.14,fmAmt:0.52,sweep:0.66,drive:0.46,saturate:0.34,tone:6500,level:0.87,pan:-0.18,life:0.10}),
- pvoice("PING 9",{tune:280,reso:12,decay:0.28,fmRatio:3.60,fmAmt:0.56,sweep:0.68,drive:0.48,saturate:0.34,tone:7000,level:0.86,pan:0.2,  life:0.10})
+ pvoice("PING 1",{tune:50, reso:20,decay:0.60,fmRatio:1.00,fmAmt:0.088,sweep:0.50,drive:0.42,saturate:0.30,tone:4200,level:0.92,pan:0,    life:0.10}),
+ pvoice("PING 2",{tune:60, reso:12,decay:0.40,fmRatio:1.41,fmAmt:0.112,sweep:0.50,drive:0.40,saturate:0.28,tone:4400,level:0.90,pan:-0.2, life:0.10}),
+ pvoice("PING 3",{tune:74, reso:16,decay:0.50,fmRatio:1.68,fmAmt:0.128,sweep:0.55,drive:0.40,saturate:0.28,tone:4600,level:0.90,pan:0.18, life:0.10}),
+ pvoice("PING 4",{tune:90, reso:10,decay:0.32,fmRatio:2.00,fmAmt:0.144,sweep:0.58,drive:0.42,saturate:0.30,tone:4900,level:0.89,pan:-0.12,life:0.10}),
+ pvoice("PING 5",{tune:110,reso:18,decay:0.45,fmRatio:2.13,fmAmt:0.16,sweep:0.60,drive:0.44,saturate:0.30,tone:5200,level:0.89,pan:0.22, life:0.10}),
+ pvoice("PING 6",{tune:140,reso:9, decay:0.26,fmRatio:2.50,fmAmt:0.176,sweep:0.62,drive:0.44,saturate:0.32,tone:5600,level:0.88,pan:-0.25,life:0.10}),
+ pvoice("PING 7",{tune:175,reso:14,decay:0.34,fmRatio:2.76,fmAmt:0.192,sweep:0.64,drive:0.46,saturate:0.32,tone:6000,level:0.88,pan:0.15, life:0.10}),
+ pvoice("PING 8",{tune:220,reso:8, decay:0.20,fmRatio:3.14,fmAmt:0.208,sweep:0.66,drive:0.46,saturate:0.34,tone:6500,level:0.87,pan:-0.18,life:0.10}),
+ pvoice("PING 9",{tune:280,reso:12,decay:0.28,fmRatio:3.60,fmAmt:0.224,sweep:0.68,drive:0.48,saturate:0.34,tone:7000,level:0.86,pan:0.2,  life:0.10})
 ];
 function k4editDefs(){ return [d("start",0,1,0,0,"START"),d("end",0,1,1,0,"END"),d("pitch",-24,24,0,0,"PITCH"),d("eratio",0,1,0,0,"E.PEAK"),d("eslope",-1,1,0,0,"E.SLOPE"),d("pan",-1,1,0),d("gain",0.01,1,0.8,0,"LEVEL")]; }
 function k4filtDefs(){ return [HP(20),LP(18000),d("reso",0,1,0,0,"RESO")]; }
@@ -1383,7 +1473,7 @@ const state={
   bus:Array(VOICES).fill(0),
   plock:null,
   sum:{dist:0},
-  master:{vol:0.8,modules:[
+  master:{vol:0.8,limit:true,modules:[
     {kind:"dist",bypass:false}
   ]},
   fin:{preset:"off",amount:1},
@@ -1399,7 +1489,7 @@ let history=[], hidx=-1, restoring=false;
 function snapshot(){
   return {
     bpm:state.bpm, swing:state.swing, selected:state.selected, curPattern:state.curPattern, page:state.page, kit:state.kit,
-    mute:state.mute.slice(), bus:state.bus.slice(), sum:{dist:state.sum.dist}, masterVol:state.master.vol, finPreset:state.fin.preset, finAmt:state.fin.amount,
+    mute:state.mute.slice(), bus:state.bus.slice(), sum:{dist:state.sum.dist}, masterVol:state.master.vol, masterLimit:state.master.limit, finPreset:state.fin.preset, finAmt:state.fin.amount,
     modules: JSON.parse(JSON.stringify(state.master.modules,(k,v)=>k==="_nodes"?undefined:v)),
     kits: state.kits.map(kit=>kit.map(vo=>({vals:Object.assign({},vo.vals),fxMode:vo.fxMode,mute:vo.mute}))),
     patterns: state.patterns.map(p=>({bars:p.bars,length:(p.length||STEPS_PER_BAR),steps:p.steps.map(r=>r.slice()),sub:p.sub.map(r=>r.slice()),locks:cloneLocks(p.locks),auto:cloneAuto(p.auto)}))
@@ -1418,6 +1508,7 @@ function restore(snap){
   state.master.modules.forEach(m=>{const n=m._nodes;if(n){(n.all||[]).concat([n.input,n.output,n.wet,n.dry]).forEach(x=>{if(x){try{x.disconnect();}catch(e){}}});}delete m._nodes;});
   state.master.modules=JSON.parse(JSON.stringify(snap.modules));
   state.master.vol=(snap.masterVol!=null?snap.masterVol:1);{const mv=document.getElementById("mvol");if(mv)mv.value=state.master.vol;if(masterOut)masterOut.gain.value=state.master.vol;}
+  state.master.limit=(snap.masterLimit!=null?snap.masterLimit:true);{const lb=document.getElementById("limitBtn");if(lb)lb.classList.toggle("on",state.master.limit!==false);}
   state.fin.preset=(snap.finPreset!=null?snap.finPreset:"off");state.fin.amount=(snap.finAmt!=null?snap.finAmt:1);if(typeof buildFinbar==="function")buildFinbar();if(fin)applyFinalizer();
   if(ac){ initMasterNodes(); wireMaster(); syncAll(); }
   buildKit(); buildEditor(); buildMaster(); buildStrip(); buildSeq();
@@ -1436,7 +1527,7 @@ function numSteps(){return curPat().bars*(curPat().length||STEPS_PER_BAR);}
 function numPages(){return curPat().bars;}
 
 // ---- worklet engine ----
-let ac=null,engineNode=null,meterNode=null,meterBuf=null,masterIn=null,masterOut=null,masterSendBus=null,fin=null,dryBus=null;
+let ac=null,engineNode=null,meterNode=null,meterBuf=null,masterIn=null,masterOut=null,masterSendBus=null,fin=null,dryBus=null,masterLimiter=null,masterCeil=null;
 const FINPRESETS={
   off:null,
   // each preset is its own world: own EQ freqs, wide gain spreads, distinct comp characters
@@ -1500,6 +1591,8 @@ async function ensureAudio(){
     engineNode=new AudioWorkletNode(ac,"brachiniste-engine",{numberOfOutputs:3,outputChannelCount:[2,2,2]});
     meterNode=ac.createAnalyser();meterNode.fftSize=1024;meterBuf=new Float32Array(meterNode.fftSize);
     masterIn=ac.createGain();masterOut=ac.createGain();masterSendBus=ac.createGain();
+    masterLimiter=ac.createDynamicsCompressor();masterLimiter.threshold.value=-1;masterLimiter.ratio.value=20;masterLimiter.attack.value=0.003;masterLimiter.release.value=0.1;masterLimiter.knee.value=0;   // transparent peak-limiter on the master out
+    masterCeil=ac.createWaveShaper();{const nn=2048,cc=new Float32Array(nn);for(let i=0;i<nn;i++){const x=(i/(nn-1))*2-1;cc[i]=Math.max(-1,Math.min(1,x));}masterCeil.curve=cc;}masterCeil.oversample="4x";   // oversampled brickwall safety :: guarantees no clipping past the comp
     dryBus=ac.createGain();                                        // per-voice bus routing: DRY skips the master fx (finalizer applies to everything)
     initMasterNodes();
     engineNode.connect(masterIn,0);
@@ -1513,7 +1606,7 @@ async function ensureAudio(){
   }catch(err){
     setStatus("ENGINE FAIL // "+((err&&err.name)||"ERROR"));
     console.error("BRACHINISTE engine load failed:",err);
-    if(ac){try{ac.close();}catch(e){}} ac=null;engineNode=null;masterIn=null;masterOut=null;masterSendBus=null;fin=null;dryBus=null;state.master.modules.forEach(m=>{delete m._nodes;});
+    if(ac){try{ac.close();}catch(e){}} ac=null;engineNode=null;masterIn=null;masterOut=null;masterSendBus=null;fin=null;dryBus=null;masterLimiter=null;masterCeil=null;state.master.modules.forEach(m=>{delete m._nodes;});
     throw err;
   }
 }
@@ -1671,6 +1764,12 @@ function makeKnob(def,get,set,labelOverride,arm,autoKey){
 
 // ---- editor (dynamic per selected voice) ----
 const FX_KEYS={drive:1,saturate:1,sat:1,crush:1,redux:1,fold:1,punch:1,body:1,flt:1};
+const PARAM_GROUPS=[   // grouped detail params live behind a button + popup :: keeps the row inside the chassis
+  {label:"OSC",keys:["wave","oscDecay","oscLevel"],abbr:"OSC"},
+  {label:"FM",keys:["fmRatio","fmAmt","fmDecay"],active:(vo)=>(((vo.vals&&vo.vals.fmAmt)||0)>0.0001),abbr:"FM"},
+  {label:"NOISE",keys:["noiseLevel","noiseColor","noiseDecay"],abbr:"NZ"}
+];
+function groupOfKey(k){for(const g of PARAM_GROUPS)if(g.keys.indexOf(k)>=0)return g;return null;}
 // ---- tuning randomizer (SUBS + RESONANT) :: scale-matched pitch across all 9 voices ----
 const RND_SCALES=[
   {name:"PENT MIN",s:[0,3,5,7,10]},
@@ -1713,6 +1812,7 @@ function randomizeTuning(){
 }
 function buildEditor(){
   window.AUTO_KNOBS={};
+  if(window.__pgClose)window.__pgClose();                                   // close any open param-group popup so its listener never leaks across rebuilds
   const ed=document.getElementById("editor");ed.innerHTML="";
   const setMode=!!(state.setEditKit&&state.setEditKit[state.kit]);
   const head=document.createElement("div");head.className="editor-head";
@@ -1740,7 +1840,7 @@ function buildEditor(){
   const GAP=10,KW=50,PAD=22;
   let mp=0,mf=0;
   if(K4){ mp=params.length; mf=fx.length; }
-  else state.voices.forEach(v=>{const p=v.defs.filter(d=>!FX_KEYS[d.key]).length,f=v.defs.filter(d=>FX_KEYS[d.key]).length;if(p>mp)mp=p;if(f>mf)mf=f;});
+  else state.voices.forEach(v=>{const pd=v.defs.filter(d=>!FX_KEYS[d.key]);let p=0;const sg=new Set();pd.forEach(d=>{const g=groupOfKey(d.key);if(g){if(!sg.has(g)){sg.add(g);p++;}}else p++;});const f=v.defs.filter(d=>FX_KEYS[d.key]).length;if(p>mp)mp=p;if(f>mf)mf=f;});
   const rackW=(n)=>(n*KW+(n-1)*GAP+PAD)+"px";
   const hasToggle=(vo.fxMode!==undefined&&("crush" in vo.vals));
   function setKnobGS(def){ let pos=null;                                          // SET mode :: one knob moves the param on all 9 voices, relative & clamped
@@ -1751,19 +1851,49 @@ function buildEditor(){
         state.voices.forEach((v,i)=>{ if(!has(v))return; let nn=Math.max(0,Math.min(1,nrm(def,v.vals[def.key])+d)), nv=dnm(def,nn); if(def.note)nv=snapNote(nv,def.min,def.max); v.vals[def.key]=nv; sendParam(i,def.key,nv); });
         pos=cur; } };
   }
+  function makeGroupBtn(grp){
+    const wrap=document.createElement("div");wrap.className="knob pg-wrap";
+    const btn=document.createElement("div");btn.className="pg-btn";btn.textContent=grp.abbr||grp.label;
+    const lab=document.createElement("div");lab.className="kl";lab.textContent=grp.label;
+    const val=document.createElement("div");val.className="kv";
+    const led=document.createElement("div");led.className="klock";
+    wrap.append(btn,lab,val,led);
+    btn.title=(grp.desc||("open the "+grp.label+" controls"));
+    if(!grp.active)btn.classList.add("lit");
+    const refresh=()=>{ if(grp.active)btn.classList.toggle("on",grp.active(vo)); };
+    refresh();
+    let pop=null;
+    const closeP=()=>{if(pop){pop.remove();pop=null;document.removeEventListener("pointerdown",outside,true);}if(window.__pgClose===closeP)window.__pgClose=null;};
+    const outside=(e)=>{if(pop&&!pop.contains(e.target)&&!btn.contains(e.target))closeP();};
+    btn.addEventListener("click",(e)=>{e.stopPropagation();
+      if(pop){closeP();return;}
+      if(window.__pgClose)window.__pgClose();                                    // only one group popup open at a time
+      pop=document.createElement("div");pop.className="pg-pop";
+      const ti=document.createElement("div");ti.className="pg-pop-ti";ti.textContent="// "+grp.label;
+      const kc2=document.createElement("div");kc2.className="knobs";
+      grp.keys.forEach(k=>{const def=vo.defs.find(d=>d.key===k);if(!def)return;
+        if(setMode){const gs=setKnobGS(def);kc2.appendChild(makeKnob(def,gs.get,(v)=>{gs.set(v);refresh();},null,false));}
+        else kc2.appendChild(makeKnob(def,()=>vo.vals[k],(v)=>{vo.vals[k]=v;sendParam(vid,k,v);refresh();},null,false,vid+":"+k));});   // arm=false :: no p-lock inside popup (knob vanishes, cannot be un-armed)
+      pop.append(ti,kc2);wrap.appendChild(pop);
+      window.__pgClose=closeP;
+      document.addEventListener("pointerdown",outside,true);                     // added on click :: this interaction's pointerdown already passed, so no self-close
+    });
+    return wrap;
+  }
   const racks=document.createElement("div");racks.className="racks";
   const mk=(label,defs,cls,fixedN,onHead)=>{const rack=document.createElement("div");rack.className="rack "+cls;rack.style.width=rackW(fixedN);
     const rl=document.createElement("div");rl.className="rl";rl.textContent=label;if(onHead){rl.className="rl rl-btn"+(onHead.off?" off":"");rl.title="click to switch filter type · off / lowpass / highpass";rl.onclick=onHead;const led=document.createElement("span");led.className="rl-led"+(onHead.off?"":" on");rl.appendChild(led);}rack.appendChild(rl);
     const kc=document.createElement("div");kc.className="knobs";
-    let driveWrap=null;
+    let driveWrap=null; const seenG=new Set();
     defs.forEach(def=>{
+      if(cls==="params"){ const g=groupOfKey(def.key); if(g){ if(!seenG.has(g)){seenG.add(g);kc.appendChild(makeGroupBtn(g));} return; } }
       if(setMode){ const gs=setKnobGS(def); kc.appendChild(makeKnob(def,gs.get,gs.set,(cls==="fx"&&hasToggle&&def.key==="drive")?"DRIVE":null,false)); }
       else if(cls==="fx"&&hasToggle&&def.key==="drive"){
         const get=()=>vo.vals[vo.fxMode==="crush"?"crush":"drive"];
         const set=(val)=>{const k=vo.fxMode==="crush"?"crush":"drive";vo.vals[k]=val;sendParam(vid,k,val);};
-        driveWrap=makeKnob(def,get,set,vo.fxMode==="crush"?"CRUSH":"DRIVE",true,vid+":"+(vo.fxMode==="crush"?"crush":"drive")); kc.appendChild(driveWrap);
+        driveWrap=makeKnob(def,get,set,vo.fxMode==="crush"?"CRUSH":"DRIVE",false,vid+":"+(vo.fxMode==="crush"?"crush":"drive")); kc.appendChild(driveWrap);
       }else{
-        kc.appendChild(makeKnob(def,()=>vo.vals[def.key],(val)=>{vo.vals[def.key]=val;sendParam(vid,def.key,val);},null,true,vid+":"+def.key));
+        kc.appendChild(makeKnob(def,()=>vo.vals[def.key],(val)=>{vo.vals[def.key]=val;sendParam(vid,def.key,val);},null,false,vid+":"+def.key));
       }
     });
     rack.appendChild(kc);
@@ -1821,7 +1951,7 @@ function makeReverbIR(sizeSec,tone){
   if(e>0){const g=0.5/e;for(let ch=0;ch<2;ch++){const d=ir.getChannelData(ch);for(let i=0;i<d.length;i++)d[i]*=g;}}
   return ir;
 }
-function applyReverbIR(m){if(m._nodes&&m._nodes.conv)m._nodes.conv.buffer=makeReverbIR(revSizeSec(m.size),m.tone);}
+function applyReverbIR(m){ if(m._nodes&&m._nodes.conv&&m._nodes.conv.port){ m._nodes.conv.port.postMessage({type:"room",value:(m.size!=null?m.size:0.5)}); m._nodes.conv.port.postMessage({type:"damp",value:1-(m.tone!=null?m.tone:0.5)}); } }   // freeverb :: size->room feedback, tone->1-damp
 function scheduleReverbIR(m){if(m._irTimer)clearTimeout(m._irTimer);m._irTimer=setTimeout(()=>{m._irTimer=null;applyReverbIR(m);},70);}
 function revHpHz(v){return 20*Math.pow(100,Math.max(0,Math.min(1,v)));}     // 20 .. 2000
 function revLpHz(v){return 200*Math.pow(100,Math.max(0,Math.min(1,v)));}    // 200 .. 20000
@@ -1929,7 +2059,7 @@ function buildModuleNodes(m){
   }else if(m.kind==="reverb"){
     const inG=ac.createGain(),outG=ac.createGain();
     const pre=ac.createDelay(0.5);pre.delayTime.value=Math.max(0,m.pre);
-    const conv=ac.createConvolver();conv.normalize=false;conv.buffer=makeReverbIR(revSizeSec(m.size),m.tone);
+    const conv=new AudioWorkletNode(ac,"freeverb",{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[2]});
     const hpf=ac.createBiquadFilter();hpf.type="highpass";hpf.frequency.value=revHpHz(m.hp!=null?m.hp:0);hpf.Q.value=revResQ(m.res!=null?m.res:0);
     const lpf=ac.createBiquadFilter();lpf.type="lowpass";lpf.frequency.value=revLpHz(m.lp!=null?m.lp:1);lpf.Q.value=revResQ(m.res!=null?m.res:0);
     const comb=new AudioWorkletNode(ac,"reso-svf",{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[2]});
@@ -1952,6 +2082,7 @@ function buildModuleNodes(m){
     midG.connect(merge,0,1);sideW.connect(sideNeg);sideNeg.connect(merge,0,1);
     merge.connect(outG);
     m._nodes={input,output,dry,wet,fxIn:inG,fxOut:outG,pre,conv,hpf,lpf,comb,combGain,sumG,split,merge,midG,sideG,rInv,sideW,sideNeg,all:[inG,outG,pre,conv,hpf,lpf,comb,combGain,sumG,split,merge,midG,sideG,rInv,sideW,sideNeg]};
+    applyReverbIR(m);
     combSend(m);
   }else if(m.kind==="resonator"){
     const inG=ac.createGain(),outG=ac.createGain();
@@ -2011,7 +2142,10 @@ function wireMaster(){
   if(dryBus){try{dryBus.disconnect();}catch(e){}}
   if(state.fin && state.fin.preset!=="off" && fin){ cursor.connect(fin.finIn); masterSendBus.connect(fin.finIn); if(dryBus)dryBus.connect(fin.finIn); fin.finOut.connect(masterOut); applyFinalizer(); }
   else { cursor.connect(masterOut); masterSendBus.connect(masterOut); if(dryBus)dryBus.connect(masterOut); }
-  masterOut.connect(meterNode);
+  try{masterOut.disconnect();}catch(e){}
+  if(masterLimiter){try{masterLimiter.disconnect();}catch(e){}} if(masterCeil){try{masterCeil.disconnect();}catch(e){}}
+  if(state.master.limit!==false && masterLimiter && masterCeil){ masterOut.connect(masterLimiter); masterLimiter.connect(masterCeil); masterCeil.connect(meterNode); }
+  else { masterOut.connect(meterNode); }
 }
 function moveModule(i,dir){const a=state.master.modules,j=i+dir;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];buildMaster();wireMaster();commit();}
 function reorderModule(from,to){const a=state.master.modules;if(from==null||from===to||from<0||from>=a.length||to<0||to>=a.length)return;if(a[from].kind==="dist")return;const mod=a.splice(from,1)[0];let t=to>from?to-1:to;if(a[0]&&a[0].kind==="dist"&&t<1)t=1;a.splice(t,0,mod);buildMaster();wireMaster();commit();}
@@ -2319,9 +2453,15 @@ function switchKit(i){
 // ---- kit row (3 kits) ----
 function buildKit(){
   const host=document.getElementById("kitrow");host.innerHTML="";
-  const gl=document.createElement("span");gl.className="gl";gl.textContent="KIT //";gl.title=(window.TIP&&TIP.KIT)||"";host.appendChild(gl);
-  KIT_ORDER.forEach((ki,pos)=>{const b=document.createElement("button");b.className="cell-btn"+(ki===state.kit?" on":"");b.textContent=(pos+1);b.title=(window.TIP_KIT&&TIP_KIT[KITKEYS[ki]])||"";b.onclick=()=>switchKit(ki);host.appendChild(b);});
-  const nm=document.createElement("span");nm.className="gl";nm.style.marginLeft="6px";nm.textContent=KITS[state.kit].name;host.appendChild(nm);
+  const block=document.createElement("div");block.className="kit-block";
+  const hd=document.createElement("div");hd.className="kit-hd";hd.textContent="DRUMKITS";hd.title=(window.TIP&&TIP.KIT)||"";block.appendChild(hd);
+  const field=document.createElement("div");field.className="kit-field";
+  KIT_ORDER.forEach((ki,pos)=>{const b=document.createElement("button");b.className="cell-btn"+(ki===state.kit?" on":"");b.textContent=(pos+1);b.title=(window.TIP_KIT&&TIP_KIT[KITKEYS[ki]])||"";b.onclick=()=>switchKit(ki);field.appendChild(b);});
+  block.appendChild(field);host.appendChild(block);
+  const disp=document.createElement("div");disp.className="kit-disp";
+  const dl=document.createElement("span");dl.className="kit-disp-l";dl.textContent="KIT";
+  const dv=document.createElement("span");dv.className="kit-disp-v";dv.textContent=KITS[state.kit].name;
+  disp.append(dl,dv);host.appendChild(disp);
 }
 
 // ---- control strip ----
@@ -2524,19 +2664,21 @@ function encodeWavStereo(L, R, sr){
   return new Blob([ab],{type:"audio/wav"});
 }
 function buildOfflineMaster(ctx, node, allowKinds){   // build the master chain in ctx via a synchronous global-swap (restored immediately). allowKinds!=null => only those module kinds (finalizer always on)
-  const save={ac, meterNode, masterIn, masterOut, masterSendBus, fin, dryBus, engineNode};
+  const save={ac, meterNode, masterIn, masterOut, masterSendBus, fin, dryBus, engineNode, masterLimiter, masterCeil};
   const savedMods=state.master.modules, savedNodes=savedMods.map(m=>m._nodes);
   let ok=false;
   try{
     ac=ctx; meterNode=ctx.destination;
     masterIn=ctx.createGain(); masterOut=ctx.createGain(); masterSendBus=ctx.createGain(); dryBus=ctx.createGain(); fin=null;
+    masterLimiter=ctx.createDynamicsCompressor();masterLimiter.threshold.value=-1;masterLimiter.ratio.value=20;masterLimiter.attack.value=0.003;masterLimiter.release.value=0.1;masterLimiter.knee.value=0;
+    masterCeil=ctx.createWaveShaper();{const nn=2048,cc=new Float32Array(nn);for(let i=0;i<nn;i++){const x=(i/(nn-1))*2-1;cc[i]=Math.max(-1,Math.min(1,x));}masterCeil.curve=cc;}masterCeil.oversample="4x";
     if(allowKinds) state.master.modules=savedMods.filter(m=>allowKinds.indexOf(m.kind)>=0);
     state.master.modules.forEach(m=>{ delete m._nodes; });
     initMasterNodes(); node.connect(masterIn); wireMaster();
     ok=true;
   }catch(e){ console.error("offline master build failed :: rendering dry",e); }
   finally{
-    ac=save.ac; meterNode=save.meterNode; masterIn=save.masterIn; masterOut=save.masterOut; masterSendBus=save.masterSendBus; fin=save.fin; dryBus=save.dryBus; engineNode=save.engineNode;
+    ac=save.ac; meterNode=save.meterNode; masterIn=save.masterIn; masterOut=save.masterOut; masterSendBus=save.masterSendBus; fin=save.fin; dryBus=save.dryBus; engineNode=save.engineNode; masterLimiter=save.masterLimiter; masterCeil=save.masterCeil;
     state.master.modules=savedMods; savedMods.forEach((m,i)=>{ m._nodes=savedNodes[i]; });
   }
   return ok;
@@ -2759,12 +2901,13 @@ function bgHit(voice,vel,lead,sub,step){ if(BG.mode==="off")return;
   if(BG.fxColor==="multi")BG.tintRGB=BGCOLS[voice];
   if(BG.mode==="powder"){ const md=BGMODE[voice]||[3,2]; BG.modes.push({n:md[0],m:md[1],amp:vel,cnx:null}); if(BG.modes.length>7)BG.modes.shift(); return; }
   if(BG.mode==="plasma"){ const S=BG._pl; if(S){ S.pulse=Math.min(1.4,(S.pulse||0)+((voice===0||vel>0.9)?0.8:0.4)); if(BG.fxColor==="multi"&&typeof BGCOLS!=="undefined"&&BGCOLS[voice])S.tint=BGCOLS[voice]; } return; }
-  if(BG.mode==="wave"){ const S=BG._wv; if(S){ if(!S.rip)S.rip=[]; if(!S.node)S.node=new Array(9).fill(0); const big=(voice===0||vel>0.9);
-      S.lift=Math.min(1.3,(S.lift||0)+(big?0.95:0.45));
+  if(BG.mode==="wave"){ const S=BG._wv; if(S){ if(!S.rip)S.rip=[]; if(!S.node)S.node=new Array(9).fill(0);
+      const V=Math.max(0.15,Math.min(1.6,vel||0.7)), kick=(voice===0);                                  // ripple strength scales with loudness now
+      S.lift=Math.min(1.9,(S.lift||0)+(0.28+V*1.05)*(kick?1.25:1));
       const col=(BG.fxColor==="multi"&&typeof BGCOLS!=="undefined"&&BGCOLS[voice])?BGCOLS[voice]:(BG.fxColor==="violet"?[194,145,255]:(BG.fxColor==="multi"?[110,215,255]:[255,190,65]));
       const vx=0.12+0.76*(voice/8), vz=0.25+0.5*(((voice*3)%9)/9);
-      S.rip.push({x:vx,z:vz,age:0,life:big?1.7:1.3,speed:0.8,amp:big?1.25:0.7,col}); if(S.rip.length>8)S.rip.splice(0,S.rip.length-8);
-      S.node[voice]=Math.min(1.2,S.node[voice]+(big?0.7:0.45)); } return; }
+      S.rip.push({x:vx,z:vz,age:0,life:1.2+V*0.7,speed:0.8,amp:(0.4+V*1.7)*(kick?1.35:1),col}); if(S.rip.length>8)S.rip.splice(0,S.rip.length-8);
+      S.node[voice]=Math.min(1.5,S.node[voice]+(0.28+V*0.65)*(kick?1.2:1)); } return; }
   if(BG.mode==="seq"){ const S=BG._seq; if(S&&S.pos){ const pt=(typeof curPat==="function")?curPat():null, N=Math.max(1,((pt&&pt.bars)||1)*STEPS_PER_BAR), s=((typeof step==="number")?step:((typeof curStep!=="undefined")?curStep:0))|0;
       S.tgt[voice]=s+N*Math.ceil((S.pos[voice]+N-s)/N); S.punch[voice]=1; S.flash=1; if(S.inv)S.inv[voice]=1; } return; }   // full run-through + short invert flash on the matte icons of the struck row
   if(BG.mode==="horizon"){ const S=BG._hz; if(S){ if(!S.waves)S.waves=[]; const big=(voice===0||vel>0.9);
@@ -2937,7 +3080,7 @@ function bgWave(c,W,H,dt){
   for(let k=S.rip.length-1;k>=0;k--){ const rp=S.rip[k]; rp.age+=dt; if(rp.age>rp.life)S.rip.splice(k,1); }
   for(let v=0;v<9;v++)S.node[v]=Math.max(0,S.node[v]-dt*0.18);
   c.fillStyle="#040309"; c.fillRect(0,0,W,H);
-  const horizonY=H*0.28, C=84, R=50, t=S.t, ampPx=H*0.15;
+  const horizonY=H*0.28, C=84, R=50, t=S.t, ampPx=H*0.19;
   c.globalCompositeOperation="lighter";                                                               // additive = glowing particles on dark
   for(let r=0;r<R;r++){ const gz=r/(R-1), d=1+gz*4.2, dp=1/d;
     for(let cc=0;cc<C;cc++){ const gx=cc/(C-1), u=gx-0.5;
@@ -2962,14 +3105,18 @@ function bgPlasma(c,W,H,dt){
   { const cr0=ar[0],cg0=ar[1],cb0=ar[2],lum=cr0*0.3+cg0*0.6+cb0*0.1; if(lum<205){ const k=Math.min(0.6,(205-lum)/255); ar=[cr0+(255-cr0)*k,cg0+(255-cg0)*k,cb0+(255-cb0)*k]; } }
   let cr=ar[0],cg=ar[1],cb=ar[2];
   if(S.tint){ const p=S.pulse*0.7; cr=cr+(S.tint[0]-cr)*p; cg=cg+(S.tint[1]-cg)*p; cb=cb+(S.tint[2]-cb)*p; }   // multi: pulse tints toward the hit voice color
-  const bw=140, bh=Math.max(40,(bw*H/W)|0);
+  const bw=176, bh=Math.max(48,(bw*H/W)|0);
   if(!S.buf||S.bw!==bw||S.bh!==bh){ S.buf=document.createElement("canvas"); S.buf.width=bw; S.buf.height=bh; S.bc=S.buf.getContext("2d"); S.img=S.bc.createImageData(bw,bh); S.bw=bw; S.bh=bh; }
   S.t+=dt*(0.5+S.pulse*1.6); S.pulse=Math.max(0,S.pulse-dt*1.6);
   const t=S.t, d=S.img.data;
+  const f1=5.6+1.6*Math.sin(t*0.10), f2=4.4+1.4*Math.cos(t*0.083), f3=3.1+Math.sin(t*0.064);        // breathing frequencies :: the form reshapes over time
   for(let y=0;y<bh;y++){ const wy=y/bh; for(let x=0;x<bw;x++){ const u=x/bw;
-    let v=Math.sin(u*6.0+t)+Math.sin(wy*5.0-t*0.8)+Math.sin((u+wy)*4.0+t*0.5)+Math.sin((Math.abs(u-0.5)+Math.abs(wy-0.5))*11.0-t*1.2);
-    v=(v+4)*0.125; v=v*v*(3-2*v);                                                                    // drifting plasma, 0..1 smooth
-    const i=(y*bw+x)<<2, br=v*(0.82+S.pulse*0.85);
+    const wu=u+0.14*Math.sin(wy*3.2+t*0.28), wv=wy+0.14*Math.cos(u*3.4-t*0.23);                       // domain warp :: blobs drift and morph
+    let v=Math.sin(wu*f1+t)+Math.sin(wv*f2-t*0.8)+Math.sin((wu+wv)*f3+t*0.5)+Math.sin((Math.abs(wu-0.5)+Math.abs(wv-0.5))*10.5-t*1.15);
+    v=(v+4)*0.125; const base=v*v*(3-2*v);
+    const cont=Math.abs(Math.sin(base*3.14159*5.0));                                                  // contour ridges :: more definition
+    const val=base*0.66+cont*0.34;
+    const i=(y*bw+x)<<2, br=val*(0.82+S.pulse*0.85);
     d[i]=cr*br<255?cr*br:255; d[i+1]=cg*br<255?cg*br:255; d[i+2]=cb*br<255?cb*br:255; d[i+3]=255; } }
   S.bc.putImageData(S.img,0,0);
   c.fillStyle="#040309"; c.fillRect(0,0,W,H);
@@ -3217,7 +3364,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=331","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=361","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
@@ -3602,6 +3749,7 @@ document.getElementById("skinBtn").onclick=()=>skinCycle();
 skinApply();
 bgInit();document.getElementById("bgBtn").onclick=()=>bgCycle();document.getElementById("colBtn").onclick=()=>colCycle();
 (function(){var mv=document.getElementById("mvol");if(mv){mv.value=(state.master.vol!=null?state.master.vol:1);mv.oninput=function(){state.master.vol=parseFloat(mv.value);if(masterOut)masterOut.gain.value=state.master.vol;};mv.onchange=function(){if(typeof commit==="function")commit();};}})();
+(function(){var lb=document.getElementById("limitBtn");if(lb){var setL=function(){lb.classList.toggle("on",state.master.limit!==false);};setL();lb.onclick=function(){state.master.limit=(state.master.limit===false);setL();if(typeof wireMaster==="function")wireMaster();if(typeof commit==="function")commit();if(typeof setStatus==="function")setStatus("LIMITER // "+(state.master.limit!==false?"ON":"OFF"));};}})();
 function buildFinbar(){const bar=document.getElementById("finbar");if(!bar)return;bar.innerHTML="";const items=[["off","OFF"],["glue","GLUE"],["punch","PUNCH"],["loud","LOUD"],["air","AIR"],["warm","WARM"],["wide","WIDE"],["wdist","W.DIST"],["boombox","BOOMBOX"],["lofi","LOFI"]];items.forEach(function(it){const b=document.createElement("button");b.textContent=it[1];b.dataset.fin=it[0];if(state.fin.preset===it[0])b.classList.add("on");b.title=(window.TIP_FIN&&TIP_FIN[it[0]])||"";b.onclick=function(){state.fin.preset=it[0];var kids=bar.children;for(var i=0;i<kids.length;i++){if(kids[i].dataset&&kids[i].dataset.fin!==undefined)kids[i].classList.toggle("on",kids[i].dataset.fin===it[0]);}if(fin)applyFinalizer();wireMaster();if(typeof commit==="function")commit();};bar.appendChild(b);});
   const wrap=document.createElement("span");wrap.className="finmix";
   const lab=document.createElement("span");lab.className="finmixlab";lab.textContent="AMOUNT";
@@ -3629,23 +3777,23 @@ atConnect(false);
 const LANGPACK={
  en:{
   voice:{ "KICK 1":"KICK 1 : the main kick · tuned body plus a pitch-drop at the attack. Your foundation.","KICK 2":"KICK 2 : a second kick · layer it under KICK 1 for weight, or use it alone.","SNARE":"SNARE : tone plus noise. The tone gives the body, the noise gives the snap and buzz.","CLAP":"CLAP : stacked noise bursts fired in quick succession · the spread is many hands not quite landing together.","CL HAT":"CLOSED HAT : a short, tight metallic tick. The off-beat pulse of most grooves.","OP HAT":"OPEN HAT : a longer noise wash · its decay is what holds it open. Choke it against the closed hat.","TOM 1":"TOM 1 : a pitched drum · TUNE sets the note it sings as it falls.","TOM 2":"TOM 2 : a second tom · tune it apart from TOM 1 for fills.","WOOD":"WOOD : a dry rim/wood click. Cuts through a busy mix without adding any weight.","PING 1":"PING : a pinged resonator · a tuned body struck and left to ring.","PING 2":"PING : a pinged resonator · a tuned body struck and left to ring.","PING 3":"PING : a pinged resonator · a tuned body struck and left to ring.","PING 4":"PING : a pinged resonator · a tuned body struck and left to ring.","PING 5":"PING : a pinged resonator · a tuned body struck and left to ring.","PING 6":"PING : a pinged resonator · a tuned body struck and left to ring.","PING 7":"PING : a pinged resonator · a tuned body struck and left to ring.","PING 8":"PING : a pinged resonator · a tuned body struck and left to ring.","PING 9":"PING : a pinged resonator · a tuned body struck and left to ring." },
-  param:{ pitch:"PITCH : the fundamental note of the voice. Drag up for higher and thinner, down for deeper and heavier. On a kick this is the weight, on a tom it is the note.",tune:"TUNE : the centre pitch of the voice. Up thins and raises it, down makes it fat and low. Sets where this voice sits in the kit.",penv:"P.ENV : how far the pitch dives at the very start. Up gives a big downward whip on the attack, that classic kick dow, at 0 the pitch stays flat.",pdec:"P.DEC : how fast that pitch dive settles to the base note. Short is a sharp click of pitch, long is a slow bending fall.",wave:"WAVE : reshapes the oscillator, folding in extra harmonics. Low is pure and round, high is buzzy and bright with more edge.",oscDecay:"DECAY : how long the tone rings after the hit. Short is a tight dry knock, long lets it bloom into a sustained tone. It is how slowly the hit becomes the past.",decay:"DECAY : how long the voice rings out. Short is tight and punchy, long is a full sustaining tail. Short forgets the hit at once, long will not let go.",oscLevel:"OSC.LVL : the balance between the tuned oscillator and the noise part. Up for more pitched body, down for more breath and hiss.",noise:"NOISE : how much noise sits under the hit. It is the breath, the snap, the hiss. Up for a noisy snare or hat, down for pure tone.",noiseLevel:"NOISE : how much noise sits under the hit. It is the breath, the snap, the hiss. Up for a noisy snare or hat, down for pure tone.",noiseColor:"N.COL : the colour of the noise. Low is dark rumble, high is bright airy hiss. Sweep it to move the snap from the chest up to the top end.",noiseDecay:"N.DEC : how long the noise tail hangs on. Short is a quick tick, long is a wash that sustains behind the tone.",reso:"RESO : the resonance of the ping. Low is a short dead knock, high is a long ringing metallic tail. This is what makes it sing.",fmRatio:"FM RAT : the frequency ratio of the FM tone. Whole numbers stay musical, off-integer values turn it inharmonic and metallic · bells, clangs, gongs. Needs FM AMT up to be heard.",fmAmt:"FM AMT : how deep the FM bites. Up brings more metallic overtones riding on the hit. Push it together with FM RAT for a bell-like clang.",life:"LIFE : organic instability. Every hit drifts a little in pitch, level and timing, so no two land the same · like a real drum that never repeats exactly.",tone:"TONE : a lowpass over the whole voice. Down darkens and dulls it, up opens it bright. The quick way to sit a voice back or bring it forward.",level:"LEVEL : how loud this voice is in the mix.",gain:"GAIN : how loud this voice is in the mix.",pan:"PAN : places the voice from left to right in the stereo field.",flt:"FILTER : one bipolar filter. Turn left for a lowpass and it darkens, right for a highpass and it thins, centre is off. One knob, two directions.",redux:"REDUX : sample-rate crush. Up throws away resolution for gritty, aliased lo-fi dirt · digital grime, not warm saturation.",cutoff:"CUTOFF : where the filter opens or closes. Down shuts the top away, up opens it back up.",feedback:"FEEDBACK : how much of the echo feeds back in. Low gives one or two repeats, high gives a long trailing tail that keeps regenerating.",start:"START : where the sample begins. Move it in to skip the front. Set START past END and the sample plays backwards.",end:"END : where the sample stops. Pull it in to cut the tail short.",eratio:"E.PEAK : where the volume envelope hits its loudest point across the sample. Low is punch right at the start, high is a slow swell that peaks late.",eslope:"E.SLOPE : the shape of that envelope. Turn it negative and it swells in soft and round, positive and it snaps sharp and percussive.",hp:"HP : a highpass. Turn it up to thin the low end and clear mud, leaving the higher body.",lp:"LP : a lowpass. Turn it down to darken and cut the top, muffling the sound toward the lows.",hpq:"H.RES : resonance on the highpass · a boost right at the cutoff that whistles as you push it.",lpq:"L.RES : resonance on the lowpass · a boost at the cutoff that adds a vocal, squelchy peak.",ring:"RING : ring modulation. Up multiplies the voice against a tone, throwing metallic, clangy, inharmonic overtones on top. Always a bit alien.",freq:"FREQ : the frequency of the ring modulator. Low grinds and rumbles, high adds bell and sparkle.",eqlow:"LOW : lifts or cuts the low end with a shelf. Up for weight and warmth, down to clean out boom.",eqmid:"MID : lifts or cuts the middle band. Up brings a mix forward and present, down scoops it back.",eqhigh:"HIGH : lifts or cuts the top end with a shelf. Up for air and sparkle, down to tame harshness.",eqmidf:"MID FRQ : moves where the MID band sits, from low mids up to presence. Park it on what you want to boost or cut." },
+  param:{ pitch:"PITCH : the fundamental note of the voice. Drag up for higher and thinner, down for deeper and heavier. On a kick this is the weight, on a tom it is the note.",tune:"TUNE : the centre pitch of the voice. Up thins and raises it, down makes it fat and low. Sets where this voice sits in the kit.",penv:"P.ENV : how far the pitch dives at the very start. Up gives a big downward whip on the attack, that classic kick dow, at 0 the pitch stays flat.",pdec:"P.DEC : how fast that pitch dive settles to the base note. Short is a sharp click of pitch, long is a slow bending fall.",wave:"WAVE : reshapes the oscillator, folding in extra harmonics. Low is pure and round, high is buzzy and bright with more edge.",oscDecay:"DECAY : how long the tone rings after the hit. Short is a tight dry knock, long lets it bloom into a sustained tone. It is how slowly the hit becomes the past.",decay:"DECAY : how long the voice rings out. Short is tight and punchy, long is a full sustaining tail. Short forgets the hit at once, long will not let go.",oscLevel:"OSC.LVL : the balance between the tuned oscillator and the noise part. Up for more pitched body, down for more breath and hiss.",noise:"NOISE : how much noise sits under the hit. It is the breath, the snap, the hiss. Up for a noisy snare or hat, down for pure tone.",noiseLevel:"NOISE : how much noise sits under the hit. It is the breath, the snap, the hiss. Up for a noisy snare or hat, down for pure tone.",noiseColor:"N.COL : the colour of the noise. Low is dark rumble, high is bright airy hiss. Sweep it to move the snap from the chest up to the top end.",noiseDecay:"N.DEC : how long the noise tail hangs on. Short is a quick tick, long is a wash that sustains behind the tone.",reso:"RESO : the resonance of the ping. Low is a short dead knock, high is a long ringing metallic tail. This is what makes it sing.",fmRatio:"FM RAT : the frequency ratio of the FM tone. Whole numbers stay musical, off-integer values turn it inharmonic and metallic · bells, clangs, gongs. Needs FM AMT up to be heard.",fmAmt:"FM AMT : how deep the FM bites. Up brings more metallic overtones riding on the hit. Push it together with FM RAT for a bell-like clang.",fmDecay:"FM DEC : how long the FM stays before it fades. Short = a bright metallic attack that settles to a clean tone, long = FM rings through the whole hit.",life:"LIFE : organic instability. Every hit drifts a little in pitch, level and timing, so no two land the same · like a real drum that never repeats exactly.",tone:"TONE : a lowpass over the whole voice. Down darkens and dulls it, up opens it bright. The quick way to sit a voice back or bring it forward.",level:"LEVEL : how loud this voice is in the mix.",gain:"GAIN : how loud this voice is in the mix.",pan:"PAN : places the voice from left to right in the stereo field.",flt:"FILTER : one bipolar filter. Turn left for a lowpass and it darkens, right for a highpass and it thins, centre is off. One knob, two directions.",redux:"REDUX : sample-rate crush. Up throws away resolution for gritty, aliased lo-fi dirt · digital grime, not warm saturation.",cutoff:"CUTOFF : where the filter opens or closes. Down shuts the top away, up opens it back up.",feedback:"FEEDBACK : how much of the echo feeds back in. Low gives one or two repeats, high gives a long trailing tail that keeps regenerating.",start:"START : where the sample begins. Move it in to skip the front. Set START past END and the sample plays backwards.",end:"END : where the sample stops. Pull it in to cut the tail short.",eratio:"E.PEAK : where the volume envelope hits its loudest point across the sample. Low is punch right at the start, high is a slow swell that peaks late.",eslope:"E.SLOPE : the shape of that envelope. Turn it negative and it swells in soft and round, positive and it snaps sharp and percussive.",hp:"HP : a highpass. Turn it up to thin the low end and clear mud, leaving the higher body.",lp:"LP : a lowpass. Turn it down to darken and cut the top, muffling the sound toward the lows.",hpq:"H.RES : resonance on the highpass · a boost right at the cutoff that whistles as you push it.",lpq:"L.RES : resonance on the lowpass · a boost at the cutoff that adds a vocal, squelchy peak.",ring:"RING : ring modulation. Up multiplies the voice against a tone, throwing metallic, clangy, inharmonic overtones on top. Always a bit alien.",freq:"FREQ : the frequency of the ring modulator. Low grinds and rumbles, high adds bell and sparkle.",eqlow:"LOW : lifts or cuts the low end with a shelf. Up for weight and warmth, down to clean out boom.",eqmid:"MID : lifts or cuts the middle band. Up brings a mix forward and present, down scoops it back.",eqhigh:"HIGH : lifts or cuts the top end with a shelf. Up for air and sparkle, down to tame harshness.",eqmidf:"MID FRQ : moves where the MID band sits, from low mids up to presence. Park it on what you want to boost or cut." },
   fx:{ drive:"DRIVE : pushes the voice into a waveshaper. Up adds grit, harmonics and loudness · the sound leans into breakup and gets aggressive.",saturate:"SATURATE : soft, gentle warmth. It rounds the edge and adds subtle harmonics without really getting louder · glue, not grit.",sat:"SATURATE : soft, gentle warmth. It rounds the edge and adds subtle harmonics without really getting louder · glue, not grit.",crush:"CRUSH : bit-depth reduction. Up strips resolution for a harsh, broken, digital edge · the sound tears into steps.",fold:"FOLD : a wavefolder. It folds peaks back on themselves, spawning bright metallic harmonics that get more extreme as you push it.",punch:"PUNCH : lifts the transient at the very attack, so the hit smacks harder up front without touching the tail.",body:"BODY : adds low-end weight under the hit, filling out the bottom for a fatter, fuller sound." },
   ctrl:{ STEP:"STEP : tap to place a hit, again for an accent (louder), again to clear. Drag a step up or down for fine velocity, mouse-wheel for ratchets (one step firing several times), ctrl-drag to copy it to another step.",PATTERN:"PATTERN : eight independent slots. Each holds its own steps and automation, but the sounds stay shared, so you can build variations and switch between them.",BARS:"BARS : how many bars the pattern spans, 1 / 2 / 4. More bars means a longer loop with more steps.",PAGE:"PAGE : step through the grid when the loop runs past one screen.",CLEAR:"CLEAR : wipes the steps of this pattern. The sounds stay, only the written notes go.",AUTOCLR:"AUTO CLR : erases all automation on the selected voice, leaving its knobs static again. Undo with ctrl+z.",KIT:"KIT : swaps the whole set of nine voices. Each kit is a different synthesis engine, and the steps you wrote stay in place.",REC:"REC : arm it, then grab any knob while the loop plays and turn. Your movement is recorded as a smooth curve that plays back every loop, and the knob turns by itself afterwards. Right-click a knob to clear its automation.",BPM:"BPM : the tempo.",SWING:"SWING : pushes the off-beats late for a looser, groovier feel. 0 is dead straight.",SOUNDSET:"SOUND / SET : SOUND edits the one selected voice. Flip to SET and a knob moves that same parameter on all nine voices at once · tune or open the whole kit in one gesture.",RNDZ:"RNDZ : rolls a musical scale and tunes all nine voices into it at once. Turns a kit into a playable, melodic set instead of random pitches.",BG:"BG : the background visual behind the machine.",COLOR:"COLOR : the accent colour of the interface.",SKIN:"SKIN : the look of the chassis.",TEXT:"TEXT : show or hide this explainer panel.",UPLINK:"UPLINK : connect your Audiotool account.",EXPORT:"EXPORT : render the one-shots and steps straight into Audiotool's Machiniste.",LANG:"LANGUAGE : switch the interface language.",SNAD:"SNAD INDUSTRIES : the full rack of devices, the whole workshop.",FILTERHEAD:"FILTER : click the header to cycle the filter off / LP / HP. The two knobs below only bite when it is on." },
   kit:{ raw:"RAW : the core synthesis engine. Each voice is a tuned oscillator plus filtered noise, shaped by pitch and amp envelopes · build anything from kicks to toms to zaps out of raw waveforms. No samples, all synthesis.",pckrt:"PCKRT : a classic analog-style drum kit. Nine fixed voices · kick, snare, hats, toms, wood · each its own dedicated synth, modelled on the sound of a hardware drum machine.",subs:"SUBS : deep tuned low-end. Sub-basses, toms and tonal percussion built for weight and pitch. Pair it with RNDZ to play basslines across the nine slots.",samples:"SAMPLES : load your own audio into any of the nine slots. Trim it, tune it, shape its envelope and filter, then dirty it with ring-mod, redux and drive. A sampler with character built in.",resonant:"RESONANT : pinged resonators. Each voice is a tuned resonant body struck and left to ring · metallic, tribal, tonal. The pick for melodic percussion, feed it RNDZ for tuned lines." },
   mod:{ dist:"DISTORTION : the summing saturation on the whole mix. It drives everything into a soft cubic clip, gluing the voices together and adding weight and grit. Fixed at the front of the chain.",filter:"FILTER : a sweepable filter on the master. Lowpass, highpass or bandpass with resonance · the classic filter-sweep tool for the whole mix. Place it anywhere in the chain, or record its cutoff with REC for live sweeps.",eq:"EQ : a three-band equaliser · low shelf, sweepable mid, high shelf, each up to 15 dB. Shape the tone of the whole mix: carve mud, add air, push the mids.",delay:"DELAY : a tempo-syncable echo with feedback, a filtered and driven repeat path, ping-pong, modulation and ducking. From a slap to a dub cavern that ducks under the beat and blooms in the gaps.",reverb:"REVERB : a space around the mix · size, tone and pre-delay, with an optional tuned comb resonance. From a tight room to a long tuned wash.",resonator:"RESONATOR : a tuned resonant bank. It rings the incoming signal at set notes, laying a harmonic, pitched sheen over the mix. Chord it up for melodic ghost tones.",glitch:"GLITCH : a step-triggered stutter and beat-repeat. It grabs slices and stutters, repeats, reverses or pitches them on the steps you place · the tool for glitchy, chopped, evolving loops.",rumble:"RUMBLE : a low-end sustain that ducks under the kick. It lays a deep rumbling floor in the gaps and pumps with the beat · weight and movement under everything." },
   fin:{ glue:"GLUE : gentle 2:1 bus compression with a slow 30ms attack that lets transients through and a soft knee, plus a touch of presence and warmth. Binds the mix together without squashing it.",punch:"PUNCH : 4:1 compression with a slow attack that keeps the hit's smack, a fast release for snap, scooped low-mids and a strong presence lift around 3.5k. Makes drums slam.",loud:"LOUD : aggressive 8:1 with a near-instant 2ms attack that clamps every peak, plus drive and makeup gain. Maximum loudness · it flattens the dynamics on purpose.",air:"AIR : a gentle 1.5:1 comp with a big high-shelf lift up at 11.5k and slight widening. Opens the mix up and adds sparkle and air without crushing it.",warm:"WARM : rolls the highs off with a high-shelf cut and a 15k lowpass, lifts the lows and adds tube-style drive. Vintage, rounded and darker · takes the digital edge off.",wide:"WIDE : mid/side stereo widening at 2.2 with a high-shelf lift. Spreads the mix wide, and it is mono-safe now with no Haas, so it holds up on any system.",wdist:"W.DIST : mid/side widening plus heavy drive. Wide and dirty at once · space and character together for an aggressive, saturated master.",boombox:"BOOMBOX : fat lows and low-mids, rolled highs at 7k, a 10k lowpass, heavy 6:1 compression and drive, narrowed. Mid-forward and thick · that club-system, ghetto-blaster punch.",lofi:"LOFI : hard band-limiting with an 80Hz highpass and a 4.5k lowpass, dark and distorted and narrowed. Telephone and vintage-sampler grit · something old and broken, on purpose." },
-  info:[ [["p","> "],["k","BRACHINSKI"],["t"," // procedural drum machine"]],[["p","$ "],["t","nine voices per kit, five kits, each its own engine"]],[["p","$ "],["t","pick a voice in the grid, shape it in the editor"]],[["p","$ "],["k","PARAMS"],["t"," build the body, "],["k","FX"],["t"," dirty it up"]],[["p","$ "],["t","write the grid: tap = on, tap = accent, tap = off"]],[["p","$ "],["v","REC"],["t"," + turn a knob while it plays = automation"]],[["p","$ "],["t","ctrl-drag a voice onto another = copy its sound"]],[["p","$ "],["v","PLAY"],["t"," runs the loop, "],["v","BPM"],["t"," + "],["v","SWING"],["t"," set the feel"]],[["c","// hover any control. the machine talks back."]] ]
+  info:[ [["p","> "],["k","BRACHINSKI"],["t"," // procedural drum machine"]],[["p","$ "],["t","nine voices per kit, five kits, each its own engine"]],[["p","$ "],["t","pick a voice in the grid, shape it in the editor"]],[["p","$ "],["k","PARAMS"],["t"," build the body, "],["k","FX"],["t"," dirty it up"]],[["p","$ "],["t","write the grid: tap = on, tap = accent, tap = off"]],[["p","$ "],["v","REC"],["t"," + turn a knob while it plays = automation"]],[["p","$ "],["t","ctrl-drag a voice onto another = copy its sound"]],[["p","$ "],["v","PLAY"],["t"," runs the loop, "],["v","BPM"],["t"," + "],["v","SWING"],["t"," set the feel"]],[["c","// hover any control. the machine talks back."]],[["c","// SNAD INDUSTRIES \u00b7 BUILT BY SENSES"]] ], wip:{title:"WORK IN PROGRESS",body:"BRACHINSKI is still being built. Your feedback shapes what it becomes, so if something feels off, tell me.",credit:"CREDIT // SUMAD",intro:"his reports and ideas, where they stand:",entries:[["FIXED","GAIN took the fat with it","GAIN sat before the effects and drove the distortion too, so turning it down killed the fat sound. Now there is a separate LEVEL after the FX chain: fat stays fat, you set the level on its own."],["NEW","FM on the drums","A full FM operator (RAT / AMT / DEC) on RAW, SUBS and the five tonal PCKRT voices, tucked behind the FM button."],["FIXED","RESONANT FM was too quiet","It was buried inside the resonator. We deepened it and unified the controls, with FM DEC added."],["NEW","the kits were easy to miss","A highlighted DRUMKITS field and a name display, so the five different instruments actually stand out."]],shippedHead:"// ALSO SHIPPED",shipped:["master limiter on the output, switchable, catches the finalizer peaks","new FREEVERB reverb core, live and formable, replaces the flat convolver","OSC / FM / NOISE grouped behind buttons to keep the rows clean","per-step parameter locks removed, REC automation does it better"]}
  },
  de:{
   voice:{ "KICK 1":"KICK 1 : die Haupt-Kick · gestimmter Körper plus Tonhöhensturz am Anschlag. Dein Fundament.","KICK 2":"KICK 2 : zweite Kick · unter KICK 1 legen für Gewicht, oder allein nutzen.","SNARE":"SNARE : Ton plus Rauschen. Der Ton gibt den Körper, das Rauschen den Snap und das Schnarren.","CLAP":"CLAP : gestapelte Rausch-Bursts kurz hintereinander · die Streuung sind viele Hände, die nicht ganz gleichzeitig treffen.","CL HAT":"CLOSED HAT : kurzer, tighter metallischer Tick. Der Offbeat-Puls der meisten Grooves.","OP HAT":"OPEN HAT : längere Rauschfahne · das Decay hält sie offen. Choke sie gegen die Closed Hat.","TOM 1":"TOM 1 : gestimmte Trommel · TUNE legt die Note fest, die sie im Fallen singt.","TOM 2":"TOM 2 : zweite Tom · versetzt zu TOM 1 stimmen für Fills.","WOOD":"WOOD : trockener Rim/Holz-Klick. Schneidet durch einen vollen Mix, ohne Gewicht dazuzugeben.","PING 1":"PING : angeschlagener Resonator · ein gestimmter Körper, angeschlagen und am Ausklingen.","PING 2":"PING : angeschlagener Resonator · ein gestimmter Körper, angeschlagen und am Ausklingen.","PING 3":"PING : angeschlagener Resonator · ein gestimmter Körper, angeschlagen und am Ausklingen.","PING 4":"PING : angeschlagener Resonator · ein gestimmter Körper, angeschlagen und am Ausklingen.","PING 5":"PING : angeschlagener Resonator · ein gestimmter Körper, angeschlagen und am Ausklingen.","PING 6":"PING : angeschlagener Resonator · ein gestimmter Körper, angeschlagen und am Ausklingen.","PING 7":"PING : angeschlagener Resonator · ein gestimmter Körper, angeschlagen und am Ausklingen.","PING 8":"PING : angeschlagener Resonator · ein gestimmter Körper, angeschlagen und am Ausklingen.","PING 9":"PING : angeschlagener Resonator · ein gestimmter Körper, angeschlagen und am Ausklingen." },
-  param:{ pitch:"PITCH : der Grundton der Stimme. Hoch für höher und dünner, runter für tiefer und schwerer. Bei einer Kick ist das das Gewicht, bei einer Tom die Note.",tune:"TUNE : die Grundstimmung der Stimme. Hoch dünnt und hebt sie an, runter macht sie fett und tief. Legt fest, wo die Stimme im Kit sitzt.",penv:"P.ENV : wie weit die Tonhöhe ganz am Anfang abtaucht. Hoch gibt den großen Sturz am Anschlag, dieses klassische Kick-Dow, bei 0 bleibt die Tonhöhe flach.",pdec:"P.DEC : wie schnell dieser Sturz auf den Grundton absackt. Kurz ist ein scharfer Tonhöhen-Klick, lang ein langsam biegender Fall.",wave:"WAVE : formt den Oszillator um und faltet Obertöne ein. Wenig ist rein und rund, viel ist schnarrend und hell mit mehr Kante.",oscDecay:"DECAY : wie lange der Ton nach dem Schlag nachklingt. Kurz ist ein tighter, trockener Knock, lang lässt ihn zu einem langen Ton aufblühen. Es ist, wie langsam der Schlag zur Vergangenheit wird.",decay:"DECAY : wie lange die Stimme ausklingt. Kurz ist tight und knackig, lang eine volle, tragende Fahne. Kurz vergisst den Schlag sofort, lang lässt nicht los.",oscLevel:"OSC.LVL : das Verhältnis von gestimmtem Oszillator zum Rauschanteil. Hoch für mehr tonalen Körper, runter für mehr Atem und Zischen.",noise:"NOISE : wie viel Rauschen unter dem Schlag sitzt. Es ist der Atem, der Snap, das Zischen. Hoch für eine rauschige Snare oder Hat, runter für reinen Ton.",noiseLevel:"NOISE : wie viel Rauschen unter dem Schlag sitzt. Es ist der Atem, der Snap, das Zischen. Hoch für eine rauschige Snare oder Hat, runter für reinen Ton.",noiseColor:"N.COL : die Farbe des Rauschens. Tief ist dunkles Grollen, hoch ist helles, luftiges Zischen. Fahr damit den Snap von der Brust hoch in die Höhen.",noiseDecay:"N.DEC : wie lange die Rauschfahne nachhängt. Kurz ist ein schneller Tick, lang eine Fahne, die hinter dem Ton weiterträgt.",reso:"RESO : die Resonanz des Ping. Wenig ist ein kurzer toter Knock, viel eine lange, klingelnde metallische Fahne. Das ist, was ihn singen lässt.",fmRatio:"FM RAT : das Frequenzverhältnis des FM-Tons. Ganze Zahlen bleiben musikalisch, krumme Werte machen ihn unharmonisch und metallisch · Glocken, Clangs, Gongs. Wird erst hörbar, wenn FM AMT aufgedreht ist.",fmAmt:"FM AMT : wie tief die FM beißt. Hoch bringt mehr metallische Obertöne auf den Schlag. Zusammen mit FM RAT hochgedreht gibt es einen glockigen Clang.",life:"LIFE : organische Instabilität. Jeder Schlag driftet ein wenig in Tonhöhe, Pegel und Timing, kein Schlag wie der andere · wie eine echte Trommel, die nie exakt gleich landet.",tone:"TONE : ein Tiefpass über die ganze Stimme. Runter dunkelt und dämpft sie, hoch öffnet sie hell. Der schnelle Weg, eine Stimme nach hinten zu setzen oder nach vorn zu holen.",level:"LEVEL : wie laut diese Stimme im Mix ist.",gain:"GAIN : wie laut diese Stimme im Mix ist.",pan:"PAN : platziert die Stimme von links nach rechts im Stereobild.",flt:"FILTER : ein bipolarer Filter. Nach links ein Tiefpass und es dunkelt, nach rechts ein Hochpass und es dünnt, Mitte ist aus. Ein Regler, zwei Richtungen.",redux:"REDUX : Samplerate-Crush. Hoch wirft Auflösung weg für körnigen, aliasenden Lo-Fi-Schmutz · digitaler Dreck, keine warme Sättigung.",cutoff:"CUTOFF : wo der Filter öffnet oder schließt. Runter schließt die Höhen weg, hoch öffnet sie wieder.",feedback:"FEEDBACK : wie viel vom Echo zurückgeführt wird. Wenig gibt ein, zwei Wiederholungen, viel eine lange Fahne, die sich immer weiter selbst erneuert.",start:"START : wo das Sample beginnt. Reinschieben, um den Anfang zu überspringen. START über END hinaus und das Sample läuft rückwärts.",end:"END : wo das Sample endet. Reinziehen, um die Fahne abzuschneiden.",eratio:"E.PEAK : wo die Lautstärke-Hüllkurve über das Sample ihren lautesten Punkt hat. Tief ist Punch gleich am Anfang, hoch ein langsames Anschwellen, das spät gipfelt.",eslope:"E.SLOPE : die Form dieser Hüllkurve. Negativ schwillt sie weich und rund an, positiv schnappt sie scharf und perkussiv.",hp:"HP : ein Hochpass. Aufdrehen, um die Tiefen auszudünnen und Matsch zu räumen, der höhere Körper bleibt.",lp:"LP : ein Tiefpass. Runterdrehen, um zu dunkeln und die Höhen zu kappen, der Klang wird zu den Tiefen hin dumpf.",hpq:"H.RES : Resonanz auf dem Hochpass · eine Anhebung genau an der Grenzfrequenz, die beim Aufdrehen pfeift.",lpq:"L.RES : Resonanz auf dem Tiefpass · eine Anhebung an der Grenzfrequenz, die einen vokalen, quakigen Peak gibt.",ring:"RING : Ringmodulation. Hoch multipliziert die Stimme gegen einen Ton und wirft metallische, clangende, unharmonische Obertöne obendrauf. Immer ein bisschen fremd.",freq:"FREQ : die Frequenz des Ringmodulators. Tief mahlt und grollt, hoch gibt Glocke und Glitzern.",eqlow:"LOW : hebt oder senkt die Tiefen per Shelf. Hoch für Gewicht und Wärme, runter, um Wummern zu räumen.",eqmid:"MID : hebt oder senkt die Mitten. Hoch holt den Mix nach vorn und macht ihn präsent, runter zieht ihn zurück.",eqhigh:"HIGH : hebt oder senkt die Höhen per Shelf. Hoch für Luft und Glanz, runter, um Schärfe zu zähmen.",eqmidf:"MID FRQ : verschiebt, wo das MID-Band sitzt, von den unteren Mitten hoch zur Präsenz. Setz es auf das, was du anheben oder senken willst." },
+  param:{ pitch:"PITCH : der Grundton der Stimme. Hoch für höher und dünner, runter für tiefer und schwerer. Bei einer Kick ist das das Gewicht, bei einer Tom die Note.",tune:"TUNE : die Grundstimmung der Stimme. Hoch dünnt und hebt sie an, runter macht sie fett und tief. Legt fest, wo die Stimme im Kit sitzt.",penv:"P.ENV : wie weit die Tonhöhe ganz am Anfang abtaucht. Hoch gibt den großen Sturz am Anschlag, dieses klassische Kick-Dow, bei 0 bleibt die Tonhöhe flach.",pdec:"P.DEC : wie schnell dieser Sturz auf den Grundton absackt. Kurz ist ein scharfer Tonhöhen-Klick, lang ein langsam biegender Fall.",wave:"WAVE : formt den Oszillator um und faltet Obertöne ein. Wenig ist rein und rund, viel ist schnarrend und hell mit mehr Kante.",oscDecay:"DECAY : wie lange der Ton nach dem Schlag nachklingt. Kurz ist ein tighter, trockener Knock, lang lässt ihn zu einem langen Ton aufblühen. Es ist, wie langsam der Schlag zur Vergangenheit wird.",decay:"DECAY : wie lange die Stimme ausklingt. Kurz ist tight und knackig, lang eine volle, tragende Fahne. Kurz vergisst den Schlag sofort, lang lässt nicht los.",oscLevel:"OSC.LVL : das Verhältnis von gestimmtem Oszillator zum Rauschanteil. Hoch für mehr tonalen Körper, runter für mehr Atem und Zischen.",noise:"NOISE : wie viel Rauschen unter dem Schlag sitzt. Es ist der Atem, der Snap, das Zischen. Hoch für eine rauschige Snare oder Hat, runter für reinen Ton.",noiseLevel:"NOISE : wie viel Rauschen unter dem Schlag sitzt. Es ist der Atem, der Snap, das Zischen. Hoch für eine rauschige Snare oder Hat, runter für reinen Ton.",noiseColor:"N.COL : die Farbe des Rauschens. Tief ist dunkles Grollen, hoch ist helles, luftiges Zischen. Fahr damit den Snap von der Brust hoch in die Höhen.",noiseDecay:"N.DEC : wie lange die Rauschfahne nachhängt. Kurz ist ein schneller Tick, lang eine Fahne, die hinter dem Ton weiterträgt.",reso:"RESO : die Resonanz des Ping. Wenig ist ein kurzer toter Knock, viel eine lange, klingelnde metallische Fahne. Das ist, was ihn singen lässt.",fmRatio:"FM RAT : das Frequenzverhältnis des FM-Tons. Ganze Zahlen bleiben musikalisch, krumme Werte machen ihn unharmonisch und metallisch · Glocken, Clangs, Gongs. Wird erst hörbar, wenn FM AMT aufgedreht ist.",fmAmt:"FM AMT : wie tief die FM beißt. Hoch bringt mehr metallische Obertöne auf den Schlag. Zusammen mit FM RAT hochgedreht gibt es einen glockigen Clang.",fmDecay:"FM DEC : wie lange die FM bleibt, bevor sie verblasst. Kurz = ein heller metallischer Anschlag, der zu einem sauberen Ton absackt, lang = die FM klingt durch den ganzen Schlag.",life:"LIFE : organische Instabilität. Jeder Schlag driftet ein wenig in Tonhöhe, Pegel und Timing, kein Schlag wie der andere · wie eine echte Trommel, die nie exakt gleich landet.",tone:"TONE : ein Tiefpass über die ganze Stimme. Runter dunkelt und dämpft sie, hoch öffnet sie hell. Der schnelle Weg, eine Stimme nach hinten zu setzen oder nach vorn zu holen.",level:"LEVEL : wie laut diese Stimme im Mix ist.",gain:"GAIN : wie laut diese Stimme im Mix ist.",pan:"PAN : platziert die Stimme von links nach rechts im Stereobild.",flt:"FILTER : ein bipolarer Filter. Nach links ein Tiefpass und es dunkelt, nach rechts ein Hochpass und es dünnt, Mitte ist aus. Ein Regler, zwei Richtungen.",redux:"REDUX : Samplerate-Crush. Hoch wirft Auflösung weg für körnigen, aliasenden Lo-Fi-Schmutz · digitaler Dreck, keine warme Sättigung.",cutoff:"CUTOFF : wo der Filter öffnet oder schließt. Runter schließt die Höhen weg, hoch öffnet sie wieder.",feedback:"FEEDBACK : wie viel vom Echo zurückgeführt wird. Wenig gibt ein, zwei Wiederholungen, viel eine lange Fahne, die sich immer weiter selbst erneuert.",start:"START : wo das Sample beginnt. Reinschieben, um den Anfang zu überspringen. START über END hinaus und das Sample läuft rückwärts.",end:"END : wo das Sample endet. Reinziehen, um die Fahne abzuschneiden.",eratio:"E.PEAK : wo die Lautstärke-Hüllkurve über das Sample ihren lautesten Punkt hat. Tief ist Punch gleich am Anfang, hoch ein langsames Anschwellen, das spät gipfelt.",eslope:"E.SLOPE : die Form dieser Hüllkurve. Negativ schwillt sie weich und rund an, positiv schnappt sie scharf und perkussiv.",hp:"HP : ein Hochpass. Aufdrehen, um die Tiefen auszudünnen und Matsch zu räumen, der höhere Körper bleibt.",lp:"LP : ein Tiefpass. Runterdrehen, um zu dunkeln und die Höhen zu kappen, der Klang wird zu den Tiefen hin dumpf.",hpq:"H.RES : Resonanz auf dem Hochpass · eine Anhebung genau an der Grenzfrequenz, die beim Aufdrehen pfeift.",lpq:"L.RES : Resonanz auf dem Tiefpass · eine Anhebung an der Grenzfrequenz, die einen vokalen, quakigen Peak gibt.",ring:"RING : Ringmodulation. Hoch multipliziert die Stimme gegen einen Ton und wirft metallische, clangende, unharmonische Obertöne obendrauf. Immer ein bisschen fremd.",freq:"FREQ : die Frequenz des Ringmodulators. Tief mahlt und grollt, hoch gibt Glocke und Glitzern.",eqlow:"LOW : hebt oder senkt die Tiefen per Shelf. Hoch für Gewicht und Wärme, runter, um Wummern zu räumen.",eqmid:"MID : hebt oder senkt die Mitten. Hoch holt den Mix nach vorn und macht ihn präsent, runter zieht ihn zurück.",eqhigh:"HIGH : hebt oder senkt die Höhen per Shelf. Hoch für Luft und Glanz, runter, um Schärfe zu zähmen.",eqmidf:"MID FRQ : verschiebt, wo das MID-Band sitzt, von den unteren Mitten hoch zur Präsenz. Setz es auf das, was du anheben oder senken willst." },
   fx:{ drive:"DRIVE : treibt die Stimme in einen Waveshaper. Hoch gibt Biss, Obertöne und Lautheit · der Klang läuft in den Break und wird aggressiv.",saturate:"SATURATE : sanfte, weiche Wärme. Rundet die Kante und gibt dezente Obertöne, ohne wirklich lauter zu werden · Kleber, kein Dreck.",sat:"SATURATE : sanfte, weiche Wärme. Rundet die Kante und gibt dezente Obertöne, ohne wirklich lauter zu werden · Kleber, kein Dreck.",crush:"CRUSH : Bittiefen-Reduktion. Hoch nimmt Auflösung weg für eine harte, kaputte, digitale Kante · der Klang reißt in Stufen auf.",fold:"FOLD : ein Wavefolder. Faltet die Spitzen in sich zurück und erzeugt helle metallische Obertöne, die extremer werden, je weiter du gehst.",punch:"PUNCH : hebt den Transienten ganz am Anschlag an, so knallt der Schlag vorne härter, ohne die Fahne anzufassen.",body:"BODY : gibt Tiefton-Gewicht unter dem Schlag, füllt das Fundament für einen fetteren, volleren Klang." },
   ctrl:{ STEP:"STEP : tippen setzt einen Schlag, nochmal einen Akzent (lauter), nochmal löscht. Einen Step hoch/runter ziehen für die Velocity, Mausrad für Ratchets (ein Step feuert mehrfach), mit Strg ziehen kopiert ihn auf einen anderen Step.",PATTERN:"PATTERN : acht unabhängige Slots. Jeder hält eigene Steps und eigene Automation, die Sounds bleiben geteilt · so baust du Varianten und schaltest zwischen ihnen um.",BARS:"BARS : über wie viele Takte das Pattern läuft, 1 / 2 / 4. Mehr Takte heißt ein längerer Loop mit mehr Steps.",PAGE:"PAGE : durch das Raster blättern, wenn der Loop über einen Bildschirm hinausgeht.",CLEAR:"CLEAR : löscht die Steps dieses Patterns. Die Sounds bleiben, nur die gesetzten Noten gehen.",AUTOCLR:"AUTO CLR : löscht die gesamte Automation der gewählten Stimme, ihre Regler stehen wieder still. Rückgängig mit Strg+Z.",KIT:"KIT : tauscht das ganze Set aus neun Stimmen. Jedes Kit ist eine andere Synthese-Engine, die geschriebenen Steps bleiben stehen.",REC:"REC : scharf schalten, dann bei laufendem Loop einen Regler greifen und drehen. Deine Bewegung wird als weiche Kurve aufgenommen, die bei jedem Loop mitfährt, und der Regler dreht danach von allein. Rechtsklick auf einen Regler löscht dessen Automation.",BPM:"BPM : das Tempo.",SWING:"SWING : schiebt die Offbeats nach hinten für ein lockereres, grooviges Gefühl. 0 ist tot gerade.",SOUNDSET:"SOUND / SET : SOUND bearbeitet die eine gewählte Stimme. Auf SET umschalten und ein Regler bewegt denselben Parameter auf allen neun Stimmen gleichzeitig · das ganze Kit in einer Geste stimmen oder öffnen.",RNDZ:"RNDZ : würfelt eine Skala und stimmt alle neun Stimmen zugleich hinein. Macht aus einem Kit ein spielbares, melodisches Set statt zufälliger Tonhöhen.",BG:"BG : das Hintergrund-Visual hinter der Maschine.",COLOR:"COLOR : die Akzentfarbe der Oberfläche.",SKIN:"SKIN : das Aussehen des Gehäuses.",TEXT:"TEXT : dieses Erklär-Panel ein- oder ausblenden.",UPLINK:"UPLINK : dein Audiotool-Konto verbinden.",EXPORT:"EXPORT : die One-Shots und Steps direkt in Audiotools Machiniste rendern.",LANG:"SPRACHE : die Sprache der Oberfläche wechseln.",SNAD:"SNAD INDUSTRIES : der volle Geräte-Rack, die ganze Werkstatt.",FILTERHEAD:"FILTER : auf den Kopf klicken schaltet den Filter aus / LP / HP durch. Die zwei Regler darunter greifen nur, wenn er an ist." },
   kit:{ raw:"RAW : die Kern-Synthese-Engine. Jede Stimme ist ein gestimmter Oszillator plus gefiltertes Rauschen, geformt von Tonhöhen- und Amp-Hüllkurven · bau von Kicks über Toms bis Zaps alles aus rohen Wellenformen. Keine Samples, alles Synthese.",pckrt:"PCKRT : ein klassisches Analog-Drumkit. Neun feste Stimmen · Kick, Snare, Hats, Toms, Wood · jede ein eigener Synth, dem Klang einer Hardware-Drummachine nachempfunden.",subs:"SUBS : tiefes, gestimmtes Fundament. Sub-Bässe, Toms und tonale Percussion, gebaut für Gewicht und Tonhöhe. Zusammen mit RNDZ spielst du Basslines über die neun Slots.",samples:"SAMPLES : lad dein eigenes Audio in jeden der neun Slots. Trimmen, stimmen, Hüllkurve und Filter formen, dann mit Ringmod, Redux und Drive einsauen. Ein Sampler mit eingebautem Charakter.",resonant:"RESONANT : angeschlagene Resonatoren. Jede Stimme ist ein gestimmter Resonanzkörper, angeschlagen und am Ausklingen · metallisch, tribal, tonal. Die erste Wahl für melodische Percussion, füttere sie mit RNDZ für gestimmte Linien." },
   mod:{ dist:"DISTORTION : die Summen-Sättigung auf dem ganzen Mix. Treibt alles in einen weichen kubischen Clip, klebt die Stimmen zusammen und gibt Gewicht und Grit. Fest am Anfang der Kette.",filter:"FILTER : ein fahrbarer Filter auf der Summe. Tiefpass, Hochpass oder Bandpass mit Resonanz · das klassische Filter-Sweep-Werkzeug für den ganzen Mix. Setz ihn in der Kette wohin du willst, oder nimm sein Cutoff mit REC für Live-Sweeps auf.",eq:"EQ : ein Drei-Band-Equalizer · Low-Shelf, fahrbare Mitte, High-Shelf, je bis 15 dB. Formt den Klang des ganzen Mixes: Matsch schnitzen, Luft geben, die Mitten schieben.",delay:"DELAY : ein tempo-synchrones Echo mit Feedback, einem gefilterten und angezerrten Wiederholungsweg, Ping-Pong, Modulation und Ducking. Vom Slap bis zur Dub-Höhle, die unter dem Beat duckt und in den Lücken aufblüht.",reverb:"REVERB : ein Raum um den Mix · Größe, Ton und Pre-Delay, mit optionaler gestimmter Kamm-Resonanz. Vom kleinen Raum bis zur langen gestimmten Fahne.",resonator:"RESONATOR : ein gestimmter Resonanz-Bank. Er lässt das eingehende Signal auf festen Noten klingen und legt einen harmonischen, tonalen Schimmer über den Mix. Als Akkord gestimmt gibt es melodische Ghost-Töne.",glitch:"GLITCH : ein step-getriggerter Stutter und Beat-Repeat. Greift Slices und stottert, wiederholt, dreht um oder pitcht sie auf den Steps, die du setzt · das Werkzeug für glitchige, zerhackte, evolvierende Loops.",rumble:"RUMBLE : ein Tiefton-Sustain, das unter der Kick duckt. Legt einen tiefen grollenden Boden in die Lücken und pumpt mit dem Beat · Gewicht und Bewegung unter allem." },
   fin:{ glue:"GLUE : sanfte 2:1-Summen-Kompression mit langsamem 30ms-Attack, der Transienten durchlässt, und weichem Knie, dazu etwas Präsenz und Wärme. Bindet den Mix zusammen, ohne ihn zu quetschen.",punch:"PUNCH : 4:1-Kompression mit langsamem Attack, der den Anschlag stehen lässt, schnellem Release für Snap, ausgehöhlten unteren Mitten und kräftiger Präsenz um 3.5k. Lässt Drums knallen.",loud:"LOUD : aggressive 8:1 mit fast sofortigem 2ms-Attack, der jede Spitze abklemmt, dazu Drive und Makeup-Gain. Maximale Lautheit · plättet die Dynamik mit Absicht.",air:"AIR : ein sanfter 1.5:1-Kompressor mit großem High-Shelf oben bei 11.5k und leichter Verbreiterung. Öffnet den Mix und gibt Glanz und Luft, ohne zu drücken.",warm:"WARM : rollt die Höhen mit High-Shelf-Absenkung und 15k-Tiefpass ab, hebt die Tiefen und gibt röhrenartigen Drive. Vintage, rund und dunkler · nimmt die digitale Kante raus.",wide:"WIDE : M/S-Stereoverbreiterung auf 2.2 mit High-Shelf-Anhebung. Zieht den Mix breit, und jetzt mono-sicher ohne Haas, hält also auf jeder Anlage.",wdist:"W.DIST : M/S-Verbreiterung plus kräftiger Drive. Breit und dreckig zugleich · Raum und Charakter zusammen für ein aggressives, gesättigtes Master.",boombox:"BOOMBOX : fette Tiefen und untere Mitten, gerollte Höhen bei 7k, 10k-Tiefpass, schwere 6:1-Kompression und Drive, schmaler gestellt. Mittenlastig und dick · dieser Clubanlagen-, Ghettoblaster-Punch.",lofi:"LOFI : harte Bandbegrenzung mit 80Hz-Hochpass und 4.5k-Tiefpass, dunkel, verzerrt und schmal. Telefon- und Vintage-Sampler-Grit · etwas Altes und Kaputtes, mit Absicht." },
-  info:[ [["p","> "],["k","BRACHINSKI"],["t"," // prozeduraler Drum-Synth"]],[["p","$ "],["t","neun Stimmen pro Kit, fünf Kits, jede mit eigener Engine"]],[["p","$ "],["t","eine Stimme im Raster wählen und im Editor formen"]],[["p","$ "],["k","PARAMS"],["t"," bauen den Körper, "],["k","FX"],["t"," machen ihn dreckig"]],[["p","$ "],["t","Raster schreiben: tippen für an, Akzent, aus"]],[["p","$ "],["v","REC"],["t"," und bei laufendem Loop am Regler drehen ergibt Automation"]],[["p","$ "],["t","eine Stimme mit Strg auf eine andere ziehen kopiert den Sound"]],[["p","$ "],["v","PLAY"],["t"," startet den Loop, "],["v","BPM"],["t"," und "],["v","SWING"],["t"," machen das Feeling"]],[["c","// über jeden Regler fahren, die Maschine antwortet"]] ]
+  info:[ [["p","> "],["k","BRACHINSKI"],["t"," // prozeduraler Drum-Synth"]],[["p","$ "],["t","neun Stimmen pro Kit, fünf Kits, jede mit eigener Engine"]],[["p","$ "],["t","eine Stimme im Raster wählen und im Editor formen"]],[["p","$ "],["k","PARAMS"],["t"," bauen den Körper, "],["k","FX"],["t"," machen ihn dreckig"]],[["p","$ "],["t","Raster schreiben: tippen für an, Akzent, aus"]],[["p","$ "],["v","REC"],["t"," und bei laufendem Loop am Regler drehen ergibt Automation"]],[["p","$ "],["t","eine Stimme mit Strg auf eine andere ziehen kopiert den Sound"]],[["p","$ "],["v","PLAY"],["t"," startet den Loop, "],["v","BPM"],["t"," und "],["v","SWING"],["t"," machen das Feeling"]],[["c","// über jeden Regler fahren, die Maschine antwortet"]],[["c","// SNAD INDUSTRIES \u00b7 BUILT BY SENSES"]] ], wip:{title:"IN ARBEIT",body:"BRACHINSKI wird noch gebaut. Dein Feedback formt, was daraus wird · wenn sich etwas falsch anfühlt, sag es.",credit:"CREDIT // SUMAD",intro:"seine Meldungen und Ideen, wo sie stehen:",entries:[["FIXED","GAIN nahm den fetten Sound mit","Der GAIN saß vor den Effekten und trieb die Verzerrung mit an · drehte man ihn leiser, war auch der fette Klang weg. Jetzt gibt es einen eigenen LEVEL nach der FX-Kette: fett bleibt fett, den Pegel machst du getrennt."],["NEW","FM auf den Drums","Ein voller FM-Operator (RAT / AMT / DEC) auf RAW, SUBS und den fünf tonalen PCKRT-Voices, versteckt hinter dem FM-Button."],["FIXED","RESONANT-FM war zu leise","Sie steckte im Resonator versteckt. Wir haben sie kräftiger gemacht und die Regler vereinheitlicht, dazu FM DEC ergänzt."],["NEW","die Kits gingen leicht unter","Ein hervorgehobenes DRUMKITS-Feld und ein Namens-Display, damit die fünf verschiedenen Instrumente wirklich auffallen."]],shippedHead:"// AUCH GELIEFERT",shipped:["Master-Limiter am Ausgang, schaltbar, fängt die Finalizer-Spitzen","neuer FREEVERB-Hallkern, live formbar, ersetzt den flachen Convolver","OSC / FM / NOISE hinter Buttons gruppiert, damit die Reihen sauber bleiben","Parameter-Locks pro Step raus, REC-Automation macht es besser"]}
  },
  fr:{
   voice:{ "KICK 1":"KICK 1 : kick principal, corps + chute de hauteur","KICK 2":"KICK 2 : deuxième kick, superposer ou seul","SNARE":"SNARE : bruit + ton, claquant depuis les potards","CLAP":"CLAP : salves de bruit empilées","CL HAT":"CLOSED HAT : tic métallique court","OP HAT":"OPEN HAT : nappe de bruit plus longue","TOM 1":"TOM 1 : fût accordé","TOM 2":"TOM 2 : deuxième tom","WOOD":"WOOD : clic sec de rim","PING 1":"PING : résonateur pincé","PING 2":"PING : résonateur pincé","PING 3":"PING : résonateur pincé","PING 4":"PING : résonateur pincé","PING 5":"PING : résonateur pincé","PING 6":"PING : résonateur pincé","PING 7":"PING : résonateur pincé","PING 8":"PING : résonateur pincé","PING 9":"PING : résonateur pincé" },
@@ -3665,7 +3813,7 @@ const LANGPACK={
 let TIP={}, DEVICE_INFO_CUR=LANGPACK.en.info;
 function applyLang(l){ const pk=LANGPACK[l]||LANGPACK.en; state.lang=l;
   window.TIP_VOICE=pk.voice; window.TIP_PARAM=pk.param; window.TIP_FX=pk.fx;
-  window.TIP_FIN=pk.fin||{}; window.TIP_KIT=pk.kit||{}; window.TIP_MOD=pk.mod||{};
+  window.TIP_FIN=pk.fin||{}; window.TIP_KIT=pk.kit||{}; window.TIP_MOD=pk.mod||{}; window.TIP_WIP=pk.wip||{};
   for(const k in TIP)delete TIP[k]; Object.assign(TIP,pk.ctrl); DEVICE_INFO_CUR=pk.info; }
 applyLang((state&&state.lang)||"en");
 
@@ -3720,7 +3868,21 @@ function applyTips(root){
 function tipsRefresh(){tagControls();applyTips(document);}
 // re-tag after any dynamic rebuild (voice select, kit switch, etc.)
 ["buildKit","buildStrip","buildSeq","buildEditor","buildMaster","buildFinbar"].forEach(fn=>{const o=window[fn];if(typeof o==="function"){window[fn]=function(){const r=o.apply(this,arguments);tipsRefresh();return r;};}});
-function switchLang(l){ applyLang(l);
+function buildWip(){ const box=document.getElementById("wipBox"); if(!box)return; const w=(window.TIP_WIP)||{};
+  if(!w.entries){box.innerHTML="";return;}
+  const esc=(t)=>String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+  let h='<div class="wip-card">';
+  h+='<div class="wip-tag">'+esc(w.title||"WORK IN PROGRESS")+'</div>';
+  h+='<div class="wip-body">'+esc(w.body||"")+'</div>';
+  h+='<button id="wipFbBtn" class="wip-fb-btn">// SEND FEEDBACK</button>';
+  h+='<div class="wip-credit">'+esc(w.credit||"")+'</div>';
+  h+='<div class="wip-intro">'+esc(w.intro||"")+'</div>';
+  (w.entries||[]).forEach(e=>{ const cls=(String(e[0]).toLowerCase()==="new")?"new":"fixed"; h+='<div class="wip-item"><span class="wip-t2 '+cls+'">'+esc(e[0])+'</span><div class="wip-h">'+esc(e[1])+'</div><div class="wip-x">'+esc(e[2]||"")+'</div></div>'; });
+  if(w.shipped&&w.shipped.length){ h+='<div class="wip-ship-head">'+esc(w.shippedHead||"// ALSO SHIPPED")+'</div>'; w.shipped.forEach(x=>{ h+='<div class="wip-ship">'+esc(x)+'</div>'; }); }
+  h+='</div>'; box.innerHTML=h;
+  const fb=document.getElementById("wipFbBtn"); if(fb)fb.onclick=()=>{ const b=document.getElementById("fbBtn"); if(b)b.click(); };
+}
+function switchLang(l){ applyLang(l); if(typeof buildWip==="function")buildWip();
   document.querySelectorAll("[data-desc]").forEach(e=>e.removeAttribute("data-desc"));           // wipe both caches so new-language text can be re-applied
   document.querySelectorAll("[title]").forEach(e=>{ if(!e.closest("#langbar")&&!e.closest("#snadlink"))e.removeAttribute("title"); });
   document.querySelectorAll("#langbar .flag").forEach(f=>f.classList.toggle("on",f.dataset.l===l));
@@ -3741,6 +3903,30 @@ function switchLang(l){ applyLang(l);
   FLAGS.forEach(([l,fl])=>{ const b=document.createElement("button"); b.className="flag"+(l===state.lang?" on":""); b.dataset.l=l; b.innerHTML=fl; b.title=l.toUpperCase(); b.onclick=()=>switchLang(l); bar.appendChild(b); });
   document.body.appendChild(bar);
 })();
+(function(){
+  const btn=document.createElement("button"); btn.id="fbBtn"; btn.textContent="// FEEDBACK"; btn.title="send feedback to Snad Industries \u00b7 what works, what breaks, what you want";
+  const pan=document.createElement("div"); pan.id="fbPanel"; pan.style.display="none";
+  pan.innerHTML='<div class="fb-t">// SEND FEEDBACK</div>'+
+    '<input id="fbName" placeholder="NAME (optional)" autocomplete="off">'+
+    '<input id="fbEmail" placeholder="EMAIL (optional)" autocomplete="off">'+
+    '<textarea id="fbMsg" placeholder="what works, what breaks, what you would want next..."></textarea>'+
+    '<div class="fb-row"><span id="fbStatus"></span><span style="flex:1"></span><button id="fbCancel">CANCEL</button><button id="fbSend">SEND</button></div>';
+  document.body.appendChild(btn); document.body.appendChild(pan);
+  const st=()=>document.getElementById("fbStatus");
+  btn.onclick=()=>{ pan.style.display=pan.style.display==="none"?"flex":"none"; if(pan.style.display==="flex"){st().textContent="";document.getElementById("fbMsg").focus();} };
+  document.getElementById("fbCancel").onclick=()=>{ pan.style.display="none"; };
+  document.getElementById("fbSend").onclick=async()=>{
+    const msg=document.getElementById("fbMsg").value.trim();
+    if(!msg){ st().textContent="// MESSAGE REQUIRED"; return; }
+    st().textContent="// TRANSMITTING...";
+    try{
+      const res=await fetch("https://formspree.io/f/mkoaqeez",{ method:"POST", headers:{"Content-Type":"application/json","Accept":"application/json"}, body:JSON.stringify({ name:document.getElementById("fbName").value.trim()||"ANONYMOUS", email:document.getElementById("fbEmail").value.trim()||"", message:msg, device:"BRACHINSKI", rev:(typeof REV!=="undefined"?REV:"") }) });
+      if(res.ok){ st().textContent="// SENT \u00b7 THANK YOU"; document.getElementById("fbMsg").value=""; setTimeout(()=>{pan.style.display="none";},1400); }
+      else st().textContent="// ERROR \u00b7 TRY AGAIN";
+    }catch(e){ st().textContent="// NO CONNECTION"; }
+  };
+})();
+(function(){ try{ if(typeof buildWip==="function")buildWip(); }catch(e){} })();
 // TEXT toggle in the ctrl-bar
 (function(){const tb=document.getElementById("textBtn");if(tb)tb.onclick=()=>{const off=document.body.classList.toggle("text-off");tb.textContent="TEXT: "+(off?"OFF":"ON");};})();
 // hover wiring (panel only active >=1890; native title tooltips below that)
