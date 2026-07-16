@@ -113,9 +113,9 @@ body{
 .mvol{-webkit-appearance:none;appearance:none;width:78px;height:4px;background:var(--line);border-radius:2px;outline:none;cursor:pointer}
 .lim-btn{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--dim);background:#0c0814;border:1px solid var(--line);border-radius:4px;padding:4px 9px;margin-left:10px;cursor:pointer;transition:.12s;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:6px}
 .lim-btn:hover{border-color:var(--line-hi);color:var(--ink)}
-.lim-btn.on{color:var(--ink);border-color:var(--line-hi)}
-.lim-led{width:7px;height:7px;border-radius:50%;background:#2a1c10;box-shadow:inset 0 0 2px #000;flex:0 0 auto;transition:.12s}
-.lim-btn.on .lim-led{background:var(--amber);box-shadow:0 0 6px var(--amber-glow)}
+.lim-btn.on{color:var(--amber);border-color:var(--amber)}
+.lim-led{width:8px;height:8px;border-radius:50%;background:#2a1c10;box-shadow:inset 0 0 2px #000;flex:0 0 auto;transition:.12s}
+.lim-btn.on .lim-led{background:var(--amber);box-shadow:0 0 8px var(--amber-glow),0 0 3px var(--amber)}
 .mvol::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:9px;height:15px;background:var(--amber);border-radius:2px;cursor:pointer}
 .mvol::-moz-range-thumb{width:9px;height:15px;background:var(--amber);border:none;border-radius:2px;cursor:pointer}
 #finbar{display:flex;flex-wrap:wrap;gap:7px;margin:2px 0 10px}
@@ -478,6 +478,7 @@ html.ghost .crt{opacity:.14}
       <button class="btn play" id="play">PLAY</button>
       <div class="field"><label>BPM</label><input class="slider" id="bpm" type="range" min="60" max="200" value="120"><span class="readout" id="bpmval">120</span></div>
       <div class="field"><label>SWING</label><input class="slider" id="swing" type="range" min="0" max="70" value="0"><span class="readout" id="swingval">0</span></div>
+      <div class="field"><label>ROLL</label><input class="slider" id="roll" type="range" min="0" max="1" step="0.01" value="0"><span class="readout" id="rollval">OFF</span></div>
     </div>
     <div class="kitrow" id="kitrow"></div>
     <div id="editor"></div>
@@ -522,7 +523,7 @@ html.ghost .crt{opacity:.14}
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 361</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 373</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -587,10 +588,10 @@ const K1DEF={ pitch:200,penv:1,pdec:0.05,wave:0.1,oscDecay:0.3,oscLevel:1,
 
 class GenVoice {
   constructor(p){ this.p=Object.assign({},K1DEF,p); this.active=false; this.pan=this.p.pan;
-    this.nf=new Biquad(); this.tn=new Biquad(); this._filt(); }
-  _filt(){ const p=this.p; this.nf.set(p.noiseType,p.noiseColor,p.noiseQ||1); this.tn.set("lowpass",p.tone,0.6); }
+    this.nf=new Biquad(); this.tn=new Biquad(); this.warm=this.p.warm?1:0; this._wS=this.p.tone||0; this._filt(); }
+  _filt(){ const p=this.p; this.nf.set(p.noiseType,p.noiseColor,p.noiseQ||1); this.tn.set("lowpass",this.warm?18000:p.tone,0.6); }
   set(key,val){ this.p[key]=val; if(key==="pan")this.pan=val;
-    if(key==="noiseType"||key==="noiseColor"||key==="noiseQ"||key==="tone")this._filt(); }
+    if(key==="noiseType"||key==="noiseColor"||key==="noiseQ"||(key==="tone"&&!this.warm))this._filt(); }
   trigger(vel){
     const p=this.p; this.active=true; this.vel=vel; this.pan=p.pan;
     this.phase=0; this.oEnv=0; this.nEnv=0; this.oAtk=true; this.nAtk=true;
@@ -649,8 +650,9 @@ class GenVoice {
       this.crC--; sig=this.crH*makeup("crush",p.crush);
     }
     sig=fx("body", sig,p.body);
-    // tone LP
-    sig=this.tn.proc(sig);
+    // tone :: lowpass (normal voices) or smoothed warmth-saturation (sub voices)
+    if(this.warm){ this._wS+=(this.p.tone-this._wS)*0.0016; const w=this._wS; if(w>0.0006){ const dr=1+w*2; sig=Math.tanh(sig*dr)/Math.tanh(dr); } }   // per-sample smoothing kills the zipper (GenVoice params are otherwise un-smoothed); gentler drive = warmth not buzz
+    else sig=this.tn.proc(sig);
     // end of life
     this.life++;
     if(this.life>this.maxLife && (this.oEnv<0.0001) && (this.nEnv<0.0001)){ this.active=false; }
@@ -677,8 +679,8 @@ function makeKit1(){ return KIT1_PRESETS.map(p=>new GenVoice(p)); }
 // ═══════════════════════════════════════════════════════════════
 class KickVoice {
   constructor(soft){ this.phase=0;this.ampEnv=0;this.amp=0;this.pitchEv=0;this.nz=0;this.active=false;
-    this.decay=soft?0.35:0.10;this.tune=soft?0.3:0.28;this.tone=0.05;this.gain=soft?0.7:0.9;this.soft=soft;this.pan=0;this.olvl=1;this.fmRatio=1;this.fmAmt=0;this.fmDecay=0.3; }
-  trigger(vel){ this.ampEnv=vel;this.pitchEv=1;this.active=true; this.fmPh=0;this.fmDecEnv=1;this.fmDecA=dCoef(Math.max(0.003,this.fmDecay||0.3)); this.aE=0; { const _a=(this.attack||0); this.aOn=_a>0.0012; this.aInc=this.aOn?(1/(_a*sampleRate)):1; } }                 // no phase reset :: continuous waveform on retrigger (declick)
+    this.decay=soft?0.35:0.10;this.tune=soft?0.3:0.28;this.tone=0.05;this.gain=soft?0.7:0.9;this.soft=soft;this.pan=0;this.olvl=1;this.fmRatio=1;this.fmAmt=0;this.fmDecay=0.3;this.phaseDrift=0; }
+  trigger(vel){ this.ampEnv=vel;this.pitchEv=1;this.phase=(this.phaseDrift>0.0001?Math.random()*this.phaseDrift:0);this.active=true; this.fmPh=0;this.fmDecEnv=1;this.fmDecA=dCoef(Math.max(0.003,this.fmDecay||0.3)); this.aE=0; { const _a=(this.attack||0); this.aOn=_a>0.0012; this.aInc=this.aOn?(1/(_a*sampleRate)):1; } }                 // phase reset on trigger :: consistent punch like the other models (amp env starts at 0 -> no click)
   tick(){ if(!this.active)return 0;
     const baseFreq=this.soft?20+this.tune*60:30+this.tune*90;
     const freq=baseFreq+this.pitchEv*baseFreq*(this.soft?2:3.5);
@@ -712,7 +714,7 @@ class HihatVoice {
     if(this.envPhase===0){ this.env+=(this.envPeak-this.env)*(1/(this.attack*sampleRate)); if(this.env>=this.envPeak*0.99)this.envPhase=1; }
     else { this.env-=this.env*(1/(this.decay*sampleRate)); if(this.env<0.0001){this.active=false;return 0;} }
     const white=Math.random()*2-1; this.lpZ+=0.02*(white-this.lpZ); const brown=this.lpZ*8;
-    const blended=white*(1-this.noise)+brown*this.noise; const coef=0.02+this.tune*0.18;
+    const blended=white*(1-this.noise)+brown*this.noise; const coef=0.02+this.tune*0.6;
     this.hpZ1+=coef*(blended-this.hpZ1); this.hpZ2+=coef*(this.hpZ1-this.hpZ2); this.hpZ3+=coef*(this.hpZ2-this.hpZ3);
     return (blended-this.hpZ3)*this.env*this.gain; }
 }
@@ -775,10 +777,10 @@ function makeKit2(){
 // KIT 3 :: percussion placeholder (clone of Kit 1 until the real set lands)
 // KIT 3 :: tunable low-end set · 4 clean sub-808s + 2 toms + 2 congas + rimshot (REV164)
 const KIT3_PRESETS=[
-  {pitch:32.7032, penv:2.0,pdec:0.03, wave:0,  oscDecay:1.1, oscLevel:1,   noiseLevel:0,                                                    drive:0,   tone:9000, level:0.95}, // SUB 1 · C1
-  {pitch:41.2034, penv:2.0,pdec:0.03, wave:0,  oscDecay:1.05,oscLevel:1,   noiseLevel:0,                                                    drive:0,   tone:9000, level:0.95}, // SUB 2 · E1
-  {pitch:48.9994, penv:2.0,pdec:0.03, wave:0,  oscDecay:1.0, oscLevel:1,   noiseLevel:0,                                                    drive:0,   tone:9000, level:0.94}, // SUB 3 · G1
-  {pitch:61.7354, penv:2.0,pdec:0.03, wave:0,  oscDecay:0.9, oscLevel:1,   noiseLevel:0,                                                    drive:0,   tone:9000, level:0.93}, // SUB 4 · B1
+  {pitch:32.7032, penv:2.0,pdec:0.03, wave:0,  oscDecay:1.1, oscLevel:1,   noiseLevel:0,                                                    drive:0,   tone:0, warm:1, level:0.95}, // SUB 1 · C1
+  {pitch:41.2034, penv:2.0,pdec:0.03, wave:0,  oscDecay:1.05,oscLevel:1,   noiseLevel:0,                                                    drive:0,   tone:0, warm:1, level:0.95}, // SUB 2 · E1
+  {pitch:48.9994, penv:2.0,pdec:0.03, wave:0,  oscDecay:1.0, oscLevel:1,   noiseLevel:0,                                                    drive:0,   tone:0, warm:1, level:0.94}, // SUB 3 · G1
+  {pitch:61.7354, penv:2.0,pdec:0.03, wave:0,  oscDecay:0.9, oscLevel:1,   noiseLevel:0,                                                    drive:0,   tone:0, warm:1, level:0.93}, // SUB 4 · B1
   {pitch:100,penv:1.3,pdec:0.06, wave:0.1,oscDecay:0.4, oscLevel:0.95,noiseLevel:0.04,noiseType:"highpass",noiseColor:2000,noiseDecay:0.04,drive:0.05,tone:8000, level:0.85,pan:0.15}, // TOM 1
   {pitch:75, penv:1.3,pdec:0.07, wave:0.1,oscDecay:0.5, oscLevel:0.95,noiseLevel:0.04,noiseType:"highpass",noiseColor:1600,noiseDecay:0.04,drive:0.05,tone:7000, level:0.85,pan:-0.15}, // TOM 2
   {pitch:260,penv:0.8,pdec:0.02, wave:0.1,oscDecay:0.18,oscLevel:0.9, noiseLevel:0.12,noiseType:"highpass",noiseColor:3000,noiseDecay:0.03,drive:0.05,tone:9000, level:0.8, pan:0.3}, // CONGA H
@@ -1285,7 +1287,7 @@ registerProcessor("freeverb", Freeverb);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="361";
+const REV="373";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=9;
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -1293,12 +1295,12 @@ function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!lo
 const HP=(def)=>d("hp",20,8000,def,1,"HP"), LP=(def)=>d("lp",200,18000,def,1,"LP",true), LPt=(def)=>d("lp",80,5000,def,1,"LP",true);
 const FXD=()=>[d("drive",0,1,0),d("sat",0,1,0),d("redux",0,1,0),d("fold",0,1,0),d("punch",0,1,0),d("body",0,1,0)];
 const KIT2V=[
- {name:"KICK 1",defs:[d("attack",0.001,0.05,0.001,1,"ATT",false,0.65),d("decay",0.01,2,0.10,1),d("tune",0.1,1,0.28),d("tone",0.01,1,0.05),d("gain",0.01,1,0.9),HP(20),LPt(5000),d("fmRatio",0.25,12,1,0,"FM RAT"),d("fmAmt",0,1,0,0,"FM AMT"),d("fmDecay",0.003,2,0.3,1,"FM DEC"),...FXD(),d("olvl",0,1.5,1,0,"LEVEL")]},
- {name:"KICK 2",defs:[d("attack",0.001,0.05,0.001,1,"ATT",false,0.65),d("decay",0.01,2,0.35,1),d("tune",0.1,1,0.3),d("gain",0.01,1,0.7),HP(20),LPt(5000),d("fmRatio",0.25,12,1,0,"FM RAT"),d("fmAmt",0,1,0,0,"FM AMT"),d("fmDecay",0.003,2,0.3,1,"FM DEC"),...FXD(),d("olvl",0,1.5,1,0,"LEVEL")]},
+ {name:"KICK 1",defs:[d("attack",0.001,0.05,0.001,1,"ATT",false,0.65),d("decay",0.01,2,0.10,1),d("tune",0.1,1,0.28),d("tone",0.01,1,0.05),d("phaseDrift",0,1,0,0,"PHASE"),d("gain",0.01,1,0.9),HP(20),LPt(5000),d("fmRatio",0.25,12,1,0,"FM RAT"),d("fmAmt",0,1,0,0,"FM AMT"),d("fmDecay",0.003,2,0.3,1,"FM DEC"),...FXD(),d("olvl",0,1.5,1,0,"LEVEL")]},
+ {name:"KICK 2",defs:[d("attack",0.001,0.05,0.001,1,"ATT",false,0.65),d("decay",0.01,2,0.35,1),d("tune",0.1,1,0.3),d("phaseDrift",0,1,0,0,"PHASE"),d("gain",0.01,1,0.7),HP(20),LPt(5000),d("fmRatio",0.25,12,1,0,"FM RAT"),d("fmAmt",0,1,0,0,"FM AMT"),d("fmDecay",0.003,2,0.3,1,"FM DEC"),...FXD(),d("olvl",0,1.5,1,0,"LEVEL")]},
  {name:"SNARE", defs:[d("attack",0.001,0.05,0.001,1,null,false,0.65),d("decay",0.01,1,0.062,1),d("noise",0,1,0),d("gain",0.01,1,0.82),d("pan",-1,1,0),HP(1700),d("hpq",0,1,0,0,"H.RES"),LP(18000),d("lpq",0,1,0,0,"L.RES"),d("drive",0,1,0.22),d("sat",0,1,0),d("redux",0,1,0),d("fold",0,1,0),d("punch",0,1,0.24),d("body",0,1,0.21),d("olvl",0,1.5,1,0,"LEVEL")]},
- {name:"SHAKER",defs:[d("attack",0.001,0.02,0.010,1,null,false,0.65),d("decay",0.005,0.5,0.024,1),d("tune",0.1,1,0.98),d("noise",0,1,0.18),d("gain",0.01,1,1),d("pan",-1,1,-0.3),HP(3000),LP(18000),...FXD(),d("olvl",0,1.5,1,0,"LEVEL")]},
- {name:"CL HAT",defs:[d("attack",0.001,0.02,0.001,1,null,false,0.65),d("decay",0.005,0.5,0.035,1),d("tune",0.1,1,0.85),d("noise",0,1,0),d("gain",0.01,1,0.5),d("pan",-1,1,-0.3),HP(3000),LP(18000),...FXD(),d("olvl",0,1.5,1,0,"LEVEL")]},
- {name:"OP HAT",defs:[d("attack",0.001,0.02,0.001,1,null,false,0.65),d("decay",0.05,0.8,0.3,1),d("tune",0.1,1,0.85),d("noise",0,1,0),d("gain",0.01,1,0.5),d("pan",-1,1,0.3),HP(2500),LP(18000),...FXD(),d("olvl",0,1.5,1,0,"LEVEL")]},
+ {name:"SHAKER",defs:[d("attack",0.001,0.02,0.010,1,null,false,0.65),d("decay",0.005,0.5,0.024,1),d("noise",0,1,0.18),d("gain",0.01,1,1),d("pan",-1,1,-0.3),d("rate",0,1,0,0,"RATE"),d("tune",0.1,1,0.29,0,"BRIGHT"),HP(3000),LP(18000),...FXD(),d("olvl",0,1.5,1,0,"LEVEL")]},
+ {name:"CL HAT",defs:[d("attack",0.001,0.02,0.001,1,null,false,0.65),d("decay",0.005,0.5,0.035,1),d("noise",0,1,0),d("gain",0.01,1,0.5),d("pan",-1,1,-0.3),d("rate",0,1,0,0,"RATE"),d("tune",0.1,1,0.26,0,"BRIGHT"),HP(3000),LP(18000),...FXD(),d("olvl",0,1.5,1,0,"LEVEL")]},
+ {name:"OP HAT",defs:[d("attack",0.001,0.02,0.001,1,null,false,0.65),d("decay",0.05,0.8,0.3,1),d("noise",0,1,0),d("gain",0.01,1,0.5),d("pan",-1,1,0.3),d("rate",0,1,0,0,"RATE"),d("tune",0.1,1,0.26,0,"BRIGHT"),HP(2500),LP(18000),...FXD(),d("olvl",0,1.5,1,0,"LEVEL")]},
  {name:"TOM 1", defs:[d("attack",0.001,0.05,0.001,1,"ATT",false,0.65),d("decay",0.01,2,0.027,1),d("tune",0.1,1,0.28),d("gain",0.01,1,0.8),d("pan",-1,1,0.3),HP(20),LPt(5000),d("fmRatio",0.25,12,1,0,"FM RAT"),d("fmAmt",0,1,0,0,"FM AMT"),d("fmDecay",0.003,2,0.3,1,"FM DEC"),...FXD(),d("olvl",0,1.5,1,0,"LEVEL")]},
  {name:"TOM 2", defs:[d("attack",0.001,0.05,0.001,1,"ATT",false,0.65),d("decay",0.01,2,0.047,1),d("tune",0.1,1,0.21),d("gain",0.01,1,0.8),d("pan",-1,1,-0.3),HP(20),LPt(5000),d("fmRatio",0.25,12,1,0,"FM RAT"),d("fmAmt",0,1,0,0,"FM AMT"),d("fmDecay",0.003,2,0.3,1,"FM DEC"),...FXD(),d("olvl",0,1.5,1,0,"LEVEL")]},
  {name:"WOOD",  defs:[d("attack",0.001,0.05,0.001,1,"ATT",false,0.65),d("decay",0.01,0.4,0.015,1),d("tune",0.1,1,1),d("gain",0.01,1,0.45),d("pan",-1,1,0.4),HP(20),LPt(5000),d("fmRatio",0.25,12,1,0,"FM RAT"),d("fmAmt",0,1,0,0,"FM AMT"),d("fmDecay",0.003,2,0.3,1,"FM DEC"),...FXD(),d("olvl",0,1.5,1,0,"LEVEL")]}
@@ -1316,7 +1318,7 @@ const K1BASE={pitch:200,penv:1,pdec:0.05,wave:0.1,oscDecay:0.3,oscLevel:1,noiseL
 function k1voice(name,preset){const m=Object.assign({},K1BASE,preset);
   const oscOn=m.oscLevel>0.0001, nzOn=m.noiseLevel>0.0001;
   const OSC=["pitch","penv","pdec","wave","oscDecay","oscLevel","fmRatio","fmAmt","fmDecay"], NZ=["noiseLevel","noiseColor","noiseDecay"];
-  const defs=K1KEYS.filter(a=>OSC.indexOf(a[0])>=0?oscOn:(NZ.indexOf(a[0])>=0?nzOn:true)).map(a=>d(a[0],a[1],a[2],m[a[0]],a[3],a[4],false,a[5]));
+  const defs=K1KEYS.filter(a=>OSC.indexOf(a[0])>=0?oscOn:(NZ.indexOf(a[0])>=0?nzOn:true)).map(a=>(a[0]==="tone"&&m.warm)?d("tone",0,1,m.tone||0,0,"WARMTH"):d(a[0],a[1],a[2],m[a[0]],a[3],a[4],false,a[5]));
   return {name,defs,fxMode:"drive",extra:{crush:m.crush}};}
 const KIT1V=[
  k1voice("KICK 1",{pitch:52,penv:3.4,pdec:0.045,wave:0.12,oscDecay:0.42,oscLevel:1,noiseLevel:0,drive:0.22,tone:6000,level:0.95}),
@@ -1331,10 +1333,10 @@ const KIT1V=[
 ];
 // KIT 3 :: tunable low-end set · own defs (reference to KIT1V broken · REV164)
 const KIT3V=[
- k1voice("SUB 1",{pitch:32.7032,penv:2.0,pdec:0.03,wave:0,oscDecay:1.1,oscLevel:1,noiseLevel:0,drive:0,tone:9000,level:0.95}),
- k1voice("SUB 2",{pitch:41.2034,penv:2.0,pdec:0.03,wave:0,oscDecay:1.05,oscLevel:1,noiseLevel:0,drive:0,tone:9000,level:0.95}),
- k1voice("SUB 3",{pitch:48.9994,penv:2.0,pdec:0.03,wave:0,oscDecay:1.0,oscLevel:1,noiseLevel:0,drive:0,tone:9000,level:0.94}),
- k1voice("SUB 4",{pitch:61.7354,penv:2.0,pdec:0.03,wave:0,oscDecay:0.9,oscLevel:1,noiseLevel:0,drive:0,tone:9000,level:0.93}),
+ k1voice("SUB 1",{pitch:32.7032,penv:2.0,pdec:0.03,wave:0,oscDecay:1.1,oscLevel:1,noiseLevel:0,drive:0,tone:0,warm:1,level:0.95}),
+ k1voice("SUB 2",{pitch:41.2034,penv:2.0,pdec:0.03,wave:0,oscDecay:1.05,oscLevel:1,noiseLevel:0,drive:0,tone:0,warm:1,level:0.95}),
+ k1voice("SUB 3",{pitch:48.9994,penv:2.0,pdec:0.03,wave:0,oscDecay:1.0,oscLevel:1,noiseLevel:0,drive:0,tone:0,warm:1,level:0.94}),
+ k1voice("SUB 4",{pitch:61.7354,penv:2.0,pdec:0.03,wave:0,oscDecay:0.9,oscLevel:1,noiseLevel:0,drive:0,tone:0,warm:1,level:0.93}),
  k1voice("TOM 1",{pitch:100,penv:1.3,pdec:0.06,wave:0.1,oscDecay:0.4,oscLevel:0.95,noiseLevel:0.04,noiseColor:2000,noiseDecay:0.04,drive:0.05,tone:8000,level:0.85,pan:0.15}),
  k1voice("TOM 2",{pitch:75,penv:1.3,pdec:0.07,wave:0.1,oscDecay:0.5,oscLevel:0.95,noiseLevel:0.04,noiseColor:1600,noiseDecay:0.04,drive:0.05,tone:7000,level:0.85,pan:-0.15}),
  k1voice("CONGA H",{pitch:260,penv:0.8,pdec:0.02,wave:0.1,oscDecay:0.18,oscLevel:0.9,noiseLevel:0.12,noiseColor:3000,noiseDecay:0.03,drive:0.05,tone:9000,level:0.8,pan:0.3}),
@@ -1473,7 +1475,7 @@ const state={
   bus:Array(VOICES).fill(0),
   plock:null,
   sum:{dist:0},
-  master:{vol:0.8,limit:true,modules:[
+  master:{vol:0.8,limit:true,roll:0,modules:[
     {kind:"dist",bypass:false}
   ]},
   fin:{preset:"off",amount:1},
@@ -1489,7 +1491,7 @@ let history=[], hidx=-1, restoring=false;
 function snapshot(){
   return {
     bpm:state.bpm, swing:state.swing, selected:state.selected, curPattern:state.curPattern, page:state.page, kit:state.kit,
-    mute:state.mute.slice(), bus:state.bus.slice(), sum:{dist:state.sum.dist}, masterVol:state.master.vol, masterLimit:state.master.limit, finPreset:state.fin.preset, finAmt:state.fin.amount,
+    mute:state.mute.slice(), bus:state.bus.slice(), sum:{dist:state.sum.dist}, masterVol:state.master.vol, masterLimit:state.master.limit, masterRoll:state.master.roll, finPreset:state.fin.preset, finAmt:state.fin.amount,
     modules: JSON.parse(JSON.stringify(state.master.modules,(k,v)=>k==="_nodes"?undefined:v)),
     kits: state.kits.map(kit=>kit.map(vo=>({vals:Object.assign({},vo.vals),fxMode:vo.fxMode,mute:vo.mute}))),
     patterns: state.patterns.map(p=>({bars:p.bars,length:(p.length||STEPS_PER_BAR),steps:p.steps.map(r=>r.slice()),sub:p.sub.map(r=>r.slice()),locks:cloneLocks(p.locks),auto:cloneAuto(p.auto)}))
@@ -1509,6 +1511,7 @@ function restore(snap){
   state.master.modules=JSON.parse(JSON.stringify(snap.modules));
   state.master.vol=(snap.masterVol!=null?snap.masterVol:1);{const mv=document.getElementById("mvol");if(mv)mv.value=state.master.vol;if(masterOut)masterOut.gain.value=state.master.vol;}
   state.master.limit=(snap.masterLimit!=null?snap.masterLimit:true);{const lb=document.getElementById("limitBtn");if(lb)lb.classList.toggle("on",state.master.limit!==false);}
+  state.master.roll=(snap.masterRoll!=null?snap.masterRoll:0);{const rr=document.getElementById("roll");if(rr){rr.value=state.master.roll;var sN=rollSub(state.master.roll);document.getElementById("rollval").textContent=sN>1?sN+"\u00d7":"OFF";}}
   state.fin.preset=(snap.finPreset!=null?snap.finPreset:"off");state.fin.amount=(snap.finAmt!=null?snap.finAmt:1);if(typeof buildFinbar==="function")buildFinbar();if(fin)applyFinalizer();
   if(ac){ initMasterNodes(); wireMaster(); syncAll(); }
   buildKit(); buildEditor(); buildMaster(); buildStrip(); buildSeq();
@@ -1527,7 +1530,7 @@ function numSteps(){return curPat().bars*(curPat().length||STEPS_PER_BAR);}
 function numPages(){return curPat().bars;}
 
 // ---- worklet engine ----
-let ac=null,engineNode=null,meterNode=null,meterBuf=null,masterIn=null,masterOut=null,masterSendBus=null,fin=null,dryBus=null,masterLimiter=null,masterCeil=null;
+let ac=null,engineNode=null,meterNode=null,meterBuf=null,masterIn=null,masterOut=null,masterSendBus=null,fin=null,dryBus=null,masterLimiter=null,masterCeil=null,meterSink=null;
 const FINPRESETS={
   off:null,
   // each preset is its own world: own EQ freqs, wide gain spreads, distinct comp characters
@@ -1591,13 +1594,13 @@ async function ensureAudio(){
     engineNode=new AudioWorkletNode(ac,"brachiniste-engine",{numberOfOutputs:3,outputChannelCount:[2,2,2]});
     meterNode=ac.createAnalyser();meterNode.fftSize=1024;meterBuf=new Float32Array(meterNode.fftSize);
     masterIn=ac.createGain();masterOut=ac.createGain();masterSendBus=ac.createGain();
-    masterLimiter=ac.createDynamicsCompressor();masterLimiter.threshold.value=-1;masterLimiter.ratio.value=20;masterLimiter.attack.value=0.003;masterLimiter.release.value=0.1;masterLimiter.knee.value=0;   // transparent peak-limiter on the master out
-    masterCeil=ac.createWaveShaper();{const nn=2048,cc=new Float32Array(nn);for(let i=0;i<nn;i++){const x=(i/(nn-1))*2-1;cc[i]=Math.max(-1,Math.min(1,x));}masterCeil.curve=cc;}masterCeil.oversample="4x";   // oversampled brickwall safety :: guarantees no clipping past the comp
+    masterLimiter=ac.createDynamicsCompressor();masterLimiter.threshold.value=-2.5;masterLimiter.ratio.value=12;masterLimiter.attack.value=0.003;masterLimiter.release.value=0.09;masterLimiter.knee.value=0;   // transparent peak-limiter on the master out
+    masterCeil=ac.createWaveShaper();{const nn=2048,cc=new Float32Array(nn);for(let i=0;i<nn;i++){const x=(i/(nn-1))*2-1;cc[i]=Math.max(-0.8,Math.min(0.8,x));}masterCeil.curve=cc;}masterCeil.oversample="4x";   // oversampled brickwall safety :: guarantees no clipping past the comp
     dryBus=ac.createGain();                                        // per-voice bus routing: DRY skips the master fx (finalizer applies to everything)
     initMasterNodes();
     engineNode.connect(masterIn,0);
     engineNode.connect(dryBus,1);
-    meterNode.connect(ac.destination);
+    meterSink=ac.createGain();meterSink.gain.value=0;meterNode.connect(meterSink);meterSink.connect(ac.destination);   // analyser stays live but silent :: audio no longer flows through the meter
     wireMaster();
     engineNode.port.postMessage({type:"kit",index:state.kit});
     for(let v=0;v<9;v++)sendSample(v);   // re-send user samples after engine (re)start
@@ -1606,7 +1609,7 @@ async function ensureAudio(){
   }catch(err){
     setStatus("ENGINE FAIL // "+((err&&err.name)||"ERROR"));
     console.error("BRACHINISTE engine load failed:",err);
-    if(ac){try{ac.close();}catch(e){}} ac=null;engineNode=null;masterIn=null;masterOut=null;masterSendBus=null;fin=null;dryBus=null;masterLimiter=null;masterCeil=null;state.master.modules.forEach(m=>{delete m._nodes;});
+    if(ac){try{ac.close();}catch(e){}} ac=null;engineNode=null;masterIn=null;masterOut=null;masterSendBus=null;fin=null;dryBus=null;masterLimiter=null;masterCeil=null;meterSink=null;state.master.modules.forEach(m=>{delete m._nodes;});
     throw err;
   }
 }
@@ -1630,8 +1633,10 @@ function meterLoop(){
   meterNode.getFloatTimeDomainData(meterBuf);
   let peak=0;for(let i=0;i<meterBuf.length;i++){const a=Math.abs(meterBuf[i]);if(a>peak)peak=a;}
   BG.level=peak;
-  const lit=Math.round(Math.min(1,peak)*METER_SEGS);
-  document.querySelectorAll("#meter .led").forEach((l,i)=>l.classList.toggle("on",i<lit));
+  const CLIP=0.85;                                                                  // red zone :: limiter caps below this, so on=green / off(hot)=red
+  const green=Math.round(Math.min(1,peak/CLIP)*(METER_SEGS-3));
+  const red=(peak>CLIP)?Math.min(3,Math.ceil((peak-CLIP)/0.06)):0;
+  document.querySelectorAll("#meter .led").forEach((l,i)=>{ l.classList.toggle("on",(i<green)||(i>=METER_SEGS-3&&i<METER_SEGS-3+red)); });
   requestAnimationFrame(meterLoop);
 }
 
@@ -1639,6 +1644,7 @@ function meterLoop(){
 let curStep=0,nextTime=0,timer=null,absStep=0,loop0Time=0,seqPos=0;
 const LOOK=0.025,AHEAD=0.12,playQ=[];
 function sec16(){return (60/state.bpm)/4;}
+function rollSub(r){ if(!r||r<0.02)return 1; const i=Math.round(r*5); return [1,2,3,4,6,8][i<0?0:(i>5?5:i)]; }   // RATE/ROLL :: retrigger multiplier of the 1/16 step
 function schedule(){
   const N=numSteps();
   while(nextTime<ac.currentTime+AHEAD){
@@ -1649,7 +1655,7 @@ function schedule(){
     for(let v=0;v<VOICES;v++){
       if(state.mute[v])continue;
       const s=pat.steps[v][curStep]; if(!s)continue;
-      const vel=s===2?1:0.62, sub=(pat.sub&&pat.sub[v][curStep])||1, dt=sec16()/sub;
+      const _vv=state.voices[v], vel=s===2?1:0.62, sub=Math.max((pat.sub&&pat.sub[v][curStep])||1, rollSub((_vv&&_vv.vals&&_vv.vals.rate)||0), rollSub(state.master.roll||0)), dt=sec16()/sub;
       let locks=null; const lkv=pat.locks&&pat.locks[v];
       if(lkv){ for(const pk in lkv){ const lv=lkv[pk][curStep]; if(lv!==undefined)(locks||(locks={}))[pk]=lv; } }
       for(let k=0;k<sub;k++){
@@ -2144,8 +2150,9 @@ function wireMaster(){
   else { cursor.connect(masterOut); masterSendBus.connect(masterOut); if(dryBus)dryBus.connect(masterOut); }
   try{masterOut.disconnect();}catch(e){}
   if(masterLimiter){try{masterLimiter.disconnect();}catch(e){}} if(masterCeil){try{masterCeil.disconnect();}catch(e){}}
-  if(state.master.limit!==false && masterLimiter && masterCeil){ masterOut.connect(masterLimiter); masterLimiter.connect(masterCeil); masterCeil.connect(meterNode); }
-  else { masterOut.connect(meterNode); }
+  const _dest = ac.destination, _mtr=(meterNode && meterNode.getFloatTimeDomainData);
+  if(state.master.limit!==false && masterLimiter && masterCeil){ masterOut.connect(masterLimiter); masterLimiter.connect(masterCeil); masterCeil.connect(_dest); if(_mtr)masterCeil.connect(meterNode); }
+  else { masterOut.connect(_dest); if(_mtr)masterOut.connect(meterNode); }                 // meter follows the actual output :: limiter on tames the peaks, off lets them through
 }
 function moveModule(i,dir){const a=state.master.modules,j=i+dir;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];buildMaster();wireMaster();commit();}
 function reorderModule(from,to){const a=state.master.modules;if(from==null||from===to||from<0||from>=a.length||to<0||to>=a.length)return;if(a[from].kind==="dist")return;const mod=a.splice(from,1)[0];let t=to>from?to-1:to;if(a[0]&&a[0].kind==="dist"&&t<1)t=1;a.splice(t,0,mod);buildMaster();wireMaster();commit();}
@@ -2570,6 +2577,7 @@ function setPattern(i){state.curPattern=i;state.page=0;setPage(0);refreshStrip()
 document.getElementById("play").onclick=()=>{state.playing?stopSeq():startSeq();};
 document.getElementById("bpm").oninput=e=>{state.bpm=+e.target.value;document.getElementById("bpmval").textContent=state.bpm;updateDelayTimes();};
 document.getElementById("swing").oninput=e=>{state.swing=+e.target.value;document.getElementById("swingval").textContent=state.swing;};
+(function(){var r=document.getElementById("roll");if(r){r.oninput=function(){state.master.roll=+r.value;var sN=rollSub(state.master.roll);document.getElementById("rollval").textContent=sN>1?sN+"\u00d7":"OFF";};r.onchange=function(){if(typeof commit==="function")commit();};}})();
 (function(){ const pb=document.getElementById("play"); if(!pb)return; const rb=document.createElement("button"); rb.id="autorec"; rb.className="cell-btn"; rb.textContent="REC"; rb.style.marginLeft="8px"; rb.title="AUTOMATION REC \u00b7 arm, then turn any knob while the loop plays to record its motion \u00b7 right-click a knob to clear its automation"; rb.onclick=()=>{ state.autoRec=!state.autoRec; rb.classList.toggle("on",state.autoRec); setStatus(state.autoRec?"AUTO REC armed \u00b7 turn a knob while playing":"AUTO REC off"); }; pb.parentNode.insertBefore(rb,pb.nextSibling); })();
 document.addEventListener("keydown",e=>{if(e.code==="Space"&&e.target.tagName!=="INPUT"){e.preventDefault();state.playing?stopSeq():startSeq();}});
 let clip=null;
@@ -2670,8 +2678,8 @@ function buildOfflineMaster(ctx, node, allowKinds){   // build the master chain 
   try{
     ac=ctx; meterNode=ctx.destination;
     masterIn=ctx.createGain(); masterOut=ctx.createGain(); masterSendBus=ctx.createGain(); dryBus=ctx.createGain(); fin=null;
-    masterLimiter=ctx.createDynamicsCompressor();masterLimiter.threshold.value=-1;masterLimiter.ratio.value=20;masterLimiter.attack.value=0.003;masterLimiter.release.value=0.1;masterLimiter.knee.value=0;
-    masterCeil=ctx.createWaveShaper();{const nn=2048,cc=new Float32Array(nn);for(let i=0;i<nn;i++){const x=(i/(nn-1))*2-1;cc[i]=Math.max(-1,Math.min(1,x));}masterCeil.curve=cc;}masterCeil.oversample="4x";
+    masterLimiter=ctx.createDynamicsCompressor();masterLimiter.threshold.value=-2.5;masterLimiter.ratio.value=12;masterLimiter.attack.value=0.003;masterLimiter.release.value=0.09;masterLimiter.knee.value=0;
+    masterCeil=ctx.createWaveShaper();{const nn=2048,cc=new Float32Array(nn);for(let i=0;i<nn;i++){const x=(i/(nn-1))*2-1;cc[i]=Math.max(-0.8,Math.min(0.8,x));}masterCeil.curve=cc;}masterCeil.oversample="4x";
     if(allowKinds) state.master.modules=savedMods.filter(m=>allowKinds.indexOf(m.kind)>=0);
     state.master.modules.forEach(m=>{ delete m._nodes; });
     initMasterNodes(); node.connect(masterIn); wireMaster();
@@ -3364,7 +3372,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=361","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=373","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
