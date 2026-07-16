@@ -523,7 +523,7 @@ html.ghost .crt{opacity:.14}
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 382</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 383</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -1299,7 +1299,7 @@ registerProcessor("freeverb", Freeverb);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="382";
+const REV="383";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=9;
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -1607,7 +1607,7 @@ async function ensureAudio(){
     meterNode=ac.createAnalyser();meterNode.fftSize=1024;meterBuf=new Float32Array(meterNode.fftSize);
     masterIn=ac.createGain();masterOut=ac.createGain();masterSendBus=ac.createGain();
     masterLimiter=ac.createDynamicsCompressor();masterLimiter.threshold.value=-2.5;masterLimiter.ratio.value=12;masterLimiter.attack.value=0.003;masterLimiter.release.value=0.09;masterLimiter.knee.value=0;   // transparent peak-limiter on the master out
-    masterCeil=ac.createWaveShaper();{const nn=2048,cc=new Float32Array(nn);for(let i=0;i<nn;i++){const x=(i/(nn-1))*2-1;cc[i]=Math.max(-0.9,Math.min(0.9,x));}masterCeil.curve=cc;}masterCeil.oversample="4x";   // oversampled brickwall safety :: guarantees no clipping past the comp
+    masterCeil=ac.createWaveShaper();{const nn=2048,cc=new Float32Array(nn),kn=0.85,ce=0.9,rg=ce-kn;for(let i=0;i<nn;i++){const x=(i/(nn-1))*2-1,ax=Math.abs(x);cc[i]=ax<=kn?x:Math.sign(x)*(kn+rg*Math.tanh((ax-kn)/rg));}masterCeil.curve=cc;}masterCeil.oversample="4x";   // oversampled brickwall safety :: guarantees no clipping past the comp
     dryBus=ac.createGain();                                        // per-voice bus routing: DRY skips the master fx (finalizer applies to everything)
     initMasterNodes();
     engineNode.connect(masterIn,0);
@@ -2164,7 +2164,7 @@ function wireMaster(){
   try{masterOut.disconnect();}catch(e){}
   if(masterLimiter){try{masterLimiter.disconnect();}catch(e){}} if(masterCeil){try{masterCeil.disconnect();}catch(e){}}
   const _dest = ac.destination, _mtr=(meterNode && meterNode.getFloatTimeDomainData);
-  if(state.master.limit!==false && masterLimiter && masterCeil){ masterOut.connect(masterLimiter); masterLimiter.connect(masterCeil); masterCeil.connect(_dest); if(_mtr)masterCeil.connect(meterNode); }
+  if(state.master.limit!==false && masterCeil){ masterOut.connect(masterCeil); masterCeil.connect(_dest); if(_mtr)masterCeil.connect(meterNode); }   // soft-clip only :: no compressor -> ON never pushes the level up
   else { masterOut.connect(_dest); if(_mtr)masterOut.connect(meterNode); }                 // meter follows the actual output :: limiter on tames the peaks, off lets them through
 }
 function moveModule(i,dir){const a=state.master.modules,j=i+dir;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];buildMaster();wireMaster();commit();}
@@ -2692,7 +2692,7 @@ function buildOfflineMaster(ctx, node, allowKinds){   // build the master chain 
     ac=ctx; meterNode=ctx.destination;
     masterIn=ctx.createGain(); masterOut=ctx.createGain(); masterSendBus=ctx.createGain(); dryBus=ctx.createGain(); fin=null;
     masterLimiter=ctx.createDynamicsCompressor();masterLimiter.threshold.value=-2.5;masterLimiter.ratio.value=12;masterLimiter.attack.value=0.003;masterLimiter.release.value=0.09;masterLimiter.knee.value=0;
-    masterCeil=ctx.createWaveShaper();{const nn=2048,cc=new Float32Array(nn);for(let i=0;i<nn;i++){const x=(i/(nn-1))*2-1;cc[i]=Math.max(-0.9,Math.min(0.9,x));}masterCeil.curve=cc;}masterCeil.oversample="4x";
+    masterCeil=ctx.createWaveShaper();{const nn=2048,cc=new Float32Array(nn),kn=0.85,ce=0.9,rg=ce-kn;for(let i=0;i<nn;i++){const x=(i/(nn-1))*2-1,ax=Math.abs(x);cc[i]=ax<=kn?x:Math.sign(x)*(kn+rg*Math.tanh((ax-kn)/rg));}masterCeil.curve=cc;}masterCeil.oversample="4x";
     if(allowKinds) state.master.modules=savedMods.filter(m=>allowKinds.indexOf(m.kind)>=0);
     state.master.modules.forEach(m=>{ delete m._nodes; });
     initMasterNodes(); node.connect(masterIn); wireMaster();
@@ -3385,7 +3385,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=382","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=383","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
