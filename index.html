@@ -523,7 +523,7 @@ html.ghost .crt{opacity:.14}
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 377</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 382</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -651,7 +651,7 @@ class GenVoice {
     }
     sig=fx("body", sig,p.body);
     // tone :: lowpass (normal voices) or smoothed warmth-saturation (sub voices)
-    if(this.warm){ this._wS+=(this.p.tone-this._wS)*0.0016; const w=this._wS; if(w>0.0006){ const dr=1+w*2; sig=Math.tanh(sig*dr)/Math.tanh(dr); } }   // per-sample smoothing kills the zipper (GenVoice params are otherwise un-smoothed); gentler drive = warmth not buzz
+    if(this.warm){ this._wS+=(this.p.tone-this._wS)*0.0016; const w=this._wS; if(w>0.0006){ const ph=this.phase; const oct=Math.sin(ph*12.566370614159)+0.3*Math.sin(ph*25.132741228318); sig += oct*(this.oEnv||0)*(this.p.oscLevel||0)*w*0.55; } }   // PRESENCE :: clean octave-up (2nd + a touch of 4th harmonic), envelope-followed :: makes the sub audible on small speakers without saturation, smoothed = no zipper
     else sig=this.tn.proc(sig);
     // end of life
     this.life++;
@@ -723,13 +723,16 @@ class ClapVoice {   // 909-style :: 3 jittered noise bursts (the rattle) + a lon
     this.spread=(p.spread!=null?p.spread:0.01); this.col=(p.col!=null?p.col:0.45);
     this.decay=(p.decay!=null?p.decay:0.1); this.spray=(p.spray!=null?p.spray:0.35);
     this.gain=(p.gain!=null?p.gain:0.9); this.pan=(p.pan!=null?p.pan:0); this.level=(p.level!=null?p.level:0.7);
-    this.lp=0;this.bp=0;this.env=0;this.tail=0;this.times=[];this.next=0;this.bt=0;this.peak=0; }
+    this.lp=0;this.bp=0;this.env=0;this.tail=0;this.times=[];this.next=0;this.bt=0;this.peak=0;this.flt=0; }
   set(k,v){ if(k==="olvl"){this.level=v;return;} if(k in this)this[k]=v; }
   trigger(vel){ this.active=true;this.peak=vel;this.env=0;this.tail=0;this.bt=0;this.next=0;this.lp=0;this.bp=0;
-    this.times=[]; let t=0; for(let i=0;i<3;i++){ this.times.push(t); const j=1+(Math.random()*2-1)*this.spray*0.6; t+=this.spread*Math.max(0.3,j); } }   // burst times, jittered by SPRAY
+    const nb=3+((Math.random()<this.spray*0.5)?1:0);                                  // SPRAY: 3 or (sometimes) 4 bursts
+    const sp=this.spread*(1+(Math.random()*2-1)*this.spray*0.5);                        // overall rattle tightness varies per hit
+    this.times=[];this.levels=[]; let t=0;
+    for(let i=0;i<nb;i++){ this.times.push(t); this.levels.push(1-Math.random()*this.spray*0.7); const j=1+(Math.random()*2-1)*this.spray*0.9; t+=sp*Math.max(0.25,j); } }   // per-burst timing + level jittered by SPRAY
   tick(){ if(!this.active)return 0;
     this.bt+=1/sampleRate;
-    while(this.next<this.times.length && this.bt>=this.times[this.next]){ const lv=this.peak*(1-Math.random()*this.spray*0.5); if(lv>this.env)this.env=lv; this.next++; if(this.next>=this.times.length)this.tail=this.peak; }
+    while(this.next<this.times.length && this.bt>=this.times[this.next]){ const lv=this.peak*this.levels[this.next]; if(lv>this.env)this.env=lv; this.next++; if(this.next>=this.times.length)this.tail=this.peak; }
     const white=Math.random()*2-1;
     const fc=400+this.col*2600, f=2*Math.sin(Math.PI*fc/sampleRate), q=0.35;   // state-variable bandpass around ~1kHz
     this.lp+=f*this.bp; this.bp+=f*(white-this.lp-q*this.bp); const band=this.bp;
@@ -987,7 +990,7 @@ class BrachinisteEngine extends AudioWorkletProcessor {
   }
   voices(){ return this.kits[this.kit]; }
   onmsg(m){
-    if(m.type==="note"){ this.queue.push({atFrame:m.atFrame||0,voice:m.voice,vel:m.vel,locks:m.locks}); this.queue.sort((a,b)=>a.atFrame-b.atFrame); }
+    if(m.type==="note"){ this.queue.push({atFrame:m.atFrame||0,voice:m.voice,vel:m.vel,locks:m.locks,gate:m.gate}); this.queue.sort((a,b)=>a.atFrame-b.atFrame); }
     else if(m.type==="param"){ const v=this.voices()[m.voice]; if(v){ v._base=v._base||{}; v._base[m.key]=m.value; if(v.set)v.set(m.key,m.value); else if(m.key in v)v[m.key]=m.value; } }
     else if(m.type==="sum"){ if(m.key==="dist")this.dist=m.value; }
     else if(m.type==="kit"){ this.kit=Math.max(0,Math.min(4,m.index|0)); for(const v of this.voices())v.active=false; this.queue.length=0; }
@@ -1005,10 +1008,10 @@ class BrachinisteEngine extends AudioWorkletProcessor {
       while(this.queue.length&&this.queue[0].atFrame<=f){ const ev=this.queue.shift(); const v=vs[ev.voice]; if(v){
           if(v._lockedKeys){ for(const k in v._lockedKeys){ this._snap(v,k,(v._base&&v._base[k]!==undefined)?v._base[k]:v[k]); } }   // p-locks: restore base for previously locked params
           if(ev.locks){ v._lockedKeys=v._lockedKeys||{}; for(const k in ev.locks){ this._snap(v,k,ev.locks[k]); v._lockedKeys[k]=1; } }
-          v.trigger(ev.vel, ev.seed);
+          v.trigger(ev.vel, ev.seed); v._gEnv=1; v._gCoef=(ev.gate&&ev.gate>0)?Math.exp(-4/(Math.max(0.002,ev.gate)*sampleRate)):1;   // roll gate :: each retrigger fades to ~2% by the next hit -> crisp rolls even on long decays
         } }
       let l0=0,r0=0,l1=0,r1=0,l2=0,r2=0;
-      for(let v=0;v<vs.length;v++){ const vo=vs[v]; if(!vo.active)continue; const k23=(this.kit===1||this.kit===3); if(k23)kit2Smooth(vo); let s=vo.tick(); s=bipFilt(vo,s); if(this.kit===1){s=kit2Filt(vo,s);s=kit2FX(vo,s);} if(vo.olvl!==undefined){ vo._olvl=(vo._olvl===undefined?vo.olvl:vo._olvl+(vo.olvl-vo._olvl)*0.01); s*=vo._olvl; } const pan=vo.pan||0;
+      for(let v=0;v<vs.length;v++){ const vo=vs[v]; if(!vo.active)continue; const k23=(this.kit===1||this.kit===3); if(k23)kit2Smooth(vo); let s=vo.tick(); if(vo._gCoef!==undefined&&vo._gCoef<1){ s*=(vo._gEnv||0); vo._gEnv*=vo._gCoef; } s=bipFilt(vo,s); if(this.kit===1){s=kit2Filt(vo,s);s=kit2FX(vo,s);} if(vo.olvl!==undefined){ vo._olvl=(vo._olvl===undefined?vo.olvl:vo._olvl+(vo.olvl-vo._olvl)*0.01); s*=vo._olvl; } const pan=vo.pan||0;
         const pl=s*Math.cos((pan+1)*0.25*Math.PI), pr=s*Math.sin((pan+1)*0.25*Math.PI);
         const b=multi?(this.bus[v]|0):0;                                        // render nodes with one output stay on bus 0
         if(b===1){l1+=pl;r1+=pr;} else if(b===2){l2+=pl;r2+=pr;} else {l0+=pl;r0+=pr;} }
@@ -1296,7 +1299,7 @@ registerProcessor("freeverb", Freeverb);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="377";
+const REV="382";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=9;
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -1327,7 +1330,7 @@ const K1BASE={pitch:200,penv:1,pdec:0.05,wave:0.1,oscDecay:0.3,oscLevel:1,noiseL
 function k1voice(name,preset){const m=Object.assign({},K1BASE,preset);
   const oscOn=m.oscLevel>0.0001, nzOn=m.noiseLevel>0.0001;
   const OSC=["pitch","penv","pdec","wave","oscDecay","oscLevel","fmRatio","fmAmt","fmDecay"], NZ=["noiseLevel","noiseColor","noiseDecay"];
-  const defs=K1KEYS.filter(a=>OSC.indexOf(a[0])>=0?oscOn:(NZ.indexOf(a[0])>=0?nzOn:true)).map(a=>(a[0]==="tone"&&m.warm)?d("tone",0,1,m.tone||0,0,"WARMTH"):d(a[0],a[1],a[2],m[a[0]],a[3],a[4],false,a[5]));
+  const defs=K1KEYS.filter(a=>OSC.indexOf(a[0])>=0?oscOn:(NZ.indexOf(a[0])>=0?nzOn:true)).map(a=>(a[0]==="tone"&&m.warm)?d("tone",0,1,m.tone||0,0,"PRESENCE"):d(a[0],a[1],a[2],m[a[0]],a[3],a[4],false,a[5]));
   return {name,defs,fxMode:"drive",extra:{crush:m.crush}};}
 const KIT1V=[
  k1voice("KICK 1",{pitch:52,penv:3.4,pdec:0.045,wave:0.12,oscDecay:0.42,oscLevel:1,noiseLevel:0,drive:0.22,tone:6000,level:0.95}),
@@ -1604,7 +1607,7 @@ async function ensureAudio(){
     meterNode=ac.createAnalyser();meterNode.fftSize=1024;meterBuf=new Float32Array(meterNode.fftSize);
     masterIn=ac.createGain();masterOut=ac.createGain();masterSendBus=ac.createGain();
     masterLimiter=ac.createDynamicsCompressor();masterLimiter.threshold.value=-2.5;masterLimiter.ratio.value=12;masterLimiter.attack.value=0.003;masterLimiter.release.value=0.09;masterLimiter.knee.value=0;   // transparent peak-limiter on the master out
-    masterCeil=ac.createWaveShaper();{const nn=2048,cc=new Float32Array(nn);for(let i=0;i<nn;i++){const x=(i/(nn-1))*2-1;cc[i]=Math.max(-0.8,Math.min(0.8,x));}masterCeil.curve=cc;}masterCeil.oversample="4x";   // oversampled brickwall safety :: guarantees no clipping past the comp
+    masterCeil=ac.createWaveShaper();{const nn=2048,cc=new Float32Array(nn);for(let i=0;i<nn;i++){const x=(i/(nn-1))*2-1;cc[i]=Math.max(-0.9,Math.min(0.9,x));}masterCeil.curve=cc;}masterCeil.oversample="4x";   // oversampled brickwall safety :: guarantees no clipping past the comp
     dryBus=ac.createGain();                                        // per-voice bus routing: DRY skips the master fx (finalizer applies to everything)
     initMasterNodes();
     engineNode.connect(masterIn,0);
@@ -1642,7 +1645,7 @@ function meterLoop(){
   meterNode.getFloatTimeDomainData(meterBuf);
   let peak=0;for(let i=0;i<meterBuf.length;i++){const a=Math.abs(meterBuf[i]);if(a>peak)peak=a;}
   BG.level=peak;
-  const CLIP=0.85;                                                                  // red zone :: limiter caps below this, so on=green / off(hot)=red
+  const CLIP=0.93;                                                                  // red zone :: limiter ceil clamps at 0.9 (< CLIP) so ON is always green/protected; OFF passes hot peaks -> red
   const green=Math.round(Math.min(1,peak/CLIP)*(METER_SEGS-3));
   const red=(peak>CLIP)?Math.min(3,Math.ceil((peak-CLIP)/0.06)):0;
   document.querySelectorAll("#meter .led").forEach((l,i)=>{ l.classList.toggle("on",(i<green)||(i>=METER_SEGS-3&&i<METER_SEGS-3+red)); });
@@ -1669,7 +1672,7 @@ function schedule(){
       if(lkv){ for(const pk in lkv){ const lv=lkv[pk][curStep]; if(lv!==undefined)(locks||(locks={}))[pk]=lv; } }
       for(let k=0;k<sub;k++){
         const tk=t+k*dt;
-        engineNode.port.postMessage({type:"note",voice:v,vel:vel,atFrame:Math.round(tk*ac.sampleRate),locks:locks});
+        engineNode.port.postMessage({type:"note",voice:v,vel:vel,atFrame:Math.round(tk*ac.sampleRate),locks:locks,gate:(sub>1?dt:0)});
         if(BG.mode!=="off"){const ap=(BG.mode==="impact")?Math.min(0.16,dt*0.65):0;const dl=Math.max(0,(tk-ap-ac.currentTime)*1000);setTimeout(()=>bgHit(v,vel,ap,sub,cs),dl);}
       }
     }
@@ -2689,7 +2692,7 @@ function buildOfflineMaster(ctx, node, allowKinds){   // build the master chain 
     ac=ctx; meterNode=ctx.destination;
     masterIn=ctx.createGain(); masterOut=ctx.createGain(); masterSendBus=ctx.createGain(); dryBus=ctx.createGain(); fin=null;
     masterLimiter=ctx.createDynamicsCompressor();masterLimiter.threshold.value=-2.5;masterLimiter.ratio.value=12;masterLimiter.attack.value=0.003;masterLimiter.release.value=0.09;masterLimiter.knee.value=0;
-    masterCeil=ctx.createWaveShaper();{const nn=2048,cc=new Float32Array(nn);for(let i=0;i<nn;i++){const x=(i/(nn-1))*2-1;cc[i]=Math.max(-0.8,Math.min(0.8,x));}masterCeil.curve=cc;}masterCeil.oversample="4x";
+    masterCeil=ctx.createWaveShaper();{const nn=2048,cc=new Float32Array(nn);for(let i=0;i<nn;i++){const x=(i/(nn-1))*2-1;cc[i]=Math.max(-0.9,Math.min(0.9,x));}masterCeil.curve=cc;}masterCeil.oversample="4x";
     if(allowKinds) state.master.modules=savedMods.filter(m=>allowKinds.indexOf(m.kind)>=0);
     state.master.modules.forEach(m=>{ delete m._nodes; });
     initMasterNodes(); node.connect(masterIn); wireMaster();
@@ -3382,7 +3385,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=377","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=382","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
