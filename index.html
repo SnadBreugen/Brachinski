@@ -523,7 +523,7 @@ html.ghost .crt{opacity:.14}
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 394</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 399</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -593,8 +593,10 @@ class GenVoice {
   set(key,val){ this.p[key]=val; if(key==="pan")this.pan=val;
     if(key==="noiseType"||key==="noiseColor"||key==="noiseQ"||(key==="tone"&&!this.warm))this._filt(); }
   trigger(vel){
-    const p=this.p; this.active=true; this.vel=vel; this.pan=p.pan;
-    this.phase=0; this.oEnv=0; this.nEnv=0; this.oAtk=true; this.nAtk=true;
+    const p=this.p; const _wa=this.active; this.active=true; this.vel=vel; this.pan=p.pan;
+    if(!this.warm||!_wa)this.phase=0;   // subs: keep phase running on retrigger (no click into an ongoing tail); other GenVoices reset for consistent attack
+    if(!this.warm||!_wa){ this.oEnv=0; this.nEnv=0; }   // subs on retrigger: re-attack from the current level instead of dropping to 0 (that drop was the click)
+    this.oAtk=true; this.nAtk=true;
     this.nf.reset(); this.tn.reset();
     const lf=p.life||0, R=()=>(Math.random()*2-1);                    // organic instability :: per-hit variation, never twice the same
     const jP=1+R()*lf*0.006, jD=1+R()*lf*0.15, jPu=1+R()*lf*0.25;
@@ -817,7 +819,7 @@ class PingVoice {                                                   // pinged re
   constructor(p){ this.p=Object.assign({},PINGDEF,p); this.active=false; this.pan=this.p.pan; this.bp=new Biquad(); this.tn=new Biquad(); this._rnd=Math.random; }
   set(k,v){ this.p[k]=v; if(k==="pan")this.pan=v; }
   trigger(vel,seed){ const p=this.p, lf=p.life||0, rnd=this._rnd=(seed!=null?seededRng(seed):Math.random), R=()=>(rnd()*2-1);   // seed => deterministic (export); live => random
-    this.active=true; this.vel=vel; this.pan=p.pan;
+    const _wa=this.active; this.active=true; this.vel=vel; this.pan=p.pan;
     this.f0=Math.max(20,p.tune)*(1+R()*lf*0.05);
     this.q=Math.max(2,p.reso*(1+R()*lf*0.30));
     const baseLen=0.04+(p.reso/40)*0.85;                                  // RESO -> ring length (0.08..0.9s)
@@ -826,9 +828,9 @@ class PingVoice {                                                   // pinged re
     this.fmRatio=p.fmRatio*(1+R()*lf*0.25); this.fmAmt=Math.max(0,p.fmAmt*(1+R()*lf*0.5));
     this.fmDecEnv=1; this.fmDecA=((p.fmDecay==null||p.fmDecay>=1.99)?1:dCoef(Math.max(0.003,p.fmDecay)));   // max = no fade (matches original constant FM)
     this.jFx=1+R()*lf*0.3; this.jLev=1+R()*lf*0.18; this.dphR=(1+R()*lf*0.4);
-    this.env=1; this.fEnv=1; this.exc=1; this.ph=0; this.fmPh=0;
+    this.env=1; this.fEnv=1; this.exc=1; if(!_wa){ this.ph=0; this.fmPh=0; }   // keep carrier running on retrigger :: no click into an ongoing ring
     this.bp.set("bandpass", this.f0, this.q); this.tn.set("lowpass", p.tone, 0.7);
-    this.aE=0; { const _a=(p.attack||0); this.aOn=_a>0.0012; this.aInc=this.aOn?(1/(_a*sampleRate)):1; } }
+    this.aE=0; this._dc=(_wa?1:0); { const _a=(p.attack||0); this.aOn=_a>0.0012; this.aInc=this.aOn?(1/(_a*sampleRate)):1; } }
   tick(){ if(!this.active)return 0; const p=this.p;
     this.fEnv*=this.swA; const fInst=this.f0*(1+p.sweep*this.fEnv);        // attack freq sweep (analog wow)
     this.fmPh+=(fInst*this.fmRatio*this.dphR)/sampleRate; if(this.fmPh>=1)this.fmPh-=1;
@@ -841,7 +843,8 @@ class PingVoice {                                                   // pinged re
     sig=fx("drive",sig,Math.min(1,p.drive*this.jFx)); sig=fx("sat",sig,Math.min(1,p.saturate*this.jFx));
     sig=this.tn.proc(sig); if(this.env<0.0002)this.active=false;
     if(this.aOn){this.aE+=this.aInc;if(this.aE>=1){this.aE=1;this.aOn=false;}}
-    return sig*p.level*this.vel*(this.jLev||1)*(this.aOn?this.aE:1); }
+    if(this._dc<1){this._dc+=1/(0.0006*sampleRate);if(this._dc>1)this._dc=1;}   // 0.6ms declick :: kills the onset click without touching the ping transient
+    return sig*p.level*this.vel*(this.jLev||1)*(this.aOn?this.aE:1)*this._dc; }
 }
 const PING_PRESETS=[
   {tune:50, reso:20,decay:0.60,fmRatio:1.00,fmAmt:0.088,sweep:0.50,drive:0.42,saturate:0.30,tone:4200,level:0.92,pan:0,    life:0.10},
@@ -1338,7 +1341,7 @@ registerProcessor("freeverb", Freeverb);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="394";
+const REV="399";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=9;
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -1913,7 +1916,7 @@ function buildEditor(){
     const avg=()=>{ let s=0,c=0; state.voices.forEach(v=>{ if(has(v)){ s+=v.vals[def.key]; c++; } }); return c?s/c:def.def; };
     return { get:()=>{ if(pos==null)pos=nrm(def,avg()); return dnm(def,pos); },
       set:(val)=>{ const cur=nrm(def,val), d=cur-(pos==null?nrm(def,avg()):pos);
-        state.voices.forEach((v,i)=>{ if(!has(v))return; let nn=Math.max(0,Math.min(1,nrm(def,v.vals[def.key])+d)), nv=dnm(def,nn); if(def.note)nv=snapNote(nv,def.min,def.max); v.vals[def.key]=nv; sendParam(i,def.key,nv); });
+        state.voices.forEach((v,i)=>{ if(!has(v))return; let nn=Math.max(0,Math.min(1,nrm(def,v.vals[def.key])+d)), nv=dnm(def,nn); if(def.note)nv=snapNote(nv,def.min,def.max); v.vals[def.key]=nv; sendParam(i,def.key,nv); if(state.autoRec&&state.playing){recordAuto(i+":"+def.key,nn);} });   // SET mode records automation on all 9 voices
         pos=cur; } };
   }
   function makeGroupBtn(grp){
@@ -3438,7 +3441,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=394","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=399","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
