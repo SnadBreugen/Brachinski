@@ -285,10 +285,6 @@ body{
   box-shadow:inset 0 2px 3px rgba(255,255,255,.12),inset 0 -3px 5px rgba(0,0,0,.6),0 2px 4px rgba(0,0,0,.5);
 }
 .cap::after{content:"";position:absolute;left:50%;top:4px;width:2px;height:11px;background:var(--amber);border-radius:2px;transform-origin:50% 15px;transform:translateX(-50%) rotate(var(--rot,0deg));box-shadow:0 0 6px var(--amber-glow)}
-html.skin-spectra .cap::after{background:var(--kc,var(--amber));box-shadow:0 0 6px var(--kg,var(--amber-glow))}
-html.skin-spectra .dial{box-shadow:0 1px 2px rgba(0,0,0,.5),0 0 0 2px var(--kr,rgba(255,180,61,.45)),0 0 11px var(--kg,rgba(255,180,61,.25))}
-html.skin-spectra .cap{border-color:var(--kr,#0a0712)}
-html.skin-spectra .knob .kv{color:var(--kc,var(--amber));text-shadow:0 0 6px var(--kg,var(--amber-glow))}
 .knob .kl{font-size:8px;letter-spacing:1px;color:var(--dim);text-align:center}
 .knob .kv{font-family:var(--pixel);font-size:13px;color:var(--amber);min-height:13px;line-height:1;text-shadow:0 0 6px var(--amber-glow)}
 
@@ -601,7 +597,7 @@ html.live-on body>*:not(#liveScreen):not(#soundPicker):not(#slotmenu){display:no
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 477</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 482</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -1531,7 +1527,7 @@ registerProcessor("freeverb", Freeverb);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="477";
+const REV="482";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -2070,7 +2066,8 @@ const PARAM_GROUPS=[   // grouped detail params live behind a button + popup :: 
   {label:"DIST",keys:["dtype","ddrive","dpre","dtone","dmix"],active:(vo)=>(((vo.vals&&vo.vals.dmix)||0)>0.001),abbr:"DST"},
   {label:"EQ",keys:["eqHp","eqFreq","eqGain","eqLp"],active:(vo)=>((((vo.vals&&vo.vals.eqGain)||0)!==0)||(((vo.vals&&vo.vals.eqHp)||20)>25)||(((vo.vals&&vo.vals.eqLp)||20000)<19000)),abbr:"EQ"}
 ];
-document.addEventListener("keydown",(e)=>{ if(e.key==="Escape"&&state.liveOpen){ closeLive(); return; } if(state.kit!==6)return; const t=e.target; if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"))return;
+document.addEventListener("keydown",(e)=>{ if(e.key==="Escape"&&state.liveOpen){ closeLive(); return; }
+  if((e.ctrlKey||e.metaKey)&&e.shiftKey&&(e.key==="L"||e.key==="l")){ e.preventDefault(); if(state.kit!==6)switchKit(6); openLive(); return; }   // hidden entry while the live page is still work in progress if(state.kit!==6)return; const t=e.target; if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"))return;
   if((e.ctrlKey||e.metaKey)&&(e.key==="g"||e.key==="G")){ e.preventDefault(); if(e.shiftKey)ungroupSelection(); else groupSelection(); } });   // ctrl+G groups the selected VOID slots
 function groupOfKey(k){for(const g of PARAM_GROUPS)if(g.keys.indexOf(k)>=0)return g;return null;}
 function knobColor(k){ const g=groupOfKey(k); if(g){ const m={FM:"#3f9fe0",NOISE:"#5ac85a",WAVE:"#2fd0c0",TRANS:"#a06cff",EQ:"#e070c8",OSC:"#ffab3d"}; if(m[g.label])return m[g.label]; }
@@ -3041,13 +3038,7 @@ function buildKit(){
   const lfield=document.createElement("div");lfield.className="kit-field";lfield.style.flex="0 0 auto";
   const kb=document.createElement("button");kb.className="cell-btn"+(state.kit===5?" on":"");kb.textContent="KICK";kb.title="Sumad\u0027s Kick Lab";kb.onclick=()=>switchKit(5);lfield.appendChild(kb);
   lab.appendChild(lfield);host.appendChild(lab);
-  const lvb=document.createElement("div");lvb.className="kit-block";
-  const lvh=document.createElement("div");lvh.className="kit-hd";lvh.textContent="LIVE";lvh.title="full-screen live page \u00b7 groups, patterns, macros";lvb.appendChild(lvh);
-  const lvf=document.createElement("div");lvf.className="kit-field";lvf.style.flex="0 0 auto";
-  const lb=document.createElement("button");lb.className="cell-btn";lb.textContent="START";lb.title="open the live page \u00b7 builds on the VOID set";
-  lb.onclick=()=>{ if(state.kit!==6)switchKit(6); openLive(); };
-  lvf.appendChild(lb);lvb.appendChild(lvf);host.appendChild(lvb);
-}
+}   // LIVE island hidden for now :: reachable with CTRL+SHIFT+L
 
 // ---- control strip ----
 function voiceHasAuto(vid){ const a=curPat().auto; if(!a)return false; const pre=vid+":"; for(const k in a)if(k.indexOf(pre)===0)return true; return false; }
@@ -3143,8 +3134,7 @@ function buildSeq(){
     const add=mk("+ ADD SLOT",addVoidSlot,"add another slot to VOID (max "+VOID_MAX+")"); if(n>=VOID_MAX)add.classList.add("off");
     const rm=mk("\u2212 REMOVE",removeVoidSlot,"remove the last slot"); if(n<=1)rm.classList.add("off");
     const cnt=document.createElement("span"); cnt.className="void-count"; cnt.textContent=n+" / "+VOID_MAX;
-    const lv=mk("LIVE",()=>openLive(),"open the full-screen live page");
-    bar.append(add,rm,lv,cnt); rows.appendChild(bar); }
+    bar.append(add,rm,cnt); rows.appendChild(bar); }
   refreshSel();setPage(0);
 }
 function drawStep(el,v,sub){el.classList.toggle("on",v===1);el.classList.toggle("acc",v===2);const s=v?(sub||1):1;el.dataset.sub=s;el.style.setProperty("--sub",s);el.style.setProperty("--dots",s>1?s*2:1);}
@@ -3968,7 +3958,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=477","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=482","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
@@ -4342,14 +4332,13 @@ function colCycle(){const o=["amber","violet","multi"],lab={amber:"AMBER",violet
 // ---- boot ----
 document.getElementById("revfoot").textContent="REV "+REV;
 let skinState="invert";
-function skinApply(){const root=document.documentElement,lab={ghost:"GHOST",shadow:"SHADOW",invert:"INVERT",spectra:"SPECTRA"};
+function skinApply(){const root=document.documentElement,lab={ghost:"GHOST",shadow:"SHADOW",invert:"INVERT"};
   root.classList.toggle("inv",skinState==="shadow");                         // shadow keeps its chassis, unchanged
   root.classList.toggle("ghost",skinState==="ghost");
   root.classList.toggle("skin-shadow",skinState==="shadow");
   root.classList.toggle("skin-invert",skinState==="invert");
-  root.classList.toggle("skin-spectra",skinState==="spectra");
   const b=document.getElementById("skinBtn");if(b)b.textContent="SKIN: "+lab[skinState];}
-function skinCycle(){const o=["ghost","shadow","invert","spectra"];skinState=o[(o.indexOf(skinState)+1)%o.length];skinApply();}
+function skinCycle(){const o=["ghost","shadow","invert"];skinState=o[(o.indexOf(skinState)+1)%o.length];skinApply();}
 document.getElementById("skinBtn").onclick=()=>skinCycle();
 skinApply();
 { const _lv=document.getElementById("liveScreen"); if(_lv&&_lv.parentNode!==document.body)document.body.appendChild(_lv); }   // top-level from the start
