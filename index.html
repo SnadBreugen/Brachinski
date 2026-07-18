@@ -285,6 +285,10 @@ body{
   box-shadow:inset 0 2px 3px rgba(255,255,255,.12),inset 0 -3px 5px rgba(0,0,0,.6),0 2px 4px rgba(0,0,0,.5);
 }
 .cap::after{content:"";position:absolute;left:50%;top:4px;width:2px;height:11px;background:var(--amber);border-radius:2px;transform-origin:50% 15px;transform:translateX(-50%) rotate(var(--rot,0deg));box-shadow:0 0 6px var(--amber-glow)}
+html.skin-spectra .cap::after{background:var(--kc,var(--amber));box-shadow:0 0 6px var(--kg,var(--amber-glow))}
+html.skin-spectra .dial{box-shadow:0 1px 2px rgba(0,0,0,.5),0 0 0 2px var(--kr,rgba(255,180,61,.45)),0 0 11px var(--kg,rgba(255,180,61,.25))}
+html.skin-spectra .cap{border-color:var(--kr,#0a0712)}
+html.skin-spectra .knob .kv{color:var(--kc,var(--amber));text-shadow:0 0 6px var(--kg,var(--amber-glow))}
 .knob .kl{font-size:8px;letter-spacing:1px;color:var(--dim);text-align:center}
 .knob .kv{font-family:var(--pixel);font-size:13px;color:var(--amber);min-height:13px;line-height:1;text-shadow:0 0 6px var(--amber-glow)}
 
@@ -402,11 +406,12 @@ html.zen #snadlink,html.zen #langbar,html.zen #fbBtn,html.zen #fbPanel{display:n
 #fbPanel .fb-row button{font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:6px 12px;border-radius:5px;border:1px solid var(--line-hi);background:#100b1c;color:var(--amber);cursor:pointer}
 #fbPanel #fbSend{background:var(--amber);color:#0a0714;border-color:var(--amber);font-weight:700}
 #fbPanel #fbStatus{font-size:9px;letter-spacing:1px;color:var(--dimmer)}
-html.inv{--chassis1:#ffc900;--chassis2:#ffbe1a;--chassis-edge:#e0991a;--amber:#b06bff;--amber-deep:#7c3aed;--amber-glow:rgba(176,107,255,.5);--line:#caa24e;--line-hi:#e6bf6a}
-html.inv .btn.play.on{background:linear-gradient(180deg,#c89bff,#9a5cf0);color:#180826}
-html.inv .step.on{background:linear-gradient(180deg,#c89bff,#9a5cf0);border-color:#d7baff}
-html.inv .step.acc{background:linear-gradient(180deg,#fff,#c89bff);border-color:#fff}
-html.inv .slider::-webkit-slider-thumb{background:linear-gradient(180deg,#c89bff,#9a5cf0)}
+html.inv{--chassis1:#ffc900;--chassis2:#ffbe1a;--chassis-edge:#e0991a;--amber:#f2a81e;--amber-deep:#b8760c;--amber-glow:rgba(242,168,30,.5);--line:#caa24e;--line-hi:#e6bf6a}
+html.inv .disp,html.inv .kit-disp,html.inv .voice-name{color:#fff;text-shadow:0 0 6px rgba(255,255,255,.4)}
+html.inv .btn.play.on{background:linear-gradient(180deg,#ffc869,#d6891c);color:#180826}
+html.inv .step.on{background:linear-gradient(180deg,#ffc869,#d6891c);border-color:#ffd591}
+html.inv .step.acc{background:linear-gradient(180deg,#fff,#ffc869);border-color:#fff}
+html.inv .slider::-webkit-slider-thumb{background:linear-gradient(180deg,#ffc869,#d6891c)}
 html.inv .cell-btn.on,html.inv .voice-idx,html.inv .ntype button.on{color:#180826}
 html.inv .wordmark{color:#2a1400;text-shadow:0 2px 0 rgba(0,0,0,.18),0 0 18px rgba(255,210,120,.4)}
 html.inv .subtitle{color:rgba(34,16,0,.62)}
@@ -528,7 +533,7 @@ html.ghost .crt{opacity:.14}
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 427</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 440</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -1023,8 +1028,10 @@ class BrachinisteEngine extends AudioWorkletProcessor {
     this.dist=0; this.frame=0; this.queue=[]; this.bus=new Array(9).fill(0); this.raw=false;
     const po=options&&options.processorOptions;
     if(po){
-      if(typeof po.kit==="number") this.kit=Math.max(0,Math.min(4,po.kit));
+      if(typeof po.kit==="number") this.kit=Math.max(0,Math.min(6,po.kit));   // was clamped to 4 :: DRUM LAB (5) and VOID (6) silently exported as RESONANT
       if(typeof po.sumDist==="number") this.dist=po.sumDist;
+      if(Array.isArray(po.voidMap)){ const B=[makeKit1,makeKit2,makeKit3,makeKit4,makeKitPerc,makeKitLab];
+        for(const a of po.voidMap){ if(a&&B[a.srcKit]&&a.srcVoice!=null) this.kits[6][a.slot|0]=B[a.srcKit]()[a.srcVoice|0]; } }   // VOID :: rebuild assigned slots for offline export
       if(typeof po.renderVoice==="number"){
         const v=this.voices()[po.renderVoice];
         if(v){
@@ -1357,7 +1364,7 @@ registerProcessor("freeverb", Freeverb);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="427";
+const REV="440";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=9;
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -1823,6 +1830,7 @@ function makeKnob(def,get,set,labelOverride,arm,autoKey){
   const wrap=document.createElement("div");wrap.className="knob"+(def.disabled?" off":"");
   const _tip=(window.TIP_PARAM&&TIP_PARAM[def.key])||(window.TIP_FX&&TIP_FX[def.key]);if(_tip)wrap.title=_tip;
   const dial=document.createElement("div");dial.className="dial";
+  { const _c=knobColor(def.key); dial.style.setProperty("--kc",_c); dial.style.setProperty("--kg",_c+"99"); dial.style.setProperty("--kr",_c+"88"); }   // color-code every knob by category (shown under SPECTRA skin)
   const cap=document.createElement("div");cap.className="cap";dial.appendChild(cap);
   const lab=document.createElement("div");lab.className="kl";lab.textContent=labelOverride||def.label||def.key.toUpperCase();
   const valEl=document.createElement("div");valEl.className="kv";
@@ -1842,7 +1850,7 @@ function makeKnob(def,get,set,labelOverride,arm,autoKey){
   dial.addEventListener("pointerup",()=>{if(dr){ if(moved){if(typeof commit==="function")commit();if(def.onRelease)def.onRelease();}
     else if(arm){ state.plock=armed()?null:{key:def.key,min:def.min,max:def.max,log:def.log,rev:def.rev,label:def.label||def.key,detent:def.detent,note:def.note,curve:def.curve}; buildEditor(); setPage(state.page); setStatus(state.plock?("P-LOCK armed // "+(def.label||def.key).toUpperCase()+" \\u00b7 drag steps to lock"):"P-LOCK off"); } }
     dr=false;_autoDragKey=null;if(autoKey&&typeof refreshAutoClr==="function")refreshAutoClr();});
-  dial.addEventListener("dblclick",()=>{set(def.def);render();if(def.onRelease)def.onRelease();if(typeof commit==="function")commit();});
+  dial.addEventListener("dblclick",()=>{set(def.key==="pan"?0:def.def);render();if(def.onRelease)def.onRelease();if(typeof commit==="function")commit();});
   render();return wrap;
 }
 
@@ -1858,6 +1866,17 @@ const PARAM_GROUPS=[   // grouped detail params live behind a button + popup :: 
   {label:"EQ",keys:["eqHp","eqFreq","eqGain","eqLp"],active:(vo)=>((((vo.vals&&vo.vals.eqGain)||0)!==0)||(((vo.vals&&vo.vals.eqHp)||20)>25)||(((vo.vals&&vo.vals.eqLp)||20000)<19000)),abbr:"EQ"}
 ];
 function groupOfKey(k){for(const g of PARAM_GROUPS)if(g.keys.indexOf(k)>=0)return g;return null;}
+function knobColor(k){ const g=groupOfKey(k); if(g){ const m={FM:"#3f9fe0",NOISE:"#5ac85a",WAVE:"#2fd0c0",TRANS:"#a06cff",EQ:"#e070c8",OSC:"#ffab3d"}; if(m[g.label])return m[g.label]; }
+  if(/pitch|tune|click|punch[FD]|basef|penv|pdec/i.test(k))return "#ff6a52";
+  if(/fm/i.test(k))return "#3f9fe0";
+  if(/noise|ncol|ndec/i.test(k))return "#5ac85a";
+  if(/wave|shape|osc/i.test(k))return "#ffab3d";
+  if(/tone|^lp$|^hp$|reso|cutoff|^col$|filt|start|end/i.test(k))return "#2fd0c0";
+  if(/decay|dec$|hold|attack|atk|release|curve|env|slope|peak/i.test(k))return "#ff9a3d";
+  if(/level|olvl|gain|vol/i.test(k))return "#8ad04a";
+  if(/pan/i.test(k))return "#b07cff";
+  if(/drive|sat|fold|redux|crush|ring|body|dist|freq/i.test(k))return "#e07a4a";
+  return "#cfa960"; }   // neutral fallback (warm gold, never the skin accent)
 // ---- tuning randomizer (SUBS + RESONANT) :: scale-matched pitch across all 9 voices ----
 const RND_SCALES=[
   {name:"PENT MIN",s:[0,3,5,7,10]},
@@ -2738,12 +2757,13 @@ function encodeWav(f32, sr){
   let o=44; for(let i=0;i<len;i++){ let s=Math.max(-1,Math.min(1,f32[i])); dv.setInt16(o,s<0?s*0x8000:s*0x7fff,true); o+=2; }
   return new Blob([ab],{type:"audio/wav"});
 }
+function voidMap(){ if(state.kit!==6)return null; const m=[]; state.voices.forEach((vo,i)=>{ if(vo&&vo.srcKit!=null&&vo.srcVoice!=null)m.push({slot:i,srcKit:vo.srcKit,srcVoice:vo.srcVoice}); }); return m; }   // pass VOID slot assignments into offline renders
 async function renderShot(v){
   const sr=44100, dur=1.6;
   const ctx=new OfflineAudioContext(2, Math.ceil(sr*dur), sr);
   const code=document.getElementById("worklet-code").textContent;
   await ctx.audioWorklet.addModule("data:text/javascript;charset=utf-8,"+encodeURIComponent(code));
-  const node=new AudioWorkletNode(ctx,"brachiniste-engine",{outputChannelCount:[2],processorOptions:{kit:state.kit,renderVoice:v,pan:0,params:effVals(state.voices[v]),sumDist:(state.sum&&state.sum.dist)||0}});
+  const node=new AudioWorkletNode(ctx,"brachiniste-engine",{outputChannelCount:[2],processorOptions:{kit:state.kit,renderVoice:v,pan:0,params:effVals(state.voices[v]),sumDist:(state.sum&&state.sum.dist)||0,voidMap:voidMap()}});
   const ok=buildOfflineMaster(ctx, node, ONESHOT_FX_KINDS);   // mastered one-shot: finalizer + insert + glitch, NO reverb/delay/rumble (tails)
   if(!ok) node.connect(ctx.destination);
   const buf=await ctx.startRendering();
@@ -2810,7 +2830,7 @@ async function renderLoopCore(opt){
   const ctx=new OfflineAudioContext(2, totalSamp, sr);
   const code=document.getElementById("worklet-code").textContent;
   await ctx.audioWorklet.addModule("data:text/javascript;charset=utf-8,"+encodeURIComponent(code));
-  const node=new AudioWorkletNode(ctx,"brachiniste-engine",{outputChannelCount:[2],processorOptions:{kit:state.kit, renderNotes:notes, voiceParams:voiceParams, sumDist:sumDist, raw:!!opt.raw}});
+  const node=new AudioWorkletNode(ctx,"brachiniste-engine",{outputChannelCount:[2],processorOptions:{kit:state.kit, renderNotes:notes, voiceParams:voiceParams, sumDist:sumDist, raw:!!opt.raw, voidMap:voidMap()}});
   let masterOK=false;
   if(withMaster) masterOK=buildOfflineMaster(ctx, node, null);
   if(!masterOK) node.connect(ctx.destination);
@@ -3466,7 +3486,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=427","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=440","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
@@ -3840,13 +3860,14 @@ function colCycle(){const o=["amber","violet","multi"],lab={amber:"AMBER",violet
 // ---- boot ----
 document.getElementById("revfoot").textContent="REV "+REV;
 let skinState="invert";
-function skinApply(){const root=document.documentElement,lab={ghost:"GHOST",shadow:"SHADOW",invert:"INVERT"};
+function skinApply(){const root=document.documentElement,lab={ghost:"GHOST",shadow:"SHADOW",invert:"INVERT",spectra:"SPECTRA"};
   root.classList.toggle("inv",skinState==="shadow");                         // shadow keeps its chassis, unchanged
   root.classList.toggle("ghost",skinState==="ghost");
   root.classList.toggle("skin-shadow",skinState==="shadow");
   root.classList.toggle("skin-invert",skinState==="invert");
+  root.classList.toggle("skin-spectra",skinState==="spectra");
   const b=document.getElementById("skinBtn");if(b)b.textContent="SKIN: "+lab[skinState];}
-function skinCycle(){const o=["ghost","shadow","invert"];skinState=o[(o.indexOf(skinState)+1)%o.length];skinApply();}
+function skinCycle(){const o=["ghost","shadow","invert","spectra"];skinState=o[(o.indexOf(skinState)+1)%o.length];skinApply();}
 document.getElementById("skinBtn").onclick=()=>skinCycle();
 skinApply();
 bgInit();document.getElementById("bgBtn").onclick=()=>bgCycle();document.getElementById("colBtn").onclick=()=>colCycle();
