@@ -642,7 +642,7 @@ html.live-on body>*:not(#liveScreen):not(#soundPicker):not(#slotmenu):not(#fxWin
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 522</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 523</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -1601,7 +1601,7 @@ registerProcessor("freeverb", Freeverb);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="522";
+const REV="523";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -2486,14 +2486,16 @@ function buildLivePanel(){ const host=document.getElementById("liveBody"); if(!h
 function openModelMenu(ev,items,cur,pick){ closeSlotMenu();
   const m=document.createElement("div"); m.className="slotmenu modelmenu"; m.id="slotmenu";
   items.forEach(it=>{ const b=document.createElement("button"); b.textContent=it.label; if(it.v===cur)b.classList.add("on");
-    b.onmousedown=(e)=>{e.preventDefault();e.stopPropagation();};
-    b.onclick=(e)=>{e.stopPropagation();closeSlotMenu();pick(it.v);}; m.appendChild(b); });
+    const take=(e)=>{ e.preventDefault(); e.stopPropagation(); closeSlotMenu(); pick(it.v); };
+    b.addEventListener("pointerdown",take);   // the outside-close listens on pointerdown too :: waiting for click would lose the selection
+    b.onclick=(e)=>{e.preventDefault();e.stopPropagation();}; m.appendChild(b); });
   document.body.appendChild(m);
   const t=ev&&ev.currentTarget?ev.currentTarget.getBoundingClientRect():{left:innerWidth/2,bottom:innerHeight/2};
   const r=m.getBoundingClientRect();
   m.style.left=Math.min(t.left,innerWidth-r.width-8)+"px";
   m.style.top=Math.min(t.bottom+4,innerHeight-r.height-8)+"px";
-  setTimeout(()=>document.addEventListener("pointerdown",closeSlotMenu,{once:true}),0); }
+  const away=(e)=>{ if(m.contains(e.target))return; document.removeEventListener("pointerdown",away,true); closeSlotMenu(); };
+  setTimeout(()=>document.addEventListener("pointerdown",away,true),0); }
 function closeSoundPicker(){ const e=document.getElementById("soundPicker"); if(e)e.remove(); }
 function assignVoidSlot(slot,sk,sv){ const src=KITS[sk].voices[sv]; const vo=state.kits[6][slot]; vo.name=src.name; vo.defs=src.defs; vo.fxMode=src.fxMode; vo.vals=Object.assign(Object.fromEntries(src.defs.map(x=>[x.key,x.def])),src.extra||{}); vo.srcKit=sk; vo.srcVoice=sv; if(engineNode)engineNode.port.postMessage({type:"assign",slot:slot,srcKit:sk,srcVoice:sv}); buildSeq(); buildEditor(); const ev=effVals(vo); for(const k in ev)sendParam(slot,k,ev[k]); commit(); }
 function openSoundPicker(slot){ closeSoundPicker(); const ov=document.createElement("div"); ov.id="soundPicker"; ov.className="sound-picker"; const cl=document.createElement("button"); cl.className="sp-close"; cl.textContent="\u00d7"; cl.onclick=closeSoundPicker; ov.append(cl); [0,1,2,4,5].forEach(k=>{ const h=document.createElement("div"); h.className="sp-head"; h.textContent=KITS[k].name; ov.append(h); ((k===5)?KITS[k].voices.slice(0,5):KITS[k].voices).forEach((v,vi)=>{ const b=document.createElement("button"); b.className="sp-item"; b.textContent=v.name; b.onclick=()=>{ assignVoidSlot(slot,k,vi); closeSoundPicker(); }; ov.append(b); }); }); document.body.append(ov); }
@@ -4184,7 +4186,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=522","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=523","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
