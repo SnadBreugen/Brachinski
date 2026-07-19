@@ -519,6 +519,9 @@ html.live-on body>*:not(#liveScreen):not(#soundPicker):not(#slotmenu):not(#fxWin
 .row[data-g] .step.on{background:linear-gradient(180deg,var(--gc),var(--gc2));border-color:var(--gc);box-shadow:0 0 10px var(--gc2),inset 0 1px 0 rgba(255,255,255,.35)}
 .row[data-g] .step.acc{background:linear-gradient(180deg,#fff,var(--gc));border-color:#fff}
 .row.multisel .sel{outline:1px solid var(--amber);outline-offset:-1px}
+.modelpick{width:46px;height:46px;border-radius:11px;font-size:8px;letter-spacing:0;line-height:1.1;padding:2px;white-space:normal;overflow:hidden}
+.modelmenu{max-height:60vh;overflow-y:auto;z-index:9600}
+.modelmenu button.on{color:var(--amber)}
 .void-addrow{display:flex;align-items:center;gap:8px;padding:8px 0 2px}
 .void-count{font-size:9px;letter-spacing:1px;color:var(--dim)}
 .sound-picker{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);max-height:72vh;overflow-y:auto;background:#12101a;border:1px solid var(--info,#a06cff);border-radius:8px;padding:14px 18px 16px;z-index:9999;box-shadow:0 8px 40px rgba(0,0,0,.6);min-width:230px;}
@@ -639,7 +642,7 @@ html.live-on body>*:not(#liveScreen):not(#soundPicker):not(#slotmenu):not(#fxWin
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 520</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 522</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -991,20 +994,22 @@ class KickLabVoice {   // Sumad's Kick Lab :: 3-stage pitch (click -> punch -> t
     this.waveBase=p.waveBase!=null?p.waveBase:0; this.waveEnv=p.waveEnv!=null?p.waveEnv:0; this.waveDec=p.waveDec!=null?p.waveDec:0.03; this.waveShape=p.waveShape!=null?p.waveShape:0;
     this.fmBase=p.fmBase!=null?p.fmBase:0; this.fmEnv=p.fmEnv!=null?p.fmEnv:0; this.fmDec=p.fmDec!=null?p.fmDec:0.02; this.fmRate=p.fmRate!=null?p.fmRate:1;
     this.transAmt=p.transAmt!=null?p.transAmt:0; this.transSpd=p.transSpd!=null?p.transSpd:0.003; this.transMode=p.transMode!=null?p.transMode:0; this.transTgt=p.transTgt!=null?p.transTgt:0; this.transT=0;
-    this.dPreLo=new Biquad(); this.dPreHi=new Biquad(); this.dTone=new Biquad(); this.dDc=new Biquad();
+    this.dPreLo=new Biquad(); this.dPreHi=new Biquad(); this.dPreF=new Biquad(); this.dTone=new Biquad(); this.dDc=new Biquad();
     this.dtype=0; this.ddrive=0; this.dpre=0; this.dtone=1; this.dmix=0; this._dfn=null; this._dlvl=1;
     this.fHp=new Biquad(); this.fEq=new Biquad(); this.fLp=new Biquad();
     this.eqHp=p.eqHp!=null?p.eqHp:20; this.eqFreq=p.eqFreq!=null?p.eqFreq:1000; this.eqGain=p.eqGain!=null?p.eqGain:0; this.eqLp=p.eqLp!=null?p.eqLp:20000; this._updEQ(); this._updDist();
     this.active=false; this.phase=0; this.t=0; this.vel=1; this.wEnv=0; this.fmPh=0; this.fmEnvV=0; }
   set(k,v){ if(k==="olvl"){this.level=v;return;} if(k in this)this[k]=v; if(k==="eqHp"||k==="eqFreq"||k==="eqGain"||k==="eqLp")this._updEQ(); if(k==="dtype"||k==="ddrive"||k==="dpre"||k==="dtone")this._updDist(); }
-  _updDist(){ const t=this.dtype|0, d=this.ddrive||0;
-    this._dfn=labShaper(t,d); this._dlvl=labShaperLevel(t,d);
-    const pre=(this.dpre||0)*18;
+  _updDist(){ const t=this.dtype|0, u=this.ddrive||0, md=labModel(t);
+    this._dfn=labShaper(t,u); this._dlvl=labShaperLevel(t,u);
+    const pre=((md.emph||0)+(this.dpre||0))*18;
     this.dPreLo.set("lowshelf",200,0.7,-pre); this.dPreHi.set("highshelf",2000,0.7,pre);
-    this.dTone.set("lowpass",200*Math.pow(100,Math.max(0,Math.min(1,this.dtone))),0.7);
+    if(md.pre)this.dPreF.set(md.pre.t,md.pre.f,md.pre.q); else this.dPreF.set("lowpass",20000,0.5);
+    const pf=md.post?md.post.f:20000;
+    this.dTone.set("lowpass",pf*Math.pow(2,(Math.max(0,Math.min(1,this.dtone))-1)*4),md.post?md.post.q:0.7);
     this.dDc.set("highpass",5,0.7); }
   _updEQ(){ this.fHp.set("highpass",this.eqHp,0.7); this.fEq.set("peaking",this.eqFreq,1.0,this.eqGain); this.fLp.set("lowpass",this.eqLp,0.7); }
-  trigger(vel){ this.active=true; this.vel=vel; this.t=0; this.phase=0; this.wEnv=1; this.fmPh=0; this.fmEnvV=1; this.transT=0; this.fHp.reset(); this.fEq.reset(); this.fLp.reset(); this.dPreLo.reset(); this.dPreHi.reset(); this.dTone.reset(); this.dDc.reset(); }
+  trigger(vel){ this.active=true; this.vel=vel; this.t=0; this.phase=0; this.wEnv=1; this.fmPh=0; this.fmEnvV=1; this.transT=0; this.fHp.reset(); this.fEq.reset(); this.fLp.reset(); this.dPreLo.reset(); this.dPreHi.reset(); this.dPreF.reset(); this.dTone.reset(); this.dDc.reset(); }
   tick(){ if(!this.active)return 0;
     const t=this.t; let f;
     if(t<this.clickD){ const x=t/this.clickD; f=this.clickF*Math.pow(this.punchF/this.clickF,x); }
@@ -1030,27 +1035,52 @@ class KickLabVoice {   // Sumad's Kick Lab :: 3-stage pitch (click -> punch -> t
     this.t+=1/sampleRate;
     let out=o*a*this.vel*this.level;
     if(this.dmix>0.001&&this._dfn){                       // DIST :: pre-emphasis -> shaper -> auto level -> tone -> dc, blended by MIX
-      const pre=this.dPreHi.proc(this.dPreLo.proc(out));
+      const pre=this.dPreF.proc(this.dPreHi.proc(this.dPreLo.proc(out)));
       let w=this.dDc.proc(this.dTone.proc(this._dfn(pre)*this._dlvl));
       const m=this.dmix; out=out*Math.cos(m*Math.PI/2)+w*Math.sin(m*Math.PI/2);
     }
     out=this.fLp.proc(this.fEq.proc(this.fHp.proc(out)));   // EQ :: HP -> peaking(FREQ,GAIN) -> LP
     return out; }
 }
-const LABD_TYPES=7;
-function labShaper(t,d){   // Sumad\u0027s models :: 0 SNAD (device sound) 1 SOFT 2 HARD 3 TUBE 4 TAPE 5 DIODE 6 FOLD
-  const g=1+d*9;
-  switch(t|0){
-    case 1: { const k=1+d*19; return (x)=>Math.tanh(x*k); }
-    case 2: { const th=1-d*0.92; return (x)=>Math.max(-th,Math.min(th,x))/th; }
-    case 3: { const k=1+d*14; return (x)=>x>=0?Math.tanh(x*k*1.3):Math.tanh(x*k*0.7); }
-    case 4: return (x)=>Math.tanh(x*g*0.6)*0.92+x*0.08;
-    case 5: { const k=1+d*19; return (x)=>x>0?Math.tanh(x*k*1.8):Math.tanh(x*k*0.4)*0.6; }
-    case 6: return (x)=>{ let y=x*g,n=0; while((y>1||y<-1)&&n++<12)y=y>1?2-y:-2-y; return y; };
-    default: { const dr=1+d*3; return (x)=>{ const y=x*dr, a=y<0?-y:y; return a<=0.7?y:(y<0?-1:1)*(0.7+0.3*Math.tanh((a-0.7)/0.3)); }; }
-  } }
-function labShaperLevel(t,d){   // measured, so drive changes character without changing loudness
-  const f=labShaper(t,d),N=512; let si=0,so=0;
+const LABD_ALGO={
+  snad:(d)=>{ const dr=1+d*3; return (x)=>{ const y=x*dr,a=y<0?-y:y; return a<=0.7?y:(y<0?-1:1)*(0.7+0.3*Math.tanh((a-0.7)/0.3)); }; },
+  softclip:(d)=>{ const g=1+d*19; return (x)=>Math.tanh(x*g); },
+  hardclip:(d)=>{ const t=1-d*0.92,k=0.05*(1-d*0.8); return (x)=>{ const a=x<0?-x:x, sg=x<0?-1:1;
+      if(a<t-k)return x/t; if(a<t+k&&k>0.001){ const u=(a-(t-k))/(2*k), b=1-u*u; return sg*(b*(a/t)+(1-b)); } return sg; }; },
+  tube:(d)=>{ const g=1+d*14,pg=1+d*0.5,ng=1-d*0.35; return (x)=>x>=0?Math.tanh(x*g*pg):Math.tanh(x*g*ng); },
+  tape:(d)=>{ const g=1+d*9,dry=0.12*(1-d*0.6); return (x)=>{ const st=Math.tanh(x*g*0.6),h3=0.04*d*st*st*st; return (st+h3)*(1-dry)+x*dry; }; },
+  diode:(d)=>{ const g=1+d*19,rv=0.35+d*0.15,rd=0.5+d*0.15; return (x)=>x>0?Math.tanh(x*g*1.8):Math.tanh(x*g*rv)*rd; },
+  foldback:(d)=>{ const g=1+d*9; return (x)=>{ let y=x*g; if(y>1||y<-1)y=(2/Math.PI)*Math.asin(Math.sin((Math.PI/2)*y)); return y; }; },
+  transistor:(d)=>{ const g=1+d*16,pb=1+d*0.2,nb=1-d*0.1; return (x)=>{ const gx=(x<0?-x:x)*g;
+      const sh=(1-Math.exp(-gx))*(1+0.08*Math.exp(-gx*gx*0.5)); return x>=0?sh*pb:-sh*nb; }; },
+  rectify:(d)=>{ const g=1+d*12,lk=0.12*(1-d*0.85); return (x)=>x>0?Math.tanh(x*g*1.4):x*lk; },
+  saturate:(d)=>{ const g=1+d*6; return (x)=>{ const gx=x*g,poly=1.5*gx-0.5*gx*gx*gx,lim=Math.tanh(gx),b=Math.min(1,gx<0?-gx:gx);
+      return Math.max(-1,Math.min(1,poly*(1-b*0.6)+lim*(b*0.6))); }; },
+  germanium:(d)=>{ const g=1+d*12; return (x)=>x>=0?(2/Math.PI)*Math.atan(x*g*1.15):(2/Math.PI)*Math.atan(x*g*0.85)*0.9; },
+  crush:(d)=>{ const L=Math.max(3,Math.round(256*Math.pow(0.012,d))); return (x)=>Math.round(x*L)/L; }
+};
+const LABD_MODELS=[
+  {a:"snad",       pre:null,                        post:null,                         emph:0,    dr:[0,1]},
+  {a:"softclip",   pre:null,                        post:{t:"lowpass",f:18000,q:0.5},  emph:0,    dr:[0,0.5]},
+  {a:"saturate",   pre:{t:"highpass",f:70,q:0.6},   post:{t:"lowpass",f:11000,q:0.707},emph:0.12, dr:[0,0.8]},
+  {a:"tube",       pre:{t:"highpass",f:60,q:0.6},   post:{t:"lowpass",f:13000,q:0.707},emph:0.10, dr:[0,0.45]},
+  {a:"tube",       pre:{t:"highpass",f:140,q:0.9},  post:{t:"lowpass",f:7000,q:1.2},   emph:0.30, dr:[0.15,1]},
+  {a:"tape",       pre:{t:"highpass",f:50,q:0.5},   post:{t:"lowpass",f:8500,q:0.707}, emph:0.06, dr:[0,0.5]},
+  {a:"tape",       pre:{t:"highpass",f:90,q:0.707}, post:{t:"lowpass",f:5000,q:0.9},   emph:0.22, dr:[0.2,1]},
+  {a:"transistor", pre:{t:"highpass",f:100,q:0.8},  post:{t:"lowpass",f:9000,q:1.0},   emph:0.20, dr:[0,0.7]},
+  {a:"hardclip",   pre:{t:"highpass",f:160,q:1.0},  post:{t:"lowpass",f:8000,q:1.4},   emph:0.35, dr:[0.1,1]},
+  {a:"diode",      pre:{t:"highpass",f:120,q:0.8},  post:{t:"lowpass",f:7500,q:1.1},   emph:0.22, dr:[0.05,1]},
+  {a:"germanium",  pre:{t:"highpass",f:70,q:0.6},   post:{t:"lowpass",f:8000,q:0.707}, emph:0.14, dr:[0,0.75]},
+  {a:"rectify",    pre:{t:"highpass",f:40,q:0.5},   post:{t:"lowpass",f:6000,q:0.707}, emph:0.08, dr:[0,0.8]},
+  {a:"foldback",   pre:{t:"bandpass",f:900,q:1.2},  post:{t:"lowpass",f:11000,q:0.8},  emph:0.18, dr:[0,1]},
+  {a:"crush",      pre:{t:"bandpass",f:800,q:0.8},  post:{t:"lowpass",f:9000,q:1.0},   emph:0.15, dr:[0,1]}
+];
+const LABD_TYPES=LABD_MODELS.length;
+function labModel(t){ return LABD_MODELS[Math.max(0,Math.min(LABD_TYPES-1,t|0))]; }
+function labShaper(t,u){ const m=labModel(t), d=m.dr[0]+Math.max(0,Math.min(1,u))*(m.dr[1]-m.dr[0]);
+  return (LABD_ALGO[m.a]||LABD_ALGO.snad)(d); }
+function labShaperLevel(t,u){
+  const f=labShaper(t,u),N=512; let si=0,so=0;
   for(let i=0;i<N;i++){ const x=Math.sin(i/N*Math.PI*2*7)*0.5+Math.sin(i/N*Math.PI*2*3)*0.25; const y=f(x); si+=x*x; so+=y*y; }
   const ri=Math.sqrt(si/N), ro=Math.sqrt(so/N);
   return ro>1e-6?Math.max(0.05,Math.min(4,ri/ro)):1; }
@@ -1064,18 +1094,20 @@ class ChowKickVoice {   // Sumad\u0027s membrane model :: sine + pitch env -> ta
     this.pulse=p.pulse!=null?p.pulse:0.5; this.accent=p.accent!=null?p.accent:0.5;
     this.level=p.level!=null?p.level:0.8; this.pan=p.pan||0; this.flt=0;
     this.lp=new Biquad(); this._updTone();
-    this.dPreLo=new Biquad(); this.dPreHi=new Biquad(); this.dTone=new Biquad(); this.dDc=new Biquad();
+    this.dPreLo=new Biquad(); this.dPreHi=new Biquad(); this.dPreF=new Biquad(); this.dTone=new Biquad(); this.dDc=new Biquad();
     this.dtype=0; this.ddrive=0.4; this.dpre=0; this.dtone=1; this.dmix=0; this._dfn=null; this._dlvl=1; this._updDist();
     this.active=false; this.ph=0; this.t=0; this.env=0; this.vel=1; this.clk=0; this._tf=null; this._tset=0; this._dcoef=1; this._dr=null; this.smoothPan=true; this._updTone(); }
   _toneTarget(){ return 200*Math.pow(100,Math.max(0,Math.min(1,this.tone))); }
   _updTone(){ const f=this._toneTarget(); if(this._tf==null){this._tf=f;this._tset=f;this.lp.set("lowpass",f,0.707);} }   // glide happens in tick :: instant coefficient jumps click
   set(k,v){ if(k==="olvl"){this.level=v;return;} if(k in this)this[k]=v; if(k==="tone")this._updTone();
     if(k==="dtype"||k==="ddrive"||k==="dpre"||k==="dtone")this._updDist(); }
-  _updDist(){ const t=this.dtype|0, d=this.ddrive||0;
-    this._dfn=labShaper(t,d); this._dlvl=labShaperLevel(t,d);
-    const pre=(this.dpre||0)*18;
+  _updDist(){ const t=this.dtype|0, u=this.ddrive||0, md=labModel(t);
+    this._dfn=labShaper(t,u); this._dlvl=labShaperLevel(t,u);
+    const pre=((md.emph||0)+(this.dpre||0))*18;
     this.dPreLo.set("lowshelf",200,0.7,-pre); this.dPreHi.set("highshelf",2000,0.7,pre);
-    this.dTone.set("lowpass",200*Math.pow(100,Math.max(0,Math.min(1,this.dtone))),0.7);
+    if(md.pre)this.dPreF.set(md.pre.t,md.pre.f,md.pre.q); else this.dPreF.set("lowpass",20000,0.5);
+    const pf=md.post?md.post.f:20000;
+    this.dTone.set("lowpass",pf*Math.pow(2,(Math.max(0,Math.min(1,this.dtone))-1)*4),md.post?md.post.q:0.7);
     this.dDc.set("highpass",5,0.7); }
   trigger(vel){ this.active=true; this.vel=vel; this.t=0; this.ph=0; this.env=0.001;
     this.clk=(0.01+this.pulse*0.5)>0.01?1:0; }   // no filter reset :: resetting mid-tail clicks
@@ -1106,7 +1138,7 @@ class ChowKickVoice {   // Sumad\u0027s membrane model :: sine + pitch env -> ta
     const g=1+this._dr*19;
     let out=this.lp.proc(Math.tanh(sig*g)*this._dlv);
     if(this.dmix>0.001&&this._dfn){   // our DIST group, on top of his saturation
-      const pre=this.dPreHi.proc(this.dPreLo.proc(out));
+      const pre=this.dPreF.proc(this.dPreHi.proc(this.dPreLo.proc(out)));
       const w=this.dDc.proc(this.dTone.proc(this._dfn(pre)*this._dlvl));
       const mx=this.dmix; out=out*Math.cos(mx*Math.PI/2)+w*Math.sin(mx*Math.PI/2); }
     this.t+=1/sr;
@@ -1569,7 +1601,7 @@ registerProcessor("freeverb", Freeverb);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="520";
+const REV="522";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -1653,8 +1685,8 @@ function k4fxDefs(){ return [d("ring",0,1,0,0,"RING"),d("freq",20,4000,220,1,"FR
 function k4modeCtrl(){ return []; }   // deprecated (sample engine rebuilt) :: no-op for the legacy popup
 const K4_ALLKEYS=(()=>{const m={};k4editDefs().forEach(df=>{m[df.key]=df.def;});k4filtDefs().forEach(df=>{m[df.key]=df.def;});k4fxDefs().forEach(df=>{m[df.key]=df.def;});return m;})();
 const KIT4V=Array.from({length:9},(_,i)=>({name:"SLOT "+(i+1),defs:k4editDefs(),fxMode:undefined,extra:Object.assign({},K4_ALLKEYS)}));
-const KITLABV=[]; for(let _i=0;_i<9;_i++)KITLABV.push({name:"KICK "+(_i+1),defs:[d("basef",30,120,50,1,"TUNE"),d("clickF",250,10000,4000,1,"CLICK.F"),d("clickD",0.001,0.015,0.006,0,"CLICK.D"),d("punchF",80,400,180,1,"PUNCH.F"),d("punchD",0.01,0.2,0.05,1,"PUNCH.D"),d("penvAmt",0,1,1,0,"P.ENV"),d("khold",0,0.05,0.005,0,"HOLD"),d("kdec",0.05,1.5,0.35,1,"DECAY"),d("curve",-1,1,0,0,"CURVE"),d("waveBase",0,1,0,0,"WAVE"),d("waveEnv",0,1,0,0,"W.ENV"),d("waveDec",0.005,0.1,0.03,0,"W.DEC"),d("waveShape",-1,1,0,0,"W.SHAPE"),d("fmBase",0,1,0,0,"FM.BASE"),d("fmEnv",0,1,0,0,"FM.ENV"),d("fmDec",0.002,0.05,0.02,0,"FM.DEC"),d("fmRate",0.25,8,1,1,"FM.RATE"),d("transAmt",0,1,0,0,"TR.AMT"),d("transSpd",0.0002,0.01,0.003,0,"TR.SPD"),d("transMode",0,2,0,0,"TR.MODE"),d("transTgt",0,3,0,0,"TR.TGT"),d("dtype",0,6,0,0,"MODEL"),d("ddrive",0,1,0.4,0,"DRIVE"),d("dpre",0,1,0,0,"PRE"),d("dtone",0,1,1,0,"D.TONE"),d("dmix",0,1,0,0,"D.MIX"),d("eqHp",20,2000,20,1,"HP"),d("eqFreq",100,8000,1000,1,"FREQ"),d("eqGain",-18,18,0,0,"GAIN"),d("eqLp",500,20000,20000,1,"LP"),d("olvl",0,1.5,0.9,0,"LEVEL")]});
-KITLABV[1]={name:"KICK 2",defs:[d("tune",30,200,50,1,"TUNE"),d("accent",0,1,0.6,0,"ACCENT"),d("decay",0,1,0.35,0,"DECAY"),d("sdrv",0,1,0.35,0,"DRIVE"),d("tone",0,1,0.55,0,"TONE"),d("pulse",0,1,0.4,0,"CLICK"),d("dtype",0,6,0,0,"MODEL"),d("ddrive",0,1,0.4,0,"DRIVE"),d("dpre",0,1,0,0,"PRE"),d("dtone",0,1,1,0,"D.TONE"),d("dmix",0,1,0,0,"D.MIX"),d("pan",-1,1,0),d("olvl",0,1.5,0.8,0,"LEVEL")]};   // membrane model by Sumad
+const KITLABV=[]; for(let _i=0;_i<9;_i++)KITLABV.push({name:"KICK "+(_i+1),defs:[d("basef",30,120,50,1,"TUNE"),d("clickF",250,10000,4000,1,"CLICK.F"),d("clickD",0.001,0.015,0.006,0,"CLICK.D"),d("punchF",80,400,180,1,"PUNCH.F"),d("punchD",0.01,0.2,0.05,1,"PUNCH.D"),d("penvAmt",0,1,1,0,"P.ENV"),d("khold",0,0.05,0.005,0,"HOLD"),d("kdec",0.05,1.5,0.35,1,"DECAY"),d("curve",-1,1,0,0,"CURVE"),d("waveBase",0,1,0,0,"WAVE"),d("waveEnv",0,1,0,0,"W.ENV"),d("waveDec",0.005,0.1,0.03,0,"W.DEC"),d("waveShape",-1,1,0,0,"W.SHAPE"),d("fmBase",0,1,0,0,"FM.BASE"),d("fmEnv",0,1,0,0,"FM.ENV"),d("fmDec",0.002,0.05,0.02,0,"FM.DEC"),d("fmRate",0.25,8,1,1,"FM.RATE"),d("transAmt",0,1,0,0,"TR.AMT"),d("transSpd",0.0002,0.01,0.003,0,"TR.SPD"),d("transMode",0,2,0,0,"TR.MODE"),d("transTgt",0,3,0,0,"TR.TGT"),d("dtype",0,13,0,0,"MODEL"),d("ddrive",0,1,0.4,0,"DRIVE"),d("dpre",0,1,0,0,"PRE"),d("dtone",0,1,1,0,"D.TONE"),d("dmix",0,1,0,0,"D.MIX"),d("eqHp",20,2000,20,1,"HP"),d("eqFreq",100,8000,1000,1,"FREQ"),d("eqGain",-18,18,0,0,"GAIN"),d("eqLp",500,20000,20000,1,"LP"),d("olvl",0,1.5,0.9,0,"LEVEL")]});
+KITLABV[1]={name:"KICK 2",defs:[d("tune",30,200,50,1,"TUNE"),d("accent",0,1,0.6,0,"ACCENT"),d("decay",0,1,0.35,0,"DECAY"),d("sdrv",0,1,0.35,0,"DRIVE"),d("tone",0,1,0.55,0,"TONE"),d("pulse",0,1,0.4,0,"CLICK"),d("dtype",0,13,0,0,"MODEL"),d("ddrive",0,1,0.4,0,"DRIVE"),d("dpre",0,1,0,0,"PRE"),d("dtone",0,1,1,0,"D.TONE"),d("dmix",0,1,0,0,"D.MIX"),d("pan",-1,1,0),d("olvl",0,1.5,0.8,0,"LEVEL")]};   // membrane model by Sumad
 KITLABV[0]={name:"KICK 1",defs:KITLABV[0].defs.filter(x=>["dtype","ddrive","dpre","dtone","dmix"].indexOf(x.key)<0)};   // for A/B testing
 const KITVOIDV=[]; for(let _i=0;_i<9;_i++)KITVOIDV.push({name:"SLOT "+(_i+1),defs:[],empty:true});
 const KITS=[{name:"RAW",voices:KIT1V},{name:"PCKRT",voices:KIT2V},{name:"SUBS",voices:KIT3V},{name:"SAMPLES",voices:KIT4V},{name:"RESONANT",voices:KITPERCV},{name:"DRUM LAB",voices:KITLABV},{name:"VOID",voices:KITVOIDV}];
@@ -2064,7 +2096,7 @@ function fmtv(def,val){
   if(def.note)return noteName(val);
   if(def.key==="fmRate")return val.toFixed(2)+"x";
   if(def.key==="eqGain")return (val>0?"+":"")+Math.round(val)+"dB";
-  if(def.key==="dtype")return ["SNAD","SOFT","HARD","TUBE","TAPE","DIODE","FOLD"][Math.max(0,Math.min(6,Math.round(val)))];
+  if(def.key==="dtype")return ["SNAD","SOFT CLEAN","WARM OD","TUBE CLEAN","TUBE HOT","TAPE WARM","TAPE SAT","FET PUSH","HARD PUNCH","DIODE","GERMANIUM","RECTIFY","FOLD METAL","CRUSH"][Math.max(0,Math.min(13,Math.round(val)))];
   if(def.key==="transMode")return ["SINE","EXP","JITTER"][Math.max(0,Math.min(2,Math.round(val)))];
   if(def.key==="transTgt")return ["PITCH","PHASE","WAVE","FM"][Math.max(0,Math.min(3,Math.round(val)))];
   if(def.key==="rate")return "1/"+(16*rollSub(val));
@@ -2080,7 +2112,20 @@ function fmtv(def,val){
   if(def.max<=1)return Math.round(val*100);
   return val.toFixed(2);
 }
+const LABD_LABELS=["SNAD","SOFT CLEAN","WARM OD","TUBE CLEAN","TUBE HOT","TAPE WARM","TAPE SAT","FET PUSH","HARD PUNCH","DIODE","GERMANIUM","RECTIFY","FOLD METAL","CRUSH"];
 function makeKnob(def,get,set,labelOverride,arm,autoKey){
+  if(def.key==="dtype"){   // 14 models :: a list beats clicking through
+    const wrap=document.createElement("div");wrap.className="knob";
+    const btn=document.createElement("button");btn.className="cell-btn modelpick";
+    const paint=()=>{btn.textContent=LABD_LABELS[Math.max(0,Math.min(13,Math.round(get())))]||"SNAD";};
+    btn.title="distortion model \u00b7 click to choose";
+    btn.onclick=(ev)=>openModelMenu(ev,LABD_LABELS.map((l,i)=>({v:i,label:l})),Math.round(get()),(v)=>{set(v);paint();if(typeof commit==="function")commit();});
+    paint();
+    const lab=document.createElement("div");lab.className="kl";lab.textContent=def.label||"MODEL";
+    const val=document.createElement("div");val.className="kv";val.textContent="";
+    wrap.append(btn,lab,val);
+    const led=document.createElement("div");led.className="klock";wrap.appendChild(led);
+    return wrap; }
   const wrap=document.createElement("div");wrap.className="knob"+(def.disabled?" off":"");
   const _tip=(window.TIP_PARAM&&TIP_PARAM[def.key])||(window.TIP_FX&&TIP_FX[def.key]);if(_tip)wrap.title=_tip;
   const dial=document.createElement("div");dial.className="dial";
@@ -2438,6 +2483,17 @@ function buildLivePanel(){ const host=document.getElementById("liveBody"); if(!h
     const add=document.createElement("button"); add.className="cell-btn"; add.textContent="+ MACRO"; add.title="add a macro knob for this group"; add.style.alignSelf="center";
     add.onclick=()=>openMacroPicker(g.id); kc.appendChild(add);
     host.appendChild(row); }); }
+function openModelMenu(ev,items,cur,pick){ closeSlotMenu();
+  const m=document.createElement("div"); m.className="slotmenu modelmenu"; m.id="slotmenu";
+  items.forEach(it=>{ const b=document.createElement("button"); b.textContent=it.label; if(it.v===cur)b.classList.add("on");
+    b.onmousedown=(e)=>{e.preventDefault();e.stopPropagation();};
+    b.onclick=(e)=>{e.stopPropagation();closeSlotMenu();pick(it.v);}; m.appendChild(b); });
+  document.body.appendChild(m);
+  const t=ev&&ev.currentTarget?ev.currentTarget.getBoundingClientRect():{left:innerWidth/2,bottom:innerHeight/2};
+  const r=m.getBoundingClientRect();
+  m.style.left=Math.min(t.left,innerWidth-r.width-8)+"px";
+  m.style.top=Math.min(t.bottom+4,innerHeight-r.height-8)+"px";
+  setTimeout(()=>document.addEventListener("pointerdown",closeSlotMenu,{once:true}),0); }
 function closeSoundPicker(){ const e=document.getElementById("soundPicker"); if(e)e.remove(); }
 function assignVoidSlot(slot,sk,sv){ const src=KITS[sk].voices[sv]; const vo=state.kits[6][slot]; vo.name=src.name; vo.defs=src.defs; vo.fxMode=src.fxMode; vo.vals=Object.assign(Object.fromEntries(src.defs.map(x=>[x.key,x.def])),src.extra||{}); vo.srcKit=sk; vo.srcVoice=sv; if(engineNode)engineNode.port.postMessage({type:"assign",slot:slot,srcKit:sk,srcVoice:sv}); buildSeq(); buildEditor(); const ev=effVals(vo); for(const k in ev)sendParam(slot,k,ev[k]); commit(); }
 function openSoundPicker(slot){ closeSoundPicker(); const ov=document.createElement("div"); ov.id="soundPicker"; ov.className="sound-picker"; const cl=document.createElement("button"); cl.className="sp-close"; cl.textContent="\u00d7"; cl.onclick=closeSoundPicker; ov.append(cl); [0,1,2,4,5].forEach(k=>{ const h=document.createElement("div"); h.className="sp-head"; h.textContent=KITS[k].name; ov.append(h); ((k===5)?KITS[k].voices.slice(0,5):KITS[k].voices).forEach((v,vi)=>{ const b=document.createElement("button"); b.className="sp-item"; b.textContent=v.name; b.onclick=()=>{ assignVoidSlot(slot,k,vi); closeSoundPicker(); }; ov.append(b); }); }); document.body.append(ov); }
@@ -3060,7 +3116,7 @@ function buildModule(m,i,ctx){
   hd.append(byp,ti);
   if(m.kind!=="dist"&&m.kind!=="rumble")hd.appendChild(hbtn(m.mode==="send"?"SND":"INS","insert / send : INS sits in the chain, SND runs parallel and leaves the dry signal untouched",m.mode==="send",()=>{m.mode=(m.mode==="send")?"insert":"send";buildMaster();wireMaster();if(typeof commit==="function")commit();}));
   if(m.kind!=="dist"&&m.kind!=="filter"&&m.kind!=="eq")hd.appendChild(hbtn("EDIT","open this module in a popup with all controls",false,(e)=>openModulePopup(m,i,e&&e.currentTarget)));
-  if(m.kind==="shaper")hd.appendChild(hbtn(shaperModel(m.stype||"snad").label,"distortion model \u00b7 SNAD is the device sound",false,()=>{const i=SHAPER_TYPES.indexOf(m.stype||"snad");shaperSetModel(m,SHAPER_TYPES[(i+1)%SHAPER_TYPES.length]);buildMaster();if(state.liveOpen)buildLiveSide();if(typeof commit==="function")commit();}));
+  if(m.kind==="shaper")hd.appendChild(hbtn(shaperModel(m.stype||"snad").label,"distortion model \u00b7 click to choose",false,(ev)=>openModelMenu(ev,SHAPER_TYPES.map(t=>({v:t,label:SHAPER_MODELS[t].label})),m.stype||"snad",(v)=>{shaperSetModel(m,v);buildMaster();if(state.liveOpen)buildLiveSide();if(typeof commit==="function")commit();})));
   if(m.kind==="filter")hd.appendChild(hbtn(ftypeLabel(m.ftype),"filter type : LP / HP / BP",false,()=>{m.ftype=m.ftype==="lp"?"hp":m.ftype==="hp"?"bp":"lp";if(m._nodes)m._nodes.fxIn.type=ftypeToBiquad(m.ftype);buildMaster();if(typeof commit==="function")commit();}));
   if(m.kind==="delay")hd.appendChild(hbtn(m.sync?"SYNC":"FREE","time : SYNC rasts to the bpm, FREE is free ms",m.sync,()=>{m.sync=!m.sync;if(m._nodes&&m._nodes.dlys)m._nodes.dlys.forEach(d=>d.delayTime.value=delaySeconds(m));buildMaster();if(typeof commit==="function")commit();}));
   if(m.kind==="delay")hd.appendChild(hbtn(m.pp?"PP":"MONO","routing : MONO is a single echo, PP bounces left/right",m.pp,()=>{m.pp=!m.pp;buildMaster();wireMaster();if(typeof commit==="function")commit();}));
@@ -4128,7 +4184,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=520","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=522","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
