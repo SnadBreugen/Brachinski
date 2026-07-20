@@ -272,7 +272,7 @@ body{
 .mfx.drop{outline:2px dashed var(--signal);outline-offset:-2px}
 .mfx-byp{width:9px;height:9px;border-radius:50%;background:rgba(0,0,0,.4);border:1px solid var(--line);cursor:pointer;flex:none;padding:0}
 .mfx-byp.active{background:var(--amber);box-shadow:0 0 6px var(--amber-glow);border-color:var(--amber)}
-.knob{display:flex;flex-direction:column;align-items:center;gap:5px;width:50px;height:93px;box-sizing:border-box}   /* fixed :: an empty rack reserves exactly this */
+.knob{display:flex;flex-direction:column;align-items:center;gap:5px;width:50px;height:93px;box-sizing:border-box;position:relative}   /* fixed :: an empty rack reserves exactly this */
 .knob.hasauto .kl{color:var(--signal)}
 #autorec.on{background:var(--signal);color:#fff;border-color:var(--signal)}
 .cell-btn.off{opacity:.35}
@@ -320,14 +320,18 @@ body{
 .busbtn.bd{color:var(--amber);border-color:var(--amber)}
 .busbtn.br{color:var(--signal);border-color:var(--signal)}
 .klock{width:6px;height:6px;border-radius:50%;margin:3px auto 0;background:#2a1c10;box-shadow:inset 0 0 2px #000;transition:.1s}
+.kmid{position:absolute;top:0;right:2px;width:5px;height:5px;border-radius:50%;background:var(--amber);box-shadow:0 0 4px var(--amber);display:none;pointer-events:none}
+.knob.midi-on .kmid{display:block}
+.knob.midi-arm .kmid{display:block;background:#fff;box-shadow:0 0 6px #fff;animation:midiblink .5s steps(1) infinite}
+@keyframes midiblink{50%{opacity:0}}
 .klock.on{background:var(--signal);box-shadow:0 0 7px var(--signal),0 0 2px #fff}
 .step.haslock::after{content:"";position:absolute;top:3px;right:3px;width:4px;height:4px;border-radius:50%;background:var(--signal);opacity:.55}
 .step.plockon{box-shadow:inset 0 0 0 1px var(--signal),0 0 7px rgba(255,92,200,.4)}
 .step.copysrc{box-shadow:inset 0 0 0 2px var(--info),0 0 8px rgba(255,106,0,.5)}
 .step.copytarget{box-shadow:inset 0 0 0 2px #fff,0 0 9px rgba(255,255,255,.55)}
-.slotmenu{position:fixed;z-index:9999;background:#12100e;border:1px solid var(--info);border-radius:6px;padding:4px;display:flex;flex-direction:column;gap:2px;box-shadow:0 6px 20px rgba(0,0,0,.6)}
+.slotmenu{position:fixed;z-index:9999;background:#12100e;border:1px solid var(--amber);border-radius:6px;padding:4px;display:flex;flex-direction:column;gap:2px;box-shadow:0 6px 20px rgba(0,0,0,.6)}
 .slotmenu button{background:transparent;color:#e8e2d8;border:0;padding:6px 14px;text-align:left;font:inherit;font-size:11px;letter-spacing:.08em;cursor:pointer;border-radius:4px;white-space:nowrap}
-.slotmenu button:hover{background:var(--info);color:#12100e}
+.slotmenu button:hover{background:var(--amber);color:#12100e}
 .steps{display:grid;grid-template-columns:repeat(16,1fr);gap:5px}
 .step{height:32px;border-radius:3px;cursor:pointer;position:relative;background:#100b1c;border:1px solid #4a3a6c;box-shadow:inset 0 2px 4px rgba(0,0,0,.7);transition:.05s}
 .step:nth-child(4n+1){border-color:#6f5a9c}
@@ -340,7 +344,7 @@ html.zen .chassis,html.zen .feat-panel,html.zen #ctrlbarL{display:none!important
 #psWarn{position:fixed;inset:0;z-index:9999;background:rgba(4,2,10,.94);display:none;align-items:center;justify-content:center;padding:24px}
 #psWarn.show{display:flex}
 #psWarn .ps-box{max-width:520px;border:1px solid var(--line);background:#0c0814;padding:26px 28px;font-family:var(--mono);text-align:left;box-shadow:0 0 0 1px rgba(255,188,58,.12),0 20px 60px rgba(0,0,0,.6)}
-#psWarn .ps-t{color:var(--info,#ff6a00);font-size:13px;letter-spacing:2px;margin-bottom:14px}
+#psWarn .ps-t{color:var(--amber);font-size:13px;letter-spacing:2px;margin-bottom:14px}
 #psWarn .ps-b{color:#c9c0da;font-size:12px;line-height:1.65;letter-spacing:.4px;margin-bottom:20px}
 #psWarn .ps-ok{font-family:var(--mono);font-size:12px;letter-spacing:2px;color:var(--amber);background:#140e20;border:1px solid var(--line);padding:10px 16px;cursor:pointer}
 #psWarn .ps-ok:hover{background:#1c1430}
@@ -524,10 +528,10 @@ html.live-on body>*:not(#liveScreen):not(#soundPicker):not(#slotmenu):not(#fxWin
 .modelmenu button.on{color:var(--amber)}
 .void-addrow{display:flex;align-items:center;gap:8px;padding:8px 0 2px}
 .void-count{font-size:9px;letter-spacing:1px;color:var(--dim)}
-.sound-picker{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);max-height:72vh;overflow-y:auto;background:#12101a;border:1px solid var(--info,#a06cff);border-radius:8px;padding:14px 18px 16px;z-index:9999;box-shadow:0 8px 40px rgba(0,0,0,.6);min-width:230px;}
+.sound-picker{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);max-height:72vh;overflow-y:auto;background:#12101a;border:1px solid var(--amber);border-radius:8px;padding:14px 18px 16px;z-index:9999;box-shadow:0 8px 40px rgba(0,0,0,.6);min-width:230px;}
 .sound-picker .sp-head{font-size:11px;letter-spacing:1px;opacity:.55;margin:12px 0 4px;text-transform:uppercase;}
 .sound-picker .sp-item{display:block;width:100%;text-align:left;background:transparent;border:none;color:inherit;padding:5px 8px;cursor:pointer;font-family:inherit;font-size:13px;border-radius:4px;}
-.sound-picker .sp-item:hover{background:var(--info,#a06cff);color:#000;}
+.sound-picker .sp-item:hover{background:var(--amber);color:#12100e;}
 .sound-picker .sp-close{position:absolute;top:6px;right:10px;background:transparent;border:none;color:inherit;font-size:20px;line-height:1;cursor:pointer;}
 </style>
 <style>
@@ -642,7 +646,7 @@ html.live-on body>*:not(#liveScreen):not(#soundPicker):not(#slotmenu):not(#fxWin
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 524</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 526</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -1601,7 +1605,7 @@ registerProcessor("freeverb", Freeverb);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="524";
+const REV="526";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -1753,12 +1757,12 @@ function soundMenu(x,y,vi){ closeSlotMenu(); const m=document.createElement("div
   if(state.kit===6){ mk((state.voices[vi].defs.length?"REPLACE SOUND":"PICK SOUND"), ()=>{ state.selected=vi; buildEditor(); openSoundPicker(vi); }); }   // grouping is shortcut-only for now (CTRL+G / CTRL+SHIFT+G)
   mk("COPY SOUND", ()=>copySound(vi)); mk("PASTE SOUND", ()=>pasteSound(vi), !soundPasteOk(vi));
   document.body.appendChild(m); const r=m.getBoundingClientRect(); m.style.left=Math.min(x,innerWidth-r.width-6)+"px"; m.style.top=Math.min(y,innerHeight-r.height-6)+"px";
-  setTimeout(()=>document.addEventListener("pointerdown",closeSlotMenu,{once:true}),0); }
+  menuGuard(m,closeSlotMenu); }
 function slotMenu(x,y,slot){ closeSlotMenu(); const m=document.createElement("div"); m.className="slotmenu"; m.id="slotmenu"; const has=!!userSamples[slot];
   const mk=(label,fn)=>{ const b=document.createElement("button"); b.textContent=label; b.onmousedown=(ev)=>{ev.preventDefault();ev.stopPropagation();}; b.onclick=(ev)=>{ev.stopPropagation();closeSlotMenu();fn();}; m.appendChild(b); };
   mk(has?"LOAD NEW":"LOAD", ()=>slotLoadNew(slot)); mk("RENAME", ()=>renameSlot(slot)); if(has)mk("CLEAR", ()=>clearSlot(slot)); mk("COPY SOUND", ()=>copySound(slot)); mk("PASTE SOUND", ()=>pasteSound(slot));
   document.body.appendChild(m); const r=m.getBoundingClientRect(); m.style.left=Math.min(x,innerWidth-r.width-6)+"px"; m.style.top=Math.min(y,innerHeight-r.height-6)+"px";
-  setTimeout(()=>document.addEventListener("pointerdown",closeSlotMenu,{once:true}),0);
+  menuGuard(m,closeSlotMenu);
 }
 
 const AUTO_RES=256;                                                            // automation curve points per loop :: step-independent, smooth
@@ -2113,6 +2117,72 @@ function fmtv(def,val){
   return val.toFixed(2);
 }
 const LABD_LABELS=["SNAD","SOFT CLEAN","WARM OD","TUBE CLEAN","TUBE HOT","TAPE WARM","TAPE SAT","FET PUSH","HARD PUNCH","DIODE","GERMANIUM","RECTIFY","FOLD METAL","CRUSH"];
+
+// ---- MIDI learn ----
+// knobs are rebuilt constantly, so mappings live on a stable id, not on an element.
+// id form :: snd:<kit>:<voice>:<key>  ·  grp:<gid>:<key>
+let _MID_CTX=null;                       // set by the builder around the knobs that may be mapped
+const MIDI_MAP={};                       // id -> {cc,ch}
+const MIDI_REG={};                       // id -> [handle]  (dead ones drop out on use)
+let MIDI_ARM=null, MIDI_ON=false, MIDI_TRIED=false, _midCommit=null;
+function midiCommit(){ if(_midCommit)clearTimeout(_midCommit); _midCommit=setTimeout(()=>{ _midCommit=null; if(typeof commit==="function")commit(); },400); }   // one undo step per move, not per cc
+function midiRegister(id,h){ if(!MIDI_REG[id])MIDI_REG[id]=[];
+  const was=MIDI_REG[id].some(x=>x.wrap.isConnected);
+  if(!was&&MIDI_MAP[id]){ MIDI_MAP[id].caught=false; MIDI_MAP[id].hw=null; }   // target came back (kit/voice switch) :: make the pot catch up again, never jump
+  MIDI_REG[id]=MIDI_REG[id].filter(x=>x.wrap.isConnected); MIDI_REG[id].push(h); h.paint(); }
+function midiLive(id){ const a=(MIDI_REG[id]||[]).filter(x=>x.wrap.isConnected); MIDI_REG[id]=a; return a; }
+function midiPaint(id){ midiLive(id).forEach(h=>h.paint()); }
+function midiArm(id){ const old=MIDI_ARM; MIDI_ARM=id; if(old)midiPaint(old); midiPaint(id);
+  setStatus("MIDI LEARN // turn a knob on your controller \u00b7 ESC to cancel");
+  ensureMIDI(); }
+function midiDisarm(){ const old=MIDI_ARM; MIDI_ARM=null; if(old)midiPaint(old); }
+function midiForget(id){ delete MIDI_MAP[id]; midiPaint(id); setStatus("MIDI // mapping removed"); }
+function ensureMIDI(){ if(MIDI_ON||MIDI_TRIED)return; MIDI_TRIED=true;
+  if(!navigator.requestMIDIAccess){ setStatus("// NO MIDI \u00b7 browser has no midi access"); return; }
+  navigator.requestMIDIAccess().then(a=>{ MIDI_ON=true;
+    const bind=()=>{ a.inputs.forEach(i=>{ i.onmidimessage=(e)=>midiIn(e.data); }); };
+    bind(); a.onstatechange=bind;
+    setStatus("MIDI // "+a.inputs.size+" input(s) ready");
+  }).catch(()=>{ setStatus("// NO MIDI \u00b7 access denied"); }); }
+function midiIn(d){ if(!d||d.length<3)return; const st=d[0]&0xf0; if(st!==0xb0)return;   // control change only for now
+  __midi(d[1],d[2],(d[0]&0x0f)+1); }
+function __midi(cc,val,ch){ ch=ch||1; const n=Math.max(0,Math.min(1,val/127));
+  if(MIDI_ARM){ const id=MIDI_ARM; MIDI_ARM=null;
+    delete MIDI_MAP[id];                                                                    // one cc per target · a cc may drive several targets
+    MIDI_MAP[id]={cc:cc,ch:ch,hw:null,caught:false};
+    midiPaint(id); setStatus("MIDI // CC"+cc+" ch"+ch+" \u2192 "+id.split(":").pop().toUpperCase()); return; }
+  for(const id in MIDI_MAP){ const m=MIDI_MAP[id]; if(m.cc!==cc||m.ch!==ch)continue;
+    const hs=midiLive(id); if(!hs.length){ m.hw=n; continue; }
+    const h=hs[0], def=h.def, cur=nrm(def,h.get());
+    if(!m.caught){ const prev=(m.hw==null)?n:m.hw;
+      if(Math.abs(n-cur)<=0.02||(prev-cur)*(n-cur)<0)m.caught=true;                         // pickup :: only takes over once the pot passes the current value
+      else { m.hw=n; continue; } }
+    m.hw=n;
+    let v=dnm(def,n); if(def.detent!=null){const dd=nrm(def,def.detent);if(Math.abs(n-dd)<0.03)v=def.detent;} if(def.note)v=snapNote(v,def.min,def.max);
+    h.set(v); hs.forEach(x=>x.render()); }
+}
+window.__midi=__midi;
+function menuGuard(el,close){ const t0=Date.now();
+  const away=(e)=>{ if(e&&e.target&&el.contains(e.target))return;
+    if(Date.now()-t0<80)return;                                  // ignore the very event that opened it, without waiting a tick (a stray pointerdown used to slip through and leave the menu stuck open)
+    off(); close(); };
+  const key=(e)=>{ if(e.key==="Escape"){ off(); close(); } };
+  const evs=["pointerdown","mousedown","click","contextmenu","wheel"];
+  const off=()=>{ evs.forEach(n=>document.removeEventListener(n,away,true)); document.removeEventListener("keydown",key,true); window.removeEventListener("blur",away,true); if(window.__menuOff===off)window.__menuOff=null; };
+  evs.forEach(n=>document.addEventListener(n,away,true)); document.addEventListener("keydown",key,true); window.addEventListener("blur",away,true);
+  if(window.__menuOff)window.__menuOff();                        // only one guard at a time
+  window.__menuOff=off; return off; }
+function openKnobMenu(x,y,items){ closeSlotMenu();
+  const m=document.createElement("div"); m.className="slotmenu"; m.id="slotmenu";
+  items.forEach(it=>{ const b=document.createElement("button"); b.textContent=it.label;
+    b.addEventListener("pointerdown",(e)=>{ e.preventDefault(); e.stopPropagation(); closeSlotMenu(); it.run(); });   // outside-close fires on pointerdown, click would never arrive
+    m.appendChild(b); });
+  document.body.appendChild(m); m.style.left=x+"px"; m.style.top=y+"px";
+  const r=m.getBoundingClientRect();
+  if(r.right>innerWidth)m.style.left=(innerWidth-r.width-6)+"px";
+  if(r.bottom>innerHeight)m.style.top=(innerHeight-r.height-6)+"px";
+  menuGuard(m,closeSlotMenu); }
+document.addEventListener("keydown",(e)=>{ if(e.key==="Escape"&&MIDI_ARM){ midiDisarm(); setStatus("MIDI LEARN // cancelled"); } });
 function makeKnob(def,get,set,labelOverride,arm,autoKey){
   if(def.key==="dtype"){   // 14 models :: a list beats clicking through
     const wrap=document.createElement("div");wrap.className="knob";
@@ -2135,14 +2205,23 @@ function makeKnob(def,get,set,labelOverride,arm,autoKey){
   const valEl=document.createElement("div");valEl.className="kv";
   wrap.append(dial,lab,valEl);
   const led=document.createElement("div");led.className="klock";wrap.appendChild(led);   // always present so knob height is identical in SOUND / SET (no frame jump)
+  const midId=_MID_CTX?(_MID_CTX+":"+(autoKey||def.key)):null;
+  if(midId){ const dot=document.createElement("div");dot.className="kmid";wrap.appendChild(dot); }
   const armed=()=>arm&&state.plock&&state.plock.key===def.key;
   function render(){const v=get(),n=nrm(def,v),arc=n*270;
     dial.style.background="conic-gradient(from 225deg, var(--amber) 0deg "+arc+"deg, #241a0c "+arc+"deg 270deg, transparent 270deg 360deg)";
     cap.style.setProperty("--rot",(-135+n*270)+"deg");valEl.textContent=fmtv(def,v);
     if(led)led.classList.toggle("on",!!armed());}
   if(autoKey){ if(!window.AUTO_KNOBS)window.AUTO_KNOBS={}; window.AUTO_KNOBS[autoKey]=render;
-    if(curPat().auto&&curPat().auto[autoKey])wrap.classList.add("hasauto");
-    wrap.addEventListener("contextmenu",e=>{ if(curPat().auto&&curPat().auto[autoKey]){ e.preventDefault(); clearAuto(autoKey); wrap.classList.remove("hasauto"); if(typeof commit==="function")commit(); setStatus("AUTO cleared // "+(def.label||def.key).toUpperCase()); } }); }
+    if(curPat().auto&&curPat().auto[autoKey])wrap.classList.add("hasauto"); }
+  if(midId){ const paint=()=>{ wrap.classList.toggle("midi-on",!!MIDI_MAP[midId]); wrap.classList.toggle("midi-arm",MIDI_ARM===midId); };
+    midiRegister(midId,{wrap:wrap,def:def,get:get,set:(v)=>{set(v);midiCommit();},render:render,paint:paint}); }
+  if(midId||autoKey){
+    wrap.addEventListener("contextmenu",e=>{ const it=[];
+      if(midId)it.push({label:"MIDI LEARN",run:()=>midiArm(midId)});
+      if(midId&&MIDI_MAP[midId])it.push({label:"MIDI FORGET \u00b7 CC"+MIDI_MAP[midId].cc,run:()=>midiForget(midId)});
+      if(autoKey&&curPat().auto&&curPat().auto[autoKey])it.push({label:"CLEAR AUTO",run:()=>{ clearAuto(autoKey); wrap.classList.remove("hasauto"); if(typeof commit==="function")commit(); setStatus("AUTO cleared // "+(def.label||def.key).toUpperCase()); }});
+      if(!it.length)return; e.preventDefault(); openKnobMenu(e.clientX,e.clientY,it); }); }
   let dr=false,sy=0,sn=0,moved=false;
   dial.addEventListener("pointerdown",e=>{if(def.disabled)return;dr=true;moved=false;sy=e.clientY;sn=nrm(def,get());_autoDragKey=autoKey||null;_autoLast=null;dial.setPointerCapture(e.pointerId);e.preventDefault();});
   dial.addEventListener("pointermove",e=>{if(!dr)return;if(Math.abs(e.clientY-sy)>3)moved=true;if(!moved)return;let v=dnm(def,sn+(sy-e.clientY)/180);if(def.detent!=null){const dn=nrm(def,def.detent),cn=nrm(def,v);if(Math.abs(cn-dn)<0.06)v=def.detent;}if(def.note)v=snapNote(v,def.min,def.max);set(v);render();if(autoKey&&state.autoRec&&state.playing){recordAuto(autoKey,nrm(def,v));wrap.classList.add("hasauto");}});
@@ -2346,6 +2425,7 @@ function buildLiveSide(){ const side=document.getElementById("lvSide"); if(!side
   const g=groupById(state.liveSel);
   side.style.setProperty("--gc",g?g.color:"var(--amber)");
   const h=document.createElement("div"); h.className="lv-sh"; h.textContent=g?("// "+g.name):"// NO GROUP"; side.appendChild(h);
+  _MID_CTX=g?("grp:"+g.id):null;
   if(g){
     const s1=document.createElement("div"); s1.className="lv-sec"; s1.textContent="MACROS"; side.appendChild(s1);
     const kc=document.createElement("div"); kc.className="lv-knobs"; side.appendChild(kc);
@@ -2370,6 +2450,7 @@ function buildLiveSide(){ const side=document.getElementById("lvSide"); if(!side
     mkf("gain",{min:0,max:1.5,def:1},"GAIN");
   }
   if(g){
+    _MID_CTX=null;
     const s2=document.createElement("div"); s2.className="lv-sec"; s2.textContent="FX RACK"; side.appendChild(s2);
     const list=document.createElement("div"); list.className="lv-fxlist"; side.appendChild(list);
     groupModules(g.id).forEach((m,i)=>{ const b=document.createElement("button"); b.className="lv-fxbtn";
@@ -2476,12 +2557,14 @@ function buildLivePanel(){ const host=document.getElementById("liveBody"); if(!h
     const nm=document.createElement("div"); nm.className="live-name"; nm.textContent=g.name; nm.style.background=g.color; row.appendChild(nm);
     const kc=document.createElement("div"); kc.className="live-knobs"; row.appendChild(kc);
     const keys=(liveMacros()[g.id]||[]); const defs=groupParamDefs(g.id);
+    _MID_CTX="grp:"+g.id;
     keys.forEach(k=>{ const dd=defs.get(k); if(!dd)return; const gsx=groupKnobGS(dd,g.id);
       const w=document.createElement("div"); w.className="live-mk"; w.appendChild(makeKnob(dd,gsx.get,gsx.set,null,false));
       const x=document.createElement("button"); x.className="mkx"; x.textContent="\u00d7"; x.title="remove macro";
       x.onclick=()=>{ const L=liveMacros(); L[g.id]=(L[g.id]||[]).filter(y=>y!==k); buildLivePanel(); commit(); }; w.appendChild(x); kc.appendChild(w); });
     const add=document.createElement("button"); add.className="cell-btn"; add.textContent="+ MACRO"; add.title="add a macro knob for this group"; add.style.alignSelf="center";
     add.onclick=()=>openMacroPicker(g.id); kc.appendChild(add);
+    _MID_CTX=null;
     host.appendChild(row); }); }
 function openModelMenu(ev,items,cur,pick){ closeSlotMenu();
   const m=document.createElement("div"); m.className="slotmenu modelmenu"; m.id="slotmenu";
@@ -2494,13 +2577,14 @@ function openModelMenu(ev,items,cur,pick){ closeSlotMenu();
   const r=m.getBoundingClientRect();
   m.style.left=Math.min(t.left,innerWidth-r.width-8)+"px";
   m.style.top=Math.min(t.bottom+4,innerHeight-r.height-8)+"px";
-  const away=(e)=>{ if(m.contains(e.target))return; document.removeEventListener("pointerdown",away,true); closeSlotMenu(); };
-  setTimeout(()=>document.addEventListener("pointerdown",away,true),0); }
+  menuGuard(m,closeSlotMenu); }
 function closeSoundPicker(){ const e=document.getElementById("soundPicker"); if(e)e.remove(); }
 function assignVoidSlot(slot,sk,sv){ const src=KITS[sk].voices[sv]; const vo=state.kits[6][slot]; vo.name=src.name; vo.defs=src.defs; vo.fxMode=src.fxMode; vo.vals=Object.assign(Object.fromEntries(src.defs.map(x=>[x.key,x.def])),src.extra||{}); vo.srcKit=sk; vo.srcVoice=sv; if(engineNode)engineNode.port.postMessage({type:"assign",slot:slot,srcKit:sk,srcVoice:sv}); buildSeq(); buildEditor(); const ev=effVals(vo); for(const k in ev)sendParam(slot,k,ev[k]); commit(); }
 function openSoundPicker(slot){ closeSoundPicker(); const ov=document.createElement("div"); ov.id="soundPicker"; ov.className="sound-picker"; const cl=document.createElement("button"); cl.className="sp-close"; cl.textContent="\u00d7"; cl.onclick=closeSoundPicker; ov.append(cl); [0,1,2,4,5].forEach(k=>{ const h=document.createElement("div"); h.className="sp-head"; h.textContent=KITS[k].name; ov.append(h); ((k===5)?KITS[k].voices.slice(0,5):KITS[k].voices).forEach((v,vi)=>{ const b=document.createElement("button"); b.className="sp-item"; b.textContent=v.name; b.onclick=()=>{ assignVoidSlot(slot,k,vi); closeSoundPicker(); }; ov.append(b); }); }); document.body.append(ov); }
 function buildEditor(){
   window.AUTO_KNOBS={};
+  closeSlotMenu(); if(window.__menuOff)window.__menuOff();   // a menu must never outlive the knob it belongs to
+  _MID_CTX="snd:"+state.kit;
   if(window.__pgClose)window.__pgClose();                                   // close any open param-group popup so its listener never leaks across rebuilds
   const ed=document.getElementById("editor");ed.innerHTML="";ed.style.minHeight="152px";
   const setMode=!!(state.setEditKit&&state.setEditKit[state.kit]);
@@ -2562,9 +2646,11 @@ function buildEditor(){
       pop=document.createElement("div");pop.className="pg-pop";
       const ti=document.createElement("div");ti.className="pg-pop-ti";ti.textContent="// "+grp.label;
       const kc2=document.createElement("div");kc2.className="knobs";
+      _MID_CTX="snd:"+state.kit;
       grp.keys.forEach(k=>{const def=vo.defs.find(d=>d.key===k);if(!def)return;
         if(setMode){const gs=setKnobGS(def);kc2.appendChild(makeKnob(def,gs.get,(v)=>{gs.set(v);refresh();},null,false));}
         else kc2.appendChild(makeKnob(def,()=>vo.vals[k],(v)=>{vo.vals[k]=v;sendParam(vid,k,v);refresh();},null,false,vid+":"+k));});   // arm=false :: no p-lock inside popup (knob vanishes, cannot be un-armed)
+      _MID_CTX=null;
       pop.append(ti,kc2);wrap.appendChild(pop);
       window.__pgClose=closeP;
       document.addEventListener("pointerdown",outside,true);                     // added on click :: this interaction's pointerdown already passed, so no self-close
@@ -2605,6 +2691,7 @@ function buildEditor(){
   if(kitHasFx)racks.appendChild(mk("// FX",fx,"fx",mf));
   racks.style.gridTemplateColumns="minmax(0,1fr)"+(K4&&filterDefs?(" "+rackW(filterDefs.length)):"")+(kitHasFx?(" "+rackW(mf)):"");
   ed.appendChild(racks);
+  _MID_CTX=null;
   if(typeof refreshAutoClr==="function")refreshAutoClr();
 }
 
@@ -4187,7 +4274,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=524","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=526","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
