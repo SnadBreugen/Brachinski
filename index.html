@@ -646,7 +646,7 @@ html.live-on body>*:not(#liveScreen):not(#soundPicker):not(#slotmenu):not(#fxWin
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 526</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 530</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -1605,7 +1605,7 @@ registerProcessor("freeverb", Freeverb);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="526";
+const REV="530";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -1891,7 +1891,11 @@ const FINPRESETS={
   boombox:{lsF:100, lmF:250, prF:2500, hsF:7000,  hp:44,ls:4,   lm:4,   pr:2,   hs:-5, lp:10000, thr:-26,ratio:6,  attack:0.004,release:0.09,knee:10, drive:0.40,width:0.85,haas:0,     makeup:0.702},
   lofi:   {lsF:150, lmF:350, prF:2500, hsF:6000,  hp:80,ls:1.5, lm:3,   pr:-2.5,hs:-10,lp:4500,  thr:-20,ratio:3,  attack:0.01, release:0.20,knee:12, drive:0.35,width:0.6, haas:0,     makeup:0.969}
 };
-function finDriveCurve(d){const n=1024,c=new Float32Array(n),k=1+d*7,t=Math.tanh(k);for(let i=0;i<n;i++){const x=(i/(n-1))*2-1;c[i]=Math.tanh(k*x)/t;}return c;}
+function finDriveCurve(d){const n=1024,c=new Float32Array(n);if(d<=0.0001){for(let i=0;i<n;i++)c[i]=(i/(n-1))*2-1;return c;}const k=d*7,t=Math.tanh(k);for(let i=0;i<n;i++){const x=(i/(n-1))*2-1;c[i]=Math.tanh(k*x)/t;}return c;}   // drive 0 = identity :: the old 1+d*7 distorted the whole mix even at zero
+function finCeilCurve(){const n=4096,c=new Float32Array(n),kn=0.82,ce=1.0,rg=ce-kn;for(let i=0;i<n;i++){const x=(i/(n-1))*2-1,ax=Math.abs(x);c[i]=ax<=kn?x:Math.sign(x)*(kn+rg*Math.tanh((ax-kn)/rg));}return c;}   // new ceiling: dead linear to 0.82, soft knee above :: a limiter, not a distortion
+// measured on the reference beat (peak 0.85): makeup so the pre-ceiling peak sits at 0.88 · old makeups pushed up to 1.62 into the tanh
+const FIN_MAKEUP_NEW={glue:0.88,punch:0.88,loud:1.178,air:0.88,warm:0.88,wide:0.88,wdist:0.88,boombox:0.898,lofi:0.88};
+const FIN_BOOST={glue:2.18,punch:1.51,loud:1.64,air:2.32,warm:1.39,wide:2.14,wdist:1.25,boombox:1.18,lofi:1.63};   // clean post-ceiling gain :: restores the loudness the tanh used to fake, master limiter catches the peaks
 function buildFinalizer(){
   if(fin||!ac)return;
   const finIn=ac.createGain();
@@ -1906,7 +1910,7 @@ function buildFinalizer(){
   const makeup=ac.createGain(),limiter=ac.createWaveShaper(),finOut=ac.createGain();
   midG.gain.value=0.5;sideG.gain.value=0.5;rInv.gain.value=-1;sideW.gain.value=1;sideNeg.gain.value=-1;sideDelay.delayTime.value=0;
   drive.curve=finDriveCurve(0);
-  {const n=1024,c=new Float32Array(n),t=Math.tanh(1.3);for(let i=0;i<n;i++){const x=(i/(n-1))*2-1;c[i]=Math.tanh(1.3*x)/t;}limiter.curve=c;}   // soft-clip ceiling
+  limiter.curve=finCeilCurve();limiter.oversample="4x";
   finIn.connect(hp);hp.connect(ls);ls.connect(lm);lm.connect(pr);pr.connect(hs);hs.connect(lp);lp.connect(comp);comp.connect(drive);drive.connect(split);
   split.connect(midG,0);split.connect(midG,1);
   split.connect(sideG,0);split.connect(rInv,1);rInv.connect(sideG);
@@ -1917,19 +1921,30 @@ function buildFinalizer(){
   fin={finIn,hp,ls,lm,pr,hs,lp,comp,drive,sideDelay,sideW,makeup,limiter,finOut};
   applyFinalizer();
 }
+let _finSwapT=null;
+function finSwap(fn){ if(!fin||!ac){fn();return;}
+  const g=fin.finIn.gain,t=ac.currentTime;
+  g.cancelScheduledValues(t); g.setValueAtTime(g.value,t); g.linearRampToValueAtTime(0,t+0.025);
+  if(_finSwapT)clearTimeout(_finSwapT);
+  _finSwapT=setTimeout(()=>{ _finSwapT=null; fn();
+    const t2=ac.currentTime; g.cancelScheduledValues(t2); g.setValueAtTime(0,t2); g.linearRampToValueAtTime(1,t2+0.025); },30); }
 function applyFinalizer(){
   if(!fin)return;const p=FINPRESETS[state.fin.preset];
   if(!p){ fin.hp.frequency.value=20;fin.ls.gain.value=0;fin.lm.gain.value=0;fin.pr.gain.value=0;fin.hs.gain.value=0;fin.lp.frequency.value=20000;
     fin.comp.threshold.value=0;fin.comp.ratio.value=1;fin.comp.knee.value=0;fin.comp.attack.value=0.003;fin.comp.release.value=0.25;
-    fin.drive.curve=finDriveCurve(0);fin.sideDelay.delayTime.value=0;fin.sideW.gain.value=1;fin.makeup.gain.value=1;return; }
+    fin.drive.curve=finDriveCurve(0);fin.sideDelay.delayTime.value=0;fin.sideW.gain.value=1;fin.makeup.gain.value=1;fin.finOut.gain.value=1;fin.limiter.curve=finCeilCurve();fin.limiter.oversample="4x";return; }
   const a=(state.fin.amount!=null?state.fin.amount:1);                       // amount morphs the whole chain: one signal path, zero phase issues
   fin.ls.frequency.value=p.lsF||95; fin.lm.frequency.value=p.lmF||250; fin.pr.frequency.value=p.prF||3000; fin.hs.frequency.value=p.hsF||9000;
   fin.hp.frequency.value=20*Math.pow(p.hp/20,a); fin.lp.frequency.value=20000*Math.pow(p.lp/20000,a);
   fin.ls.gain.value=p.ls*a; fin.lm.gain.value=p.lm*a; fin.pr.gain.value=p.pr*a; fin.hs.gain.value=p.hs*a;
   fin.comp.threshold.value=p.thr*a; fin.comp.ratio.value=1+(p.ratio-1)*a; fin.comp.knee.value=p.knee;
   fin.comp.attack.value=p.attack; fin.comp.release.value=p.release;
-  fin.drive.curve=finDriveCurve(p.drive*a); fin.sideDelay.delayTime.value=(p.haas||0)*a; fin.sideW.gain.value=1+(p.width-1)*a;
-  fin.makeup.gain.value=1+(p.makeup-1)*a;
+  fin.limiter.curve=finCeilCurve(); fin.limiter.oversample="4x";
+  fin.drive.curve=finDriveCurve(p.drive*a);
+  fin.sideDelay.delayTime.value=(p.haas||0)*a; fin.sideW.gain.value=1+(p.width-1)*a;
+  const mk=(FIN_MAKEUP_NEW[state.fin.preset]!=null?FIN_MAKEUP_NEW[state.fin.preset]:p.makeup);
+  fin.makeup.gain.value=1+(mk-1)*a;
+  fin.finOut.gain.value=(FIN_BOOST[state.fin.preset]||1);
 }
 async function ensureAudio(){
   if(ac) return;
@@ -3476,6 +3491,36 @@ document.getElementById("swing").oninput=e=>{state.swing=+e.target.value;documen
 (function(){var r=document.getElementById("roll");if(r){r.oninput=function(){state.master.roll=+r.value;var sN=rollSub(state.master.roll);document.getElementById("rollval").textContent=sN>1?"1/"+(16*sN):"OFF";};r.onchange=function(){if(typeof commit==="function")commit();};}})();
 (function(){ const pb=document.getElementById("play"); if(!pb)return; const rb=document.createElement("button"); rb.id="autorec"; rb.className="cell-btn"; rb.textContent="REC"; rb.style.marginLeft="8px"; rb.title="AUTOMATION REC \u00b7 arm, then turn any knob while the loop plays to record its motion \u00b7 right-click a knob to clear its automation"; rb.onclick=()=>{ state.autoRec=!state.autoRec; rb.classList.toggle("on",state.autoRec); setStatus(state.autoRec?"AUTO REC armed \u00b7 turn a knob while playing":"AUTO REC off"); }; pb.parentNode.insertBefore(rb,pb.nextSibling); })();
 document.addEventListener("keydown",e=>{if(e.code==="Space"&&e.target.tagName!=="INPUT"){e.preventDefault();state.playing?stopSeq():startSeq();}});
+// ---- the quiet door :: STRG+Q ----
+(function(){
+  const CHECK=1749892828;
+  const fnv=(str)=>{let h=0x811c9dc5;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=(h*0x01000193)>>>0;}return h>>>0;};
+  let box=null;
+  const close=()=>{if(box){box.remove();box=null;}};
+  document.addEventListener("keydown",(e)=>{
+    if(e.key==="Escape"&&box){close();return;}
+    if(!(e.ctrlKey&&(e.key==="q"||e.key==="Q")))return;
+    e.preventDefault(); if(box)return;
+    box=document.createElement("div");
+    box.style.cssText="position:fixed;inset:0;background:rgba(8,7,12,.86);z-index:10050;display:flex;align-items:center;justify-content:center";
+    const p=document.createElement("div");
+    p.style.cssText="background:#12101a;border:1px solid var(--amber);border-radius:8px;padding:22px 28px;min-width:260px";
+    const t=document.createElement("div");t.textContent="// PASSWORD";t.style.cssText="font-size:11px;letter-spacing:.25em;color:var(--dimmer);margin-bottom:12px";
+    const inp=document.createElement("input");inp.type="password";inp.autocomplete="off";inp.spellcheck=false;
+    inp.style.cssText="width:100%;background:#0a0910;border:1px solid #2a2438;color:var(--amber);font:inherit;font-size:13px;letter-spacing:.2em;padding:7px 10px;outline:none";
+    const m=document.createElement("div");m.style.cssText="font-size:10px;color:var(--dimmer);margin-top:10px;min-height:12px";
+    inp.addEventListener("keydown",(ev)=>{ ev.stopPropagation();
+      if(ev.key==="Escape"){close();return;}
+      if(ev.key!=="Enter")return;
+      const v=inp.value;
+      if(fnv(v+"::gate")===CHECK){ close(); setStatus("// DOOR OPEN"); window.open("sumpler.html#k="+encodeURIComponent(v),"_blank"); }
+      else{ m.textContent="// no."; inp.value=""; }});
+    p.append(t,inp,m); box.appendChild(p); document.body.appendChild(box);
+    box.addEventListener("pointerdown",(ev)=>{if(ev.target===box)close();});
+    setTimeout(()=>inp.focus(),30);
+  });
+})();
+
 let clip=null;
 let stepClip=null;
 function copyStep(v,g){ const L=patLocks(curPat())[v], lk={}; for(const key in L){ if(L[key][g]!==undefined)lk[key]=L[key][g]; } stepClip={val:curPat().steps[v][g], sub:curPat().sub[v][g], locks:lk}; const nl=Object.keys(lk).length; setStatus("STEP copied"+(nl?" \u00b7 "+nl+" lock"+(nl>1?"s":""):"")); }
@@ -4274,7 +4319,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=526","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=530","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
@@ -4661,7 +4706,7 @@ skinApply();
 bgInit();document.getElementById("bgBtn").onclick=()=>bgCycle();document.getElementById("colBtn").onclick=()=>colCycle();
 (function(){var mv=document.getElementById("mvol");if(mv){mv.value=(state.master.vol!=null?state.master.vol:1);mv.oninput=function(){state.master.vol=parseFloat(mv.value);if(masterOut)masterOut.gain.value=state.master.vol;};mv.onchange=function(){if(typeof commit==="function")commit();};}})();
 (function(){var lb=document.getElementById("limitBtn");if(lb){var setL=function(){lb.classList.toggle("on",state.master.limit!==false);};setL();lb.onclick=function(){state.master.limit=(state.master.limit===false);setL();if(typeof wireMaster==="function")wireMaster();if(typeof commit==="function")commit();if(typeof setStatus==="function")setStatus("LIMITER // "+(state.master.limit!==false?"ON":"OFF"));};}})();
-function buildFinbar(){const bar=document.getElementById("finbar");if(!bar)return;bar.innerHTML="";const items=[["off","OFF"],["glue","GLUE"],["punch","PUNCH"],["loud","LOUD"],["air","AIR"],["warm","WARM"],["wide","WIDE"],["wdist","W.DIST"],["boombox","BOOMBOX"],["lofi","LOFI"]];items.forEach(function(it){const b=document.createElement("button");b.textContent=it[1];b.dataset.fin=it[0];if(state.fin.preset===it[0])b.classList.add("on");b.title=(window.TIP_FIN&&TIP_FIN[it[0]])||"";b.onclick=function(){state.fin.preset=it[0];var kids=bar.children;for(var i=0;i<kids.length;i++){if(kids[i].dataset&&kids[i].dataset.fin!==undefined)kids[i].classList.toggle("on",kids[i].dataset.fin===it[0]);}if(fin)applyFinalizer();wireMaster();if(typeof commit==="function")commit();};bar.appendChild(b);});
+function buildFinbar(){const bar=document.getElementById("finbar");if(!bar)return;bar.innerHTML="";const items=[["off","OFF"],["glue","GLUE"],["punch","PUNCH"],["loud","LOUD"],["air","AIR"],["warm","WARM"],["wide","WIDE"],["wdist","W.DIST"],["boombox","BOOMBOX"],["lofi","LOFI"]];items.forEach(function(it){const b=document.createElement("button");b.textContent=it[1];b.dataset.fin=it[0];if(state.fin.preset===it[0])b.classList.add("on");b.title=(window.TIP_FIN&&TIP_FIN[it[0]])||"";b.onclick=function(){state.fin.preset=it[0];var kids=bar.children;for(var i=0;i<kids.length;i++){if(kids[i].dataset&&kids[i].dataset.fin!==undefined)kids[i].classList.toggle("on",kids[i].dataset.fin===it[0]);}finSwap(function(){if(fin)applyFinalizer();wireMaster();});if(typeof commit==="function")commit();};bar.appendChild(b);});
   const wrap=document.createElement("span");wrap.className="finmix";
   const lab=document.createElement("span");lab.className="finmixlab";lab.textContent="AMOUNT";
   const sl=document.createElement("input");sl.type="range";sl.min="0";sl.max="1";sl.step="0.01";sl.value=String(state.fin.amount!=null?state.fin.amount:1);sl.className="mvol";sl.title="finalizer amount: morphs the whole chain, phase-clean";
