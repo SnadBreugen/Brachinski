@@ -646,7 +646,7 @@ html.live-on body>*:not(#liveScreen):not(#soundPicker):not(#slotmenu):not(#fxWin
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 530</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 531</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -1605,7 +1605,7 @@ registerProcessor("freeverb", Freeverb);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="530";
+const REV="531";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -3513,7 +3513,12 @@ document.addEventListener("keydown",e=>{if(e.code==="Space"&&e.target.tagName!==
       if(ev.key==="Escape"){close();return;}
       if(ev.key!=="Enter")return;
       const v=inp.value;
-      if(fnv(v+"::gate")===CHECK){ close(); setStatus("// DOOR OPEN"); window.open("sumpler.html#k="+encodeURIComponent(v),"_blank"); }
+      if(fnv(v+"::gate")===CHECK){ close(); setStatus("// DOOR OPEN");
+        const w=Math.min(820,screen.availWidth-40), h=Math.min(1000,screen.availHeight-60);
+        const win=window.open("sumpler.html#k="+encodeURIComponent(v),"sumpler",
+          "width="+w+",height="+h+",menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes");
+        if(!win)setStatus("// POPUP BLOCKED \u00b7 allow popups for this page");   // own window, not a tab :: sits next to the machine
+        else win.focus(); }
       else{ m.textContent="// no."; inp.value=""; }});
     p.append(t,inp,m); box.appendChild(p); document.body.appendChild(box);
     box.addEventListener("pointerdown",(ev)=>{if(ev.target===box)close();});
@@ -4319,7 +4324,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=530","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=531","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
