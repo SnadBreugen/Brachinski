@@ -123,6 +123,7 @@ body{font-family:var(--mono);color:var(--ink);display:flex;justify-content:cente
 .st.ply{box-shadow:inset 0 0 0 2px #f0ecd2}
 #pick{position:fixed;background:var(--lcd-bg);border:2px solid #1c1408;border-radius:4px;color:var(--lcd);z-index:60;max-height:280px;overflow-y:auto;padding:4px;box-shadow:0 8px 30px rgba(0,0,0,.7)}
 #pick div{padding:4px 12px;font-size:11px;letter-spacing:.1em;cursor:pointer;white-space:nowrap}
+#pick div.up{border-top:1px solid #3a2c10;margin-top:4px;padding-top:6px;color:#ff9d3a}
 #pick div:hover{background:var(--lcd);color:var(--lcd-bg)}
 .foot{margin-top:16px;border-top:1px solid var(--plastic-edge);padding-top:8px;display:flex;justify-content:space-between;font-size:9px;letter-spacing:.18em;color:#c8c4a2;opacity:.7}
 </style>
@@ -187,7 +188,7 @@ function unlock(pw){
   for(const L of head.lens){const f=new Float32Array(L);
     for(let i=0;i<L;i++)f[i]=udec(raw[off+i]);
     off+=L;bufs.push(f);}
-  BANK={sr:head.sr,names:head.names,bufs};
+  BANK={sr:head.sr,names:head.names,bufs,srs:bufs.map(()=>head.sr)};
   return true;
 }
 const gate=document.getElementById("gate"),pwEl=document.getElementById("pw"),gmsg=document.getElementById("gmsg");
@@ -293,12 +294,13 @@ class SumplerVoice extends AudioWorkletProcessor{
     this.e7=0;this.e8=0;this.e9=0;this.e10=0;this.f7=0;this.f8=0;this.f9=0;this.f10=0;
     this.g7=0;this.g8=0;this.g9=0;this.g10=0;this.h7=0;this.h8=0;this.h9=0;this.h10=0;
     this.port.onmessage=(e)=>{const m=e.data;
-      if(m.type==="bank"){this.bufs=m.bufs;this.bsr=m.sr;}
+      if(m.type==="bank"){this.bufs=m.bufs;this.bsr=m.sr;this.srs=m.srs||[];}
+      else if(m.type==="addbuf"){this.bufs[m.idx]=m.data;this.srs=this.srs||[];this.srs[m.idx]=m.sr;}
       else if(m.type==="trig"){this.pending.push(m);}
       else if(m.type==="param"){const v=this.voices[m.voice];if(v)v.set(m.key,m.val);}
       else if(m.type==="stop"){this.pending.length=0;this.voices.forEach(v=>v.active=false);}};}
   fire(m){const v=this.voices[m.voice];if(!v||!this.bufs[m.idx])return;
-    v.setSample(this.bufs[m.idx],this.bsr);
+    v.setSample(this.bufs[m.idx],(this.srs&&this.srs[m.idx])||this.bsr);
     for(const k in m.p){if(v._t&&v._t[k]!==undefined)v._t[k]=m.p[k];v[k]=m.p[k];}
     v.trigger(m.vel!=null?m.vel:1);}
   zos(x,side){
@@ -357,7 +359,7 @@ async function ensureAudio(){
     node={port:{postMessage:(m)=>inst.port.onmessage&&inst.port.onmessage({data:m})}};
     document.getElementById("lcdR").textContent="22.05 KHZ \u00b7 8 BIT \u00b7 COMPAT";
   }
-  node.port.postMessage({type:"bank",bufs:BANK.bufs,sr:BANK.sr});
+  node.port.postMessage({type:"bank",bufs:BANK.bufs,sr:BANK.sr,srs:BANK.srs});
 }
 
 /* ---- ui ---- */
@@ -481,12 +483,40 @@ function buildSeq(){
     host.appendChild(row);
   }
 }
+function loadOwn(t,tn){
+  const inp=document.createElement("input");inp.type="file";inp.accept="audio/*";
+  inp.addEventListener("change",async()=>{ const f=inp.files&&inp.files[0]; if(!f)return;
+    try{ await ensureAudio(); }catch(e){ _setLcd("// AUDIO ENGINE needed for decode"); return; }
+    _setLcd("// DECODING \u00b7 "+f.name.slice(0,20).toUpperCase());
+    try{
+      const ab=await f.arrayBuffer();
+      const buf=await ac.decodeAudioData(ab);
+      let data=buf.getChannelData(0);
+      if(buf.numberOfChannels>1){ const r=buf.getChannelData(1),mix=new Float32Array(data.length);
+        for(let i=0;i<data.length;i++)mix[i]=(data[i]+r[i])*0.5; data=mix; }               // mono, wie die Werksbank
+      const cap=Math.min(data.length,Math.round(buf.sampleRate*12));                        // 12s reichen fuer einen Schlag
+      const cut=new Float32Array(data.subarray(0,cap));
+      const idx=BANK.bufs.length;
+      BANK.bufs.push(cut); BANK.srs.push(buf.sampleRate);
+      BANK.names.push(f.name.replace(/\.[^.]+$/,"").slice(0,14));
+      const copy=new Float32Array(cut);
+      node.port.postMessage({type:"addbuf",idx,sr:buf.sampleRate,data:copy},[copy.buffer]);
+      seqRows[t]=idx; tn.textContent=shortName(idx);
+      _setLcd("// LOADED \u00b7 "+BANK.names[idx].toUpperCase());
+      hit(idx,t); buildKnobs();
+    }catch(e){ _setLcd("// CANNOT DECODE \u00b7 try wav or mp3"); }
+  });
+  inp.click();
+}
 function openPick(x,y,t,tn){
   closePick();
   const m=document.createElement("div");m.id="pick";
   BANK.names.forEach((n,i)=>{const d=document.createElement("div");d.textContent=shortName(i);
     d.addEventListener("pointerdown",(e)=>{e.stopPropagation();seqRows[t]=i;tn.textContent=shortName(i);closePick();hit(i,t);buildKnobs();});
     m.appendChild(d);});
+  {const u=document.createElement("div");u.className="up";u.textContent="+ UPLOAD OWN";
+   u.addEventListener("pointerdown",(e)=>{e.stopPropagation();closePick();loadOwn(t,tn);});
+   m.appendChild(u);}
   document.body.appendChild(m);
   m.style.left=Math.min(x,innerWidth-160)+"px";m.style.top=Math.min(y,innerHeight-290)+"px";
   setTimeout(()=>document.addEventListener("pointerdown",function o(e){if(!m.contains(e.target)){closePick();document.removeEventListener("pointerdown",o,true);}},true),0);
@@ -534,7 +564,7 @@ function renderAsHeard(t){
   const mk=new Function("sampleRate","AudioWorkletProcessor","registerProcessor","__c",shim+";__c.SV=SampleVoice;");
   mk(44100,class{constructor(){this.port={postMessage(){},onmessage:null};}},()=>{},capt);
   const v=new capt.SV();
-  v.setSample(BANK.bufs[seqRows[t]],BANK.sr);
+  v.setSample(BANK.bufs[seqRows[t]],BANK.srs[seqRows[t]]||BANK.sr);
   for(const k in P[t]){ if(v._t&&v._t[k]!==undefined)v._t[k]=P[t][k]; v[k]=P[t][k]; }
   v.trigger(1);
   const out=[];const cap=44100*12;
@@ -555,7 +585,7 @@ async function openExport(asHeard){
     d2.addEventListener("pointerdown",async(e)=>{ e.stopPropagation(); closePick();
       const t=selTrk, idx=seqRows[t];
       let data,sr;
-      if(asHeard){ data=renderAsHeard(t); sr=44100; } else { data=BANK.bufs[idx]; sr=BANK.sr; }
+      if(asHeard){ data=renderAsHeard(t); sr=44100; } else { data=BANK.bufs[idx]; sr=BANK.srs[idx]||BANK.sr; }
       if(!data||data.length<8){ _setLcd("// EXPORT FAILED \u00b7 nothing rendered"); return; }
       const copy=new Float32Array(data);
       await new Promise((res)=>{ const tx=db.transaction("slots","readwrite"), st=tx.objectStore("slots");
