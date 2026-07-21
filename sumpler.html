@@ -163,7 +163,7 @@ body{font-family:var(--mono);color:var(--ink);display:flex;justify-content:cente
     <div id="seq"></div>
   </div>
   <div id="knobs"></div>
-  <div class="foot"><span>// TAP = ON · TAP = ACCENT · TAP = OFF · KEYS 1-8 · SPACE = PLAY · HOVER ANYTHING, THE MACHINE TALKS BACK</span><span>REV 9</span></div>
+  <div class="foot"><span>// TAP = ON · TAP = ACCENT · TAP = OFF · KEYS 1-8 · SPACE = PLAY · HOVER ANYTHING, THE MACHINE TALKS BACK</span><span>REV 13</span></div>
 </div>
 
 <script>
@@ -193,14 +193,20 @@ function unlock(pw){
 }
 const gate=document.getElementById("gate"),pwEl=document.getElementById("pw"),gmsg=document.getElementById("gmsg");
 function tryPw(){const v=pwEl.value;
-  if(unlock(v)){gate.style.display="none";document.getElementById("dev").style.display="block";boot();}
-  else{gmsg.textContent="// wrong. this unit knows its owner";pwEl.value="";}}
+  try{ if(openUp(v))return; }catch(e){ return; }
+  gmsg.textContent="// wrong. this unit knows its owner";pwEl.value="";}
 pwEl.addEventListener("keydown",e=>{if(e.key==="Enter")tryPw();});
-// key can also arrive via #k= from the mothership
-(function(){const m=location.hash.match(/k=([^&]*)/);
-  if(m){const v=decodeURIComponent(m[1]);history.replaceState(null,"",location.pathname);
-    if(unlock(v)){gate.style.display="none";document.getElementById("dev").style.display="block";boot();}}
-  else setTimeout(()=>pwEl.focus(),50);})();
+// key can also arrive via #k= from the mothership.
+// must wait for the document: the bank block sits at the very end of the file and is not parsed yet at this point.
+function openUp(v){ if(!unlock(v))return false;
+  gate.style.display="none";document.getElementById("dev").style.display="block";
+  try{ boot(); }catch(err){ lcdL.textContent="// BOOT FAILED \u00b7 "+String(err&&err.message||err).slice(0,40); throw err; }
+  return true; }
+function tryHash(){ const m=location.hash.match(/k=([^&]*)/);
+  if(m){ const v=decodeURIComponent(m[1]); history.replaceState(null,"",location.pathname);
+    if(openUp(v))return; }
+  setTimeout(()=>pwEl.focus(),50); }
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",tryHash); else tryHash();
 
 /* ---- engine ---- */
 let ac=null,node=null;
@@ -384,9 +390,10 @@ let P=[],selTrk=0;
 const lcdL=document.getElementById("lcdL");
 function boot(){
   P=Array.from({length:TRK+1},()=>Object.fromEntries(DEFS.map(df=>[df.key,df.def])));   // 8 Spuren + Vorhoer
-  buildKnobs();
-  buildSeq();
-  paintSel();
+  const step=(name,fn)=>{ try{ fn(); }catch(e){ lcdL.textContent="// "+name+" FAILED \u00b7 "+String(e&&e.message||e).slice(0,34); throw e; } };
+  step("SEQ",buildSeq);        // Spuren zuerst: die Regler zeigen auf eine Spur
+  step("KNOBS",buildKnobs);
+  step("PAINT",paintSel);
 }
 async function hit(i,track){
   buildKnobs();
