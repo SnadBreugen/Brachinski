@@ -1161,7 +1161,7 @@ class Rimshot909Voice {   // Sumad's 909 rimshot :: 4 bandpass resonators (share
     this.level=p.level!=null?p.level:0.9; this.pan=p.pan||0;
     this._R=[{f:470,a:1.0,d:30},{f:700,a:0.75,d:24},{f:1050,a:0.45,d:18},{f:1600,a:0.20,d:12}];
     this.bp=this._R.map(()=>new Biquad()); this.hpf=new Biquad(); this.cbp=new Biquad();
-    this.active=false; this.makeup=3.8;
+    this.active=false; this.makeup=6.5;
   }
   set(k,v){ if(k in this)this[k]=v; }
   trigger(vel){ this.active=true; this.vel=vel||1; this.t=0;
@@ -1192,7 +1192,7 @@ class RimFMVoice {   // 909 rimshot :: three damped-sine T-bridge resonators (49
     this.tune=p.tune!=null?p.tune:0.98; this.decay=p.decay!=null?p.decay:0.412; this.tone=p.tone!=null?p.tone:1;
     this.fmAmt=p.fmAmt!=null?p.fmAmt:0.2; this.fmRatio=p.fmRatio!=null?p.fmRatio:1.5;
     this.noise=p.noise!=null?p.noise:0.07; this.drive=p.drive!=null?p.drive:0.4; this.level=p.level!=null?p.level:0.9; this.pan=p.pan||0;
-    this._O=[{f:495,a:0.9,d:20},{f:219,a:0.6,d:25},{f:1053,a:1.0,d:5}]; this.active=false; this.makeup=1.3;
+    this._O=[{f:495,a:0.9,d:20},{f:219,a:0.6,d:25},{f:1053,a:1.0,d:5}]; this.active=false; this.makeup=2.2;
   }
   set(k,v){ if(k in this)this[k]=v; }
   trigger(vel){ this.active=true; this.vel=vel||1; this.t=0;
@@ -1333,7 +1333,7 @@ class BrachinisteEngine extends AudioWorkletProcessor {
     if(po){
       if(typeof po.kit==="number") this.kit=Math.max(0,Math.min(7,po.kit));   // was clamped to 4 :: DRUM LAB (5) and VOID (6) silently exported as RESONANT
       if(typeof po.sumDist==="number") this.dist=po.sumDist;
-      if(Array.isArray(po.voidMap)){ const B=[makeKit1,makeKit2,makeKit3,makeKit4,makeKitPerc,makeKitLab];
+      if(Array.isArray(po.voidMap)){ const B=[makeKit1,makeKit2,makeKit3,makeKit4,makeKitPerc,makeKitLab,null,makeKitRim];
         for(const a of po.voidMap){ if(a&&B[a.srcKit]&&a.srcVoice!=null) this.kits[6][a.slot|0]=B[a.srcKit]()[a.srcVoice|0]; } }   // VOID :: rebuild assigned slots for offline export
       if(typeof po.renderVoice==="number"){
         const v=this.voices()[po.renderVoice];
@@ -1362,7 +1362,7 @@ class BrachinisteEngine extends AudioWorkletProcessor {
     else if(m.type==="sum"){ if(m.key==="dist")this.dist=m.value; }
     else if(m.type==="kit"){ this.kit=Math.max(0,Math.min(7,m.index|0)); for(const v of this.voices())v.active=false; this.queue.length=0; }
     else if(m.type==="voidSlots"){ const n=Math.max(1,Math.min(15,m.n|0)); const a=this.kits[6]; while(a.length<n)a.push(new VoidVoice()); if(a.length>n)a.length=n; }   // VOID :: grow/shrink the slot count at runtime
-    else if(m.type==="assign"){ const B=[makeKit1,makeKit2,makeKit3,makeKit4,makeKitPerc,makeKitLab]; const sk=m.srcKit|0, sl=m.slot|0; if(B[sk]&&m.srcVoice!=null&&sl>=0&&sl<this.kits[6].length){ this.kits[6][sl]=B[sk]()[m.srcVoice|0]; } }   // VOID :: rebuild the picked source voice into the slot (any class, correct preset)
+    else if(m.type==="assign"){ const B=[makeKit1,makeKit2,makeKit3,makeKit4,makeKitPerc,makeKitLab,null,makeKitRim]; const sk=m.srcKit|0, sl=m.slot|0; if(B[sk]&&m.srcVoice!=null&&sl>=0&&sl<this.kits[6].length){ this.kits[6][sl]=B[sk]()[m.srcVoice|0]; } }   // VOID :: rebuild the picked source voice into the slot (any class, correct preset)
     else if(m.type==="sample"){ const v=this.kits[3][m.voice|0]; if(v)v.setSample(m.data,m.sr); }
     else if(m.type==="bus"){ this.bus[m.voice|0]=Math.max(0,Math.min(7,m.value|0)); }   // 0 master, 1 dry, 3..7 group buses
     else if(m.type==="reset"){ for(const v of this.voices())v.active=false; this.queue.length=0; }
@@ -1982,7 +1982,10 @@ function groupBank(gid){ const i=voidGroups().findIndex(g=>g.id===gid); return i
 function selGroupId(){ if(state.kit!==6)return null; const vo=state.kits[6][state.selected]; return (vo&&vo.group&&groupById(vo.group))?vo.group:null; }
 function bankBase(){ if(state.kit===5)return PATTERNS*6; if(state.kit===7)return PATTERNS*7; const g=selGroupId(); return g?groupBank(g):0; }   // Labs :: isolated banks, Sumad playground never touches the rest
 function patIdx(){ return state.curPattern%PATTERNS; }
-function syncPatternBank(){ const b=bankBase(); const want=b+((state.kit===6&&selGroupId())?groupEditOf(selGroupId()):patIdx());
+function syncPatternBank(){ const b=bankBase();
+  const inBank=state.curPattern-b;                                        // already inside the right bank? then keep the pattern you picked
+  if(inBank>=0&&inBank<PATTERNS&&state.patterns[state.curPattern])return;  // no jump while editing live
+  const want=b+((state.kit===6&&selGroupId())?groupEditOf(selGroupId()):patIdx());
   if(want!==state.curPattern&&state.patterns[want]){ state.curPattern=want; state.page=0; } }
 function curPat(){return state.patterns[state.curPattern]||state.patterns[0];}
 function patOfVoice(vi){ if(state.kit===6){ const vo=state.kits[6][vi];
@@ -2768,7 +2771,7 @@ function copyPatternToVoid(){
     if(b&&sv.steps){ b.steps[j]=sv.steps; b.sub[j]=sv.sub||new Array(MAX_STEPS).fill(1); b.locks[j]=sv.locks||{}; }   // STRAIGHT into its own bank
   }
   if(g){ const gm=groupModules(g.id);
-    (state.master.modules||[]).forEach(mm=>{ if(!mm||mm.kind==="empty"||mm.kind==="dist")return;
+    (state.master.modules||[]).forEach(mm=>{ if(!mm||mm.kind==="empty"||mm.kind==="dist"||mm.bypass)return;   // dist stays on the master sum; bypassed modules are not carried either
       const clone=JSON.parse(JSON.stringify(mm,(k,v)=>k==="_nodes"?undefined:v)); delete clone._nodes; gm.push(clone); }); }
   if(g){ state.selSlots=new Set(); state.selected=0; }
   switchKit(6,true);
@@ -3855,7 +3858,23 @@ function kitSharePayload(){
     pats.push(used?{b:p.bars,l:p.length,s:rows,u:subs,a:hasAuto?p.auto:0}:0);
   }
   const mods=(state.master.modules||[]).map(m=>{ const c=JSON.parse(JSON.stringify(m,(k,v)=>k==="_nodes"?undefined:v)); delete c._nodes; return c; });
-  return { k:kit, v:vals, p:pats, m:mods, bpm:state.bpm, sw:state.swing };
+  const out={ k:kit, v:vals, p:pats, m:mods, bpm:state.bpm, sw:state.swing };
+  if(kit===6){   // VOID :: slots are references, so carry where each sound came from + the groups
+    out.slots=state.kits[6].map(vo=>vo&&vo.srcKit!=null?{sk:vo.srcKit,sv:vo.srcVoice,g:vo.group||0}:0);
+    out.groups=voidGroups().map(g=>({id:g.id,name:g.name,color:g.color}));
+    out.gmods={}; out.gfx={};
+    voidGroups().forEach(g=>{
+      out.gmods[g.id]=(groupModules(g.id)||[]).map(m=>{ const c=JSON.parse(JSON.stringify(m,(k,v)=>k==="_nodes"?undefined:v)); delete c._nodes; return c; });
+      out.gfx[g.id]=Object.assign({},groupFXParams(g.id));
+    });
+    out.gpats={};   // each group owns its own bank of patterns
+    voidGroups().forEach(g=>{ const b=groupBank(g.id); const arr=[];
+      for(let i=0;i<PATTERNS;i++){ const p=state.patterns[b+i]; if(!p){arr.push(0);continue;}
+        const rows=p.steps.map(r=>r.join(""));
+        arr.push(rows.some(r=>/[12]/.test(r))?{b:p.bars,l:p.length,s:rows,u:(p.sub||[]).map(r=>r.join(","))}:0); }
+      out.gpats[g.id]=arr; });
+  }
+  return out;
 }
 
 async function shareKitLink(){
@@ -3879,8 +3898,28 @@ function applySharedKit(d){
   if(!d||d.k==null){ setStatus("not a BRACHINSKI kit file"); return false; }
   if(d.k===3){ setStatus("SAMPLES kit cannot be loaded this way"); return false; }
   switchKit(d.k,true);
+  if(d.k===6&&Array.isArray(d.slots)){   // VOID :: rebuild the slots from their source voices first
+    const need=Math.min(VOID_MAX||15,d.slots.length);
+    const va=state.kits[6];
+    while(va.length<need){ va.push(va[0]?Object.create(Object.getPrototypeOf(va[0])):{}); const nv=va[va.length-1]; nv.name="SLOT "+va.length; nv.defs=[]; nv.vals={}; nv.fxMode="drive"; nv.mute=false; }
+    if(engineNode)engineNode.port.postMessage({type:"voidSlots",n:va.length});
+    const gs=voidGroups(); gs.length=0;
+    (d.groups||[]).forEach(g=>gs.push({id:g.id,name:g.name,color:g.color}));
+    state.groupPat=state.groupPat||{}; state.groupEdit=state.groupEdit||{};
+    (d.groups||[]).forEach(g=>{ state.groupPat[g.id]=0; state.groupEdit[g.id]=0; });
+    d.slots.forEach((sl,i)=>{ if(!sl||sl.sk==null)return; assignVoidSlot(i,sl.sk,sl.sv|0); const vo=state.kits[6][i]; if(vo&&sl.g)vo.group=sl.g; });
+    if(d.gmods){ state.groupModules=state.groupModules||{}; for(const gid in d.gmods)state.groupModules[gid]=d.gmods[gid]; }
+    if(d.gfx){ state.groupFX=state.groupFX||{}; for(const gid in d.gfx)state.groupFX[gid]=Object.assign({},d.gfx[gid]); }
+    if(d.gpats){ for(const gid in d.gpats){ const b=groupBank(gid); (d.gpats[gid]||[]).forEach((pp,i)=>{ const tgt=state.patterns[b+i]; if(!tgt)return;
+      if(!pp){ tgt.steps.forEach(r=>r.fill(0)); return; }
+      tgt.bars=pp.b||1; tgt.length=pp.l||STEPS_PER_BAR;
+      (pp.s||[]).forEach((row,vi)=>{ if(!tgt.steps[vi])return; for(let sI=0;sI<tgt.steps[vi].length;sI++)tgt.steps[vi][sI]=+(row[sI]||0); });
+      if(pp.u&&tgt.sub)pp.u.forEach((row,vi)=>{ if(!tgt.sub[vi])return; const pr=String(row).split(","); for(let sI=0;sI<tgt.sub[vi].length;sI++)tgt.sub[vi][sI]=+(pr[sI]||1); });
+    }); } }
+    if(typeof refreshGroupRouting==="function")refreshGroupRouting();
+  }
   if(Array.isArray(d.v))d.v.forEach((vv,i)=>{ const vo=state.voices[i]; if(!vo||!vv)return; Object.assign(vo.vals,vv); const ev=effVals(vo); for(const k in ev)sendParam(i,k,ev[k]); });
-  const base=bankBase();
+  const base=(d.k===6)?0:bankBase();   // in VOID the plain patterns belong to bank 0 (ungrouped slots); group banks were written above
   if(Array.isArray(d.p))d.p.forEach((pp,i)=>{ const tgt=state.patterns[base+i]; if(!tgt)return;
     if(!pp){ tgt.steps.forEach(r=>r.fill(0)); return; }
     tgt.bars=pp.b||1; tgt.length=pp.l||STEPS_PER_BAR;
