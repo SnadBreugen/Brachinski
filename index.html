@@ -98,14 +98,16 @@ body{
 
 .statuswrap{margin-left:auto;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
 .status{
-  min-width:340px;
+  min-width:340px;max-width:340px;                     /* fixed :: long messages must never resize the display */
   background:#0a0612;border:1px solid #07040d;border-radius:5px;
   padding:7px 12px;
   box-shadow:inset 0 2px 8px rgba(0,0,0,.8),0 1px 0 rgba(255,255,255,.08);
   font-family:var(--pixel);font-size:21px;letter-spacing:1px;color:var(--amber);
   text-shadow:0 0 8px var(--amber-glow);
   display:flex;align-items:center;gap:10px;
+  overflow:hidden;white-space:nowrap;
 }
+#statustxt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
 .status .dot{width:8px;height:8px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px var(--amber-glow)}
 .status.run .dot{background:var(--signal);box-shadow:0 0 8px var(--signal);animation:blink 1s steps(1) infinite}
 @keyframes blink{50%{opacity:.3}}
@@ -651,7 +653,7 @@ html.live-on body>*:not(#liveScreen):not(#soundPicker):not(#slotmenu):not(#fxWin
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 599</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 600</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -1717,7 +1719,7 @@ registerProcessor("freeverb", Freeverb);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="599";
+const REV="600";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -3894,7 +3896,7 @@ async function shareKitLink(){
     a.href=url; a.download="BRACHINSKI_"+KITS[state.kit].name.replace(/[^A-Za-z0-9]/g,"")+"_"+stamp+".brk";
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=>URL.revokeObjectURL(url),2000);
-    setStatus("KIT saved \u00b7 "+a.download+" \u00b7 drop the file back in to load it");
+    setStatus("KIT SAVED \u00b7 "+KITS[state.kit].name);
   }catch(e){ setStatus("share failed :: "+e.message); }
 }
 
@@ -3956,7 +3958,7 @@ function _applySharedKit(d){
     }catch(e){}
   }
   buildSeq(); buildEditor(); refreshStrip(); commit();
-  setStatus("KIT loaded \u00b7 "+(d._n||KITS[state.kit].name));
+  setStatus("KIT LOADED \u00b7 "+(d._n||KITS[state.kit].name));
   return true;
 }
 
@@ -4818,7 +4820,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=599","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=600","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
