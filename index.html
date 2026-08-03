@@ -587,7 +587,6 @@ html.live-on body>*:not(#liveScreen):not(#soundPicker):not(#slotmenu):not(#fxWin
       <button class="btn play" id="play">PLAY</button>
       <div class="field"><label>BPM</label><input class="slider" id="bpm" type="range" min="60" max="200" value="120"><span class="readout" id="bpmval">120</span></div>
       <div class="field"><label>SWING</label><input class="slider" id="swing" type="range" min="0" max="70" value="0"><span class="readout" id="swingval">0</span></div>
-      <div class="field"><label>ROLL</label><input class="slider" id="roll" type="range" min="0" max="1" step="0.01" value="0"><span class="readout" id="rollval">OFF</span></div>
     </div>
     <div class="kitrow" id="kitrow"></div>
     <div id="editor"></div>
@@ -730,8 +729,8 @@ class GenVoice {
     if(key==="noiseType"||key==="noiseColor"||key==="noiseQ"||(key==="tone"&&!this.warm))this._filt(); }
   trigger(vel){
     const p=this.p; const _wa=this.active; this.active=true; this.vel=vel; this.pan=p.pan;
-    if(!this.warm||!_wa)this.phase=0;   // subs: keep phase running on retrigger (no click into an ongoing tail); other GenVoices reset for consistent attack
-    if(!this.warm||!_wa){ this.oEnv=0; this.nEnv=0; }   // subs on retrigger: re-attack from the current level instead of dropping to 0 (that drop was the click)
+    if(!_wa){this.phase=0;this.fmPh=0;this.driftPh=0;}   // only reset phases on a fresh hit; on retrigger into an active tail keep them running (no click)
+    if(!_wa){ this.oEnv=0; this.nEnv=0; }   // only zero the envelopes on a fresh hit; retrigger re-attacks from the current level so the amplitude never drops to 0 = no click
     this.oAtk=true; this.nAtk=true;
     this.nf.reset(); this.tn.reset();
     const lf=p.life||0, R=()=>(Math.random()*2-1);                    // organic instability :: per-hit variation, never twice the same
@@ -806,7 +805,7 @@ const KIT1_PRESETS=[
   {clap:1, spread:0.010, col:0.45, decay:0.1, spray:0.35, gain:0.9, pan:0, level:0.7 }, // CLAP :: dedicated ClapVoice
   {pitch:400,penv:0,  pdec:0.01, wave:0,   oscDecay:0.02,oscLevel:0.05,noiseLevel:0.8, noiseType:"highpass",noiseColor:8200,noiseDecay:0.04,drive:0.12,tone:16000,level:0.62}, // CL HAT
   {pitch:400,penv:0,  pdec:0.01, wave:0,   oscDecay:0.02,oscLevel:0.05,noiseLevel:0.78,noiseType:"highpass",noiseColor:7600,noiseDecay:0.34,drive:0.12,tone:16000,level:0.58}, // OP HAT
-  {pitch:135,penv:1.3,pdec:0.06, wave:0.12,oscDecay:0.34,oscLevel:0.92,noiseLevel:0.05,noiseType:"highpass",noiseColor:2000,noiseDecay:0.05,drive:0.15,tone:8000, level:0.82}, // TOM 1
+  {pitch:135,penv:1.3,pdec:0.06, wave:0.12,oscDecay:0.34,oscLevel:0.92,noiseLevel:0.18,noiseType:"highpass",noiseColor:2000,noiseDecay:0.05,drive:0.15,tone:8000, level:0.82}, // TOM 1
   {pitch:96, penv:1.3,pdec:0.07, wave:0.12,oscDecay:0.42,oscLevel:0.92,noiseLevel:0.05,noiseType:"highpass",noiseColor:1700,noiseDecay:0.05,drive:0.15,tone:7000, level:0.82}, // TOM 2
   {pitch:820,penv:0.35,pdec:0.012,wave:0.4,oscDecay:0.06,oscLevel:0.85,noiseLevel:0.12,noiseType:"bandpass",noiseColor:2400,noiseQ:2,noiseDecay:0.03,drive:0.3, tone:13000,level:0.72}  // WOOD
 ];
@@ -1155,7 +1154,71 @@ class ChowKickVoice {   // Sumad\u0027s membrane model :: sine + pitch env -> ta
     if(t>0.01&&this.env<0.0008){ this.active=false; }
     return out*this.vel; }
 }
+class Rimshot909Voice {   // Sumad's 909 rimshot :: 4 bandpass resonators (shared noise burst) + noise click -> soft clip -> HPF. ported to per-sample DSP. MIT-style algo by Sumad/Alexander Obst
+  constructor(p){ p=p||{};
+    this.tune=p.tune!=null?p.tune:1; this.decay=p.decay!=null?p.decay:0.62; this.tone=p.tone!=null?p.tone:0.5;
+    this.click=p.click!=null?p.click:1; this.res=p.res!=null?p.res:10; this.drive=p.drive!=null?p.drive:0.5;
+    this.level=p.level!=null?p.level:0.9; this.pan=p.pan||0;
+    this._R=[{f:470,a:1.0,d:30},{f:700,a:0.75,d:24},{f:1050,a:0.45,d:18},{f:1600,a:0.20,d:12}];
+    this.bp=this._R.map(()=>new Biquad()); this.hpf=new Biquad(); this.cbp=new Biquad();
+    this.active=false; this.makeup=3.8;
+  }
+  set(k,v){ if(k in this)this[k]=v; }
+  trigger(vel){ this.active=true; this.vel=vel||1; this.t=0;
+    const rF=1+(Math.random()-0.5)*0.04, rD=1+(Math.random()-0.5)*0.06;
+    this.bp.forEach((b,i)=>{ b.reset(); b.set("bandpass",this._R[i].f*this.tune*rF,this.res); });
+    this.hpf.reset(); this.hpf.set("highpass",350,0.707);
+    this.cbp.reset(); this.cbp.set("bandpass",2800,2);
+    this.env=this._R.map(r=>({v:r.a, k:Math.exp(-1/((r.d/1000)*this.decay*rD*sampleRate))}));
+    this.toneW=this._R.map((r,i)=>{ const hi=i/(this._R.length-1); return 1+(this.tone-0.5)*2*(hi-0.5); });
+    this.cenv=0.25*this.click; this.cenvK=Math.exp(-1/(0.002*sampleRate));
+    this.noiseLeft=Math.round(0.1*sampleRate); this.clickLeft=64; this.dg=1+this.drive;
+  }
+  tick(){ if(!this.active)return 0;
+    const n=this.noiseLeft>0?(Math.random()*2-1):0; if(this.noiseLeft>0)this.noiseLeft--;
+    let sig=0;
+    for(let i=0;i<4;i++){ const b=this.bp[i].proc(n); sig+=b*this.env[i].v*this.toneW[i]; this.env[i].v*=this.env[i].k; }
+    if(this.clickLeft>0){ const cn=(Math.random()*2-1); const cb=this.cbp.proc(cn); sig+=cb*this.cenv; this.cenv*=this.cenvK; this.clickLeft--; }
+    let out=Math.atan(sig*this.dg*this.makeup)/(Math.PI/2);
+    out=this.hpf.proc(out); out*=this.level*this.vel;
+    this.t++; if(this.t>sampleRate*0.4)this.active=false;
+    return out;
+  }
+}
+
 function makeKitLab(){ return KITLAB_PRESETS.map((p,i)=> i===1 ? new ChowKickVoice({tune:50,decay:0.35,sdrv:0.35,tone:0.55,pulse:0.4,accent:0.6,level:0.8}) : new KickLabVoice(p)); }   // slot 2 = membrane model
+class RimFMVoice {   // 909 rimshot :: three damped-sine T-bridge resonators (495/219/1053 Hz, from the TR-909 schematic) + noise burst + FM. short envelopes = knacky, not tonal
+  constructor(p){ p=p||{};
+    this.tune=p.tune!=null?p.tune:0.98; this.decay=p.decay!=null?p.decay:0.412; this.tone=p.tone!=null?p.tone:1;
+    this.fmAmt=p.fmAmt!=null?p.fmAmt:0.2; this.fmRatio=p.fmRatio!=null?p.fmRatio:1.5;
+    this.noise=p.noise!=null?p.noise:0.07; this.drive=p.drive!=null?p.drive:0.4; this.level=p.level!=null?p.level:0.9; this.pan=p.pan||0;
+    this._O=[{f:495,a:0.9,d:20},{f:219,a:0.6,d:25},{f:1053,a:1.0,d:5}]; this.active=false; this.makeup=1.3;
+  }
+  set(k,v){ if(k in this)this[k]=v; }
+  trigger(vel){ this.active=true; this.vel=vel||1; this.t=0;
+    const rF=1+(Math.random()-0.5)*0.03;
+    this.osc=this._O.map((o,i)=>{ const hi=i/(this._O.length-1); const toneW=1+(this.tone-0.5)*1.4*(hi-0.5);
+      return { ph:0, f:o.f*this.tune*rF, amp:o.a*toneW, env:1, envK:Math.exp(-1/((o.d/1000)*this.decay*sampleRate)) }; });
+    this.fmPh=0; this.fmEnv=1; this.fmEnvK=Math.exp(-1/(0.05*this.decay*sampleRate*3));   // fm sweep tracks decay, stays audible
+    this.noiseLeft=Math.round(0.02*sampleRate); this.noiseEnv=1; this.noiseEnvK=Math.exp(-1/(0.004*sampleRate));
+    this.hp=0; this.hpPrev=0; this.dg=1+this.drive*2;
+  }
+  tick(){ if(!this.active)return 0;
+    let sig=0;
+    const fmHz=this.osc[2].f*this.fmRatio;
+    this.fmPh+=2*Math.PI*fmHz/sampleRate; if(this.fmPh>2*Math.PI)this.fmPh-=2*Math.PI;
+    const fm=Math.sin(this.fmPh)*this.fmAmt*3*this.fmEnv; this.fmEnv*=this.fmEnvK;   // deeper modulation so FM is clearly audible
+    for(const o of this.osc){ o.ph+=2*Math.PI*o.f*(1+fm)/sampleRate; if(o.ph>2*Math.PI)o.ph-=2*Math.PI; sig+=Math.sin(o.ph)*o.amp*o.env; o.env*=o.envK; }
+    if(this.noiseLeft>0){ sig+=(Math.random()*2-1)*this.noise*this.noiseEnv; this.noiseEnv*=this.noiseEnvK; this.noiseLeft--; }
+    let out=Math.tanh(sig*this.dg*this.makeup);
+    const a=0.95; const hp=a*(this.hp+out-this.hpPrev); this.hpPrev=out; this.hp=hp; out=hp;
+    out*=this.level*this.vel*0.5;
+    this.t++; if(this.t>sampleRate*0.2)this.active=false;
+    return out;
+  }
+}
+
+function makeKitRim(){ const a=[]; for(let _i=0;_i<9;_i++)a.push(_i===1 ? new RimFMVoice({tune:0.98,decay:0.412,tone:1,fmAmt:0.2,fmRatio:1.5,noise:0.07,drive:0.4,level:0.9}) : new Rimshot909Voice({tune:1,decay:0.62,tone:0.5,click:1,res:10,drive:0.5,level:0.9})); return a; }   // RIM LAB :: own kit (index 7), one rimshot voice
 function makeKitPerc(){ return PING_PRESETS.map(p=>new PingVoice(p)); }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1263,12 +1326,12 @@ function makeKit4(){ return Array.from({length:9},()=>new SampleVoice()); }
 class BrachinisteEngine extends AudioWorkletProcessor {
   constructor(options){
     super();
-    this.kits=[ makeKit1(), makeKit2(), makeKit3(), makeKit4(), makeKitPerc(), makeKitLab(), makeKitVoid() ];
+    this.kits=[ makeKit1(), makeKit2(), makeKit3(), makeKit4(), makeKitPerc(), makeKitLab(), makeKitVoid(), makeKitRim() ];
     this.kit=0;
     this.dist=0; this.frame=0; this.queue=[]; this.bus=new Array(16).fill(0); this.raw=false;
     const po=options&&options.processorOptions;
     if(po){
-      if(typeof po.kit==="number") this.kit=Math.max(0,Math.min(6,po.kit));   // was clamped to 4 :: DRUM LAB (5) and VOID (6) silently exported as RESONANT
+      if(typeof po.kit==="number") this.kit=Math.max(0,Math.min(7,po.kit));   // was clamped to 4 :: DRUM LAB (5) and VOID (6) silently exported as RESONANT
       if(typeof po.sumDist==="number") this.dist=po.sumDist;
       if(Array.isArray(po.voidMap)){ const B=[makeKit1,makeKit2,makeKit3,makeKit4,makeKitPerc,makeKitLab];
         for(const a of po.voidMap){ if(a&&B[a.srcKit]&&a.srcVoice!=null) this.kits[6][a.slot|0]=B[a.srcKit]()[a.srcVoice|0]; } }   // VOID :: rebuild assigned slots for offline export
@@ -1297,7 +1360,7 @@ class BrachinisteEngine extends AudioWorkletProcessor {
     if(m.type==="note"){ this.queue.push({atFrame:m.atFrame||0,voice:m.voice,vel:m.vel,locks:m.locks,gate:m.gate}); this.queue.sort((a,b)=>a.atFrame-b.atFrame); }
     else if(m.type==="param"){ const v=this.voices()[m.voice]; if(v){ v._base=v._base||{}; v._base[m.key]=m.value; if(v.set)v.set(m.key,m.value); else if(m.key in v)v[m.key]=m.value; } }
     else if(m.type==="sum"){ if(m.key==="dist")this.dist=m.value; }
-    else if(m.type==="kit"){ this.kit=Math.max(0,Math.min(6,m.index|0)); for(const v of this.voices())v.active=false; this.queue.length=0; }
+    else if(m.type==="kit"){ this.kit=Math.max(0,Math.min(7,m.index|0)); for(const v of this.voices())v.active=false; this.queue.length=0; }
     else if(m.type==="voidSlots"){ const n=Math.max(1,Math.min(15,m.n|0)); const a=this.kits[6]; while(a.length<n)a.push(new VoidVoice()); if(a.length>n)a.length=n; }   // VOID :: grow/shrink the slot count at runtime
     else if(m.type==="assign"){ const B=[makeKit1,makeKit2,makeKit3,makeKit4,makeKitPerc,makeKitLab]; const sk=m.srcKit|0, sl=m.slot|0; if(B[sk]&&m.srcVoice!=null&&sl>=0&&sl<this.kits[6].length){ this.kits[6][sl]=B[sk]()[m.srcVoice|0]; } }   // VOID :: rebuild the picked source voice into the slot (any class, correct preset)
     else if(m.type==="sample"){ const v=this.kits[3][m.voice|0]; if(v)v.setSample(m.data,m.sr); }
@@ -1738,11 +1801,13 @@ function k4fxDefs(){ return [d("ring",0,1,0,0,"RING"),d("freq",20,4000,220,1,"FR
 function k4modeCtrl(){ return []; }   // deprecated (sample engine rebuilt) :: no-op for the legacy popup
 const K4_ALLKEYS=(()=>{const m={};k4editDefs().forEach(df=>{m[df.key]=df.def;});k4filtDefs().forEach(df=>{m[df.key]=df.def;});k4fxDefs().forEach(df=>{m[df.key]=df.def;});return m;})();
 const KIT4V=Array.from({length:9},(_,i)=>({name:"SLOT "+(i+1),defs:k4editDefs(),fxMode:undefined,extra:Object.assign({},K4_ALLKEYS)}));
-const KITLABV=[]; for(let _i=0;_i<9;_i++)KITLABV.push({name:"KICK "+(_i+1),defs:[d("basef",30,120,50,1,"TUNE"),d("clickF",250,10000,4000,1,"CLICK.F"),d("clickD",0.001,0.015,0.006,0,"CLICK.D"),d("punchF",80,400,180,1,"PUNCH.F"),d("punchD",0.01,0.2,0.05,1,"PUNCH.D"),d("penvAmt",0,1,1,0,"P.ENV"),d("khold",0,0.05,0.005,0,"HOLD"),d("kdec",0.05,1.5,0.35,1,"DECAY"),d("curve",-1,1,0,0,"CURVE"),d("waveBase",0,1,0,0,"WAVE"),d("waveEnv",0,1,0,0,"W.ENV"),d("waveDec",0.005,0.1,0.03,0,"W.DEC"),d("waveShape",-1,1,0,0,"W.SHAPE"),d("fmBase",0,1,0,0,"FM.BASE"),d("fmEnv",0,1,0,0,"FM.ENV"),d("fmDec",0.002,0.05,0.02,0,"FM.DEC"),d("fmRate",0.25,8,1,1,"FM.RATE"),d("transAmt",0,1,0,0,"TR.AMT"),d("transSpd",0.0002,0.01,0.003,0,"TR.SPD"),d("transMode",0,2,0,0,"TR.MODE"),d("transTgt",0,3,0,0,"TR.TGT"),d("dtype",0,13,0,0,"MODEL"),d("ddrive",0,1,0.4,0,"DRIVE"),d("dpre",0,1,0,0,"PRE"),d("dtone",0,1,1,0,"D.TONE"),d("dmix",0,1,0,0,"D.MIX"),d("eqHp",20,2000,20,1,"HP"),d("eqFreq",100,8000,1000,1,"FREQ"),d("eqGain",-18,18,0,0,"GAIN"),d("eqLp",500,20000,20000,1,"LP"),d("olvl",0,1.5,0.9,0,"LEVEL")]});
+const KITLABV=[]; for(let _i=0;_i<9;_i++)KITLABV.push({name:"KICK "+(_i+1),defs:[d("basef",30,120,50,1,"TUNE"),d("clickF",250,16000,4000,1,"CLICK.F"),d("clickD",0.001,0.015,0.006,0,"CLICK.D"),d("punchF",80,400,180,1,"PUNCH.F"),d("punchD",0.01,0.2,0.05,1,"PUNCH.D"),d("penvAmt",0,1,1,0,"P.ENV"),d("khold",0,0.05,0.005,0,"HOLD"),d("kdec",0.05,1.5,0.35,1,"DECAY"),d("curve",-1,1,0,0,"CURVE"),d("waveBase",0,1,0,0,"WAVE"),d("waveEnv",0,1,0,0,"W.ENV"),d("waveDec",0.005,0.1,0.03,0,"W.DEC"),d("waveShape",-1,1,0,0,"W.SHAPE"),d("fmBase",0,1,0,0,"FM.BASE"),d("fmEnv",0,1,0,0,"FM.ENV"),d("fmDec",0.002,0.05,0.02,0,"FM.DEC"),d("fmRate",0.25,8,1,1,"FM.RATE"),d("transAmt",0,1,0,0,"TR.AMT"),d("transSpd",0.0002,0.01,0.003,0,"TR.SPD"),d("transMode",0,2,0,0,"TR.MODE"),d("transTgt",0,3,0,0,"TR.TGT"),d("dtype",0,13,0,0,"MODEL"),d("ddrive",0,1,0.4,0,"DRIVE"),d("dpre",0,1,0,0,"PRE"),d("dtone",0,1,1,0,"D.TONE"),d("dmix",0,1,0,0,"D.MIX"),d("eqHp",20,2000,20,1,"HP"),d("eqFreq",100,8000,1000,1,"FREQ"),d("eqGain",-18,18,0,0,"GAIN"),d("eqLp",500,20000,20000,1,"LP"),d("olvl",0,1.5,0.9,0,"LEVEL")]});
 KITLABV[1]={name:"KICK 2",defs:[d("tune",30,200,50,1,"TUNE"),d("accent",0,1,0.6,0,"ACCENT"),d("decay",0,1,0.35,0,"DECAY"),d("sdrv",0,1,0.35,0,"DRIVE"),d("tone",0,1,0.55,0,"TONE"),d("pulse",0,1,0.4,0,"CLICK"),d("dtype",0,13,0,0,"MODEL"),d("ddrive",0,1,0.4,0,"DRIVE"),d("dpre",0,1,0,0,"PRE"),d("dtone",0,1,1,0,"D.TONE"),d("dmix",0,1,0,0,"D.MIX"),d("pan",-1,1,0),d("olvl",0,1.5,0.8,0,"LEVEL")]};   // membrane model by Sumad
 KITLABV[0]={name:"KICK 1",defs:KITLABV[0].defs.filter(x=>["dtype","ddrive","dpre","dtone","dmix"].indexOf(x.key)<0)};   // for A/B testing
+const KITRIMV=[]; for(let _i=0;_i<9;_i++)KITRIMV.push({name:"RIM A",defs:[d("tune",0.5,2,1,1,"TUNE"),d("decay",0.2,3,0.62,1,"DECAY"),d("tone",0,1,0.5,0,"TONE"),d("click",0,2,1,0,"CLICK"),d("res",3,30,10,1,"RES"),d("drive",0,1,0.5,0,"DRIVE"),d("pan",-1,1,0),d("level",0,1.5,0.9,0,"LEVEL")]});   // RIM LAB voices (kit 7)
+KITRIMV[1]={name:"RIM B",defs:[d("tune",0.5,2,0.98,1,"TUNE"),d("decay",0.15,3,0.412,1,"DECAY"),d("tone",0,1,1,0,"TONE"),d("fmAmt",0,1,0.2,0,"FM.AMT"),d("fmRatio",0.5,4,1.5,1,"FM.RAT"),d("noise",0,1,0.07,0,"NOISE"),d("drive",0,1,0.4,0,"DRIVE"),d("pan",-1,1,0),d("level",0,1.5,0.9,0,"LEVEL")]};   // 909 rimshot :: real schematic freqs, short envelopes
 const KITVOIDV=[]; for(let _i=0;_i<9;_i++)KITVOIDV.push({name:"SLOT "+(_i+1),defs:[],empty:true});
-const KITS=[{name:"RAW",voices:KIT1V},{name:"PCKRT",voices:KIT2V},{name:"SUBS",voices:KIT3V},{name:"SAMPLES",voices:KIT4V},{name:"RESONANT",voices:KITPERCV},{name:"DRUM LAB",voices:KITLABV},{name:"VOID",voices:KITVOIDV}];
+const KITS=[{name:"RAW",voices:KIT1V},{name:"PCKRT",voices:KIT2V},{name:"SUBS",voices:KIT3V},{name:"SAMPLES",voices:KIT4V},{name:"RESONANT",voices:KITPERCV},{name:"DRUM LAB",voices:KITLABV},{name:"VOID",voices:KITVOIDV},{name:"RIM LAB",voices:KITRIMV}];
 const KIT_ORDER=[1,0,4,2,3,6];   // display order (pos->internal index) :: samples stays internal 3, VOID appended
 const KITKEYS=["raw","pckrt","subs","samples","resonant"];   // internal index -> tutorial key
 const userSamples=Array(9).fill(null);   // {data:Float32Array, sr, name} · session store, re-sent to worklet on engine start
@@ -1858,7 +1923,7 @@ const state={
   fin:{preset:"off",amount:1},
   kits:KITS.map(k=>mkVoices(k.voices)),
   voices:null,
-  patterns:Array.from({length:PATTERNS*6},emptyPattern)   // bank 0 = shared, banks 1..5 = one per VOID group
+  patterns:Array.from({length:PATTERNS*8},emptyPattern)   // bank 0 = shared, banks 1..5 = VOID groups, bank 6 = KICK LAB, bank 7 = RIM LAB (isolated)
 };
 state.voices=state.kits[state.kit];
 
@@ -1899,7 +1964,7 @@ function restore(snap){
   state.master.modules=JSON.parse(JSON.stringify(snap.modules));
   state.master.vol=(snap.masterVol!=null?snap.masterVol:1);{const mv=document.getElementById("mvol");if(mv)mv.value=state.master.vol;if(masterOut)masterOut.gain.value=state.master.vol;}
   state.master.limit=(snap.masterLimit!=null?snap.masterLimit:true);{const lb=document.getElementById("limitBtn");if(lb)lb.classList.toggle("on",state.master.limit!==false);}
-  state.master.roll=(snap.masterRoll!=null?snap.masterRoll:0);{const rr=document.getElementById("roll");if(rr){rr.value=state.master.roll;var sN=rollSub(state.master.roll);document.getElementById("rollval").textContent=sN>1?"1/"+(16*sN):"OFF";}}
+  state.master.roll=(snap.masterRoll!=null?snap.masterRoll:0);{const rr=document.getElementById("roll");if(rr){rr.value=state.master.roll;var sN=rollSub(state.master.roll);const rv=document.getElementById("rollval");if(rv)rv.textContent=sN>1?"1/"+(16*sN):"OFF";}}
   state.fin.preset=(snap.finPreset!=null?snap.finPreset:"off");state.fin.amount=(snap.finAmt!=null?snap.finAmt:1);if(typeof buildFinbar==="function")buildFinbar();if(fin)applyFinalizer();
   if(ac){ initMasterNodes(); wireMaster(); syncAll(); resendVoidAssigns(); }
   buildKit(); buildEditor(); buildMaster(); buildStrip(); buildSeq();
@@ -1915,7 +1980,7 @@ window.addEventListener("keydown",(e)=>{
 });
 function groupBank(gid){ const i=voidGroups().findIndex(g=>g.id===gid); return i<0?0:((i+1)*PATTERNS); }   // each group owns its own block of 8 patterns
 function selGroupId(){ if(state.kit!==6)return null; const vo=state.kits[6][state.selected]; return (vo&&vo.group&&groupById(vo.group))?vo.group:null; }
-function bankBase(){ const g=selGroupId(); return g?groupBank(g):0; }
+function bankBase(){ if(state.kit===5)return PATTERNS*6; if(state.kit===7)return PATTERNS*7; const g=selGroupId(); return g?groupBank(g):0; }   // Labs :: isolated banks, Sumad playground never touches the rest
 function patIdx(){ return state.curPattern%PATTERNS; }
 function syncPatternBank(){ const b=bankBase(); const want=b+((state.kit===6&&selGroupId())?groupEditOf(selGroupId()):patIdx());
   if(want!==state.curPattern&&state.patterns[want]){ state.curPattern=want; state.page=0; } }
@@ -2174,7 +2239,7 @@ function fmtv(def,val){
   if(def.key==="rate")return "1/"+(16*rollSub(val));
   if(def.key==="pan")return val===0?"C":(val<0?"L":"R")+Math.round(Math.abs(val)*100);
   if(def.key==="lp")return Math.round(nrm(def,val)*100);
-  if(def.key==="pitch"||def.key==="tone"||def.key==="noiseColor"||def.key==="hp"||def.key==="cutoff"||def.key==="clickF"||def.key==="punchF"||def.key==="basef"||def.key==="eqHp"||def.key==="eqFreq"||def.key==="eqLp"||def.key==="spref"||def.key==="spostf")return val>=1000?(val/1000).toFixed(1)+"k":Math.round(val);
+  if((def.key==="pitch"||def.key==="tone"||def.key==="noiseColor"||def.key==="hp"||def.key==="cutoff"||def.key==="clickF"||def.key==="punchF"||def.key==="basef"||def.key==="eqHp"||def.key==="eqFreq"||def.key==="eqLp"||def.key==="spref"||def.key==="spostf")&&def.max>1)return val>=1000?(val/1000).toFixed(1)+"k":Math.round(val);   // Hz display only for real freq ranges; 0-1 tone/etc falls through to percent
   if(def.key==="decay"||def.key==="attack"||def.key==="spread"||def.key==="pdec"||def.key==="oscDecay"||def.key==="noiseDecay"||def.key==="clickD"||def.key==="punchD"||def.key==="khold"||def.key==="kdec")return Math.round(val*1000);
   if(def.key==="dlydiv")return (typeof DIVS!=="undefined")?DIVS[Math.max(0,Math.min(DIVS.length-1,Math.round(val)))].k:Math.round(val);
   if(def.key==="dlyms")return Math.round(val)+"ms";
@@ -2712,7 +2777,7 @@ function copyPatternToVoid(){
   setStatus("PATTERN copied to VOID // "+used.length+" sounds grouped");
 }
 function assignVoidSlot(slot,sk,sv){ const src=KITS[sk].voices[sv]; const vo=state.kits[6][slot]; vo.name=src.name; vo.defs=src.defs; vo.fxMode=src.fxMode; vo.vals=Object.assign(Object.fromEntries(src.defs.map(x=>[x.key,x.def])),src.extra||{}); vo.srcKit=sk; vo.srcVoice=sv; if(engineNode)engineNode.port.postMessage({type:"assign",slot:slot,srcKit:sk,srcVoice:sv}); buildSeq(); buildEditor(); const ev=effVals(vo); for(const k in ev)sendParam(slot,k,ev[k]); commit(); }
-function openSoundPicker(slot){ closeSoundPicker(); const ov=document.createElement("div"); ov.id="soundPicker"; ov.className="sound-picker"; const cl=document.createElement("button"); cl.className="sp-close"; cl.textContent="\u00d7"; cl.onclick=closeSoundPicker; ov.append(cl); [0,1,2,4,5].forEach(k=>{ const h=document.createElement("div"); h.className="sp-head"; h.textContent=KITS[k].name; ov.append(h); ((k===5)?KITS[k].voices.slice(0,5):KITS[k].voices).forEach((v,vi)=>{ const b=document.createElement("button"); b.className="sp-item"; b.textContent=v.name; b.onclick=()=>{ assignVoidSlot(slot,k,vi); closeSoundPicker(); }; ov.append(b); }); }); document.body.append(ov); }
+function openSoundPicker(slot){ closeSoundPicker(); const ov=document.createElement("div"); ov.id="soundPicker"; ov.className="sound-picker"; const cl=document.createElement("button"); cl.className="sp-close"; cl.textContent="\u00d7"; cl.onclick=closeSoundPicker; ov.append(cl); [1,0,4,2,5,7].forEach(k=>{ const h=document.createElement("div"); h.className="sp-head"; h.textContent=KITS[k].name; ov.append(h); const lim=(k===5||k===7)?2:9; KITS[k].voices.slice(0,lim).forEach((v,vi)=>{ const b=document.createElement("button"); b.className="sp-item"; b.textContent=v.name; b.onclick=()=>{ assignVoidSlot(slot,k,vi); closeSoundPicker(); }; ov.append(b); }); }); document.body.append(ov); }
 function buildEditor(){
   window.AUTO_KNOBS={};
   closeSlotMenu(); if(window.__menuOff)window.__menuOff();   // a menu must never outlive the knob it belongs to
@@ -3603,7 +3668,7 @@ function switchKit(i,force){
   if(i===state.kit&&!force)return;
   state.plock=null;
   state.kit=i; state.voices=state.kits[i]; if(state.selected>=state.voices.length)state.selected=0;
-  if(i===6)syncPatternBank(); else state.curPattern=state.curPattern%PATTERNS;
+  if(i===5||i===6||i===7)syncPatternBank(); else state.curPattern=state.curPattern%PATTERNS;   // Labs + VOID use their own banks
   if(engineNode) engineNode.port.postMessage({type:"kit",index:i});
   syncAll(); if(typeof refreshGroupRouting==="function")refreshGroupRouting(); buildKit(); buildSeq(); refreshStrip(); buildEditor();
   { const isl=document.getElementById("masterFxIsland"); if(isl)isl.style.display=(i===6)?"none":""; }
@@ -3623,9 +3688,10 @@ function buildKit(){
   const dv=document.createElement("span");dv.className="kit-disp-v";dv.textContent=KITS[state.kit].name;
   disp.append(dl,dv);host.appendChild(disp);
   const lab=document.createElement("div");lab.className="kit-block";
-  const lhd=document.createElement("div");lhd.className="kit-hd";lhd.textContent="DRUM LAB";lhd.title="Sumad\u0027s Kick Lab \u00b7 sound design by Sumad";lab.appendChild(lhd);
+  const lhd=document.createElement("div");lhd.className="kit-hd";lhd.textContent="SUMAD\u0027S DRUM LAB";lhd.title="sound design by Sumad";lab.appendChild(lhd);
   const lfield=document.createElement("div");lfield.className="kit-field";lfield.style.flex="0 0 auto";
   const kb=document.createElement("button");kb.className="cell-btn"+(state.kit===5?" on":"");kb.textContent="KICK";kb.title="Sumad\u0027s Kick Lab";kb.onclick=()=>switchKit(5);lfield.appendChild(kb);
+  const rb=document.createElement("button");rb.className="cell-btn"+(state.kit===7?" on":"");rb.textContent="RIMSHOT";rb.title="Sumad\u0027s 909 rimshot lab";rb.onclick=()=>switchKit(7);lfield.appendChild(rb);
   lab.appendChild(lfield);host.appendChild(lab);
 }   // LIVE island hidden while the live page is unfinished :: CTRL+SHIFT+L opens it
 
@@ -3677,7 +3743,8 @@ function buildSeq(){
   for(let i=0;i<STEPS_PER_BAR;i++){const s=document.createElement("span");s.textContent=i+1;cn.appendChild(s);}
   const rows=document.getElementById("rows");rows.innerHTML="";
   state.voices.forEach((vo,vi)=>{
-    if(state.kit===5&&vi>=5)return;   // Drum Lab :: only 5 kick slots visible (rows 5-8 stay internal for the bus)
+    if(state.kit===5&&vi>=2)return;   // Kick Lab :: only the two kicks visible (rows 5-8 stay internal for
+    if(state.kit===7&&vi>=2)return;   // Rim Lab :: two rimshot tracks (Sumad + FM) the bus)
     const row=document.createElement("div");row.className="row";
     const head=document.createElement("div");head.className="rhead";
     const sel=document.createElement("button");sel.className="sel";sel.dataset.v=vi;
@@ -3767,8 +3834,91 @@ function setPattern(i){ const n=i%PATTERNS; const g=selGroupId();
 document.getElementById("play").onclick=()=>{state.playing?stopSeq():startSeq();};
 document.getElementById("bpm").oninput=e=>{state.bpm=+e.target.value;document.getElementById("bpmval").textContent=state.bpm;updateDelayTimes();};
 document.getElementById("swing").oninput=e=>{state.swing=+e.target.value;document.getElementById("swingval").textContent=state.swing;};
-(function(){var r=document.getElementById("roll");if(r){r.oninput=function(){state.master.roll=+r.value;var sN=rollSub(state.master.roll);document.getElementById("rollval").textContent=sN>1?"1/"+(16*sN):"OFF";};r.onchange=function(){if(typeof commit==="function")commit();};}})();
-(function(){ const pb=document.getElementById("play"); if(!pb)return; const rb=document.createElement("button"); rb.id="autorec"; rb.className="cell-btn"; rb.textContent="REC"; rb.style.marginLeft="8px"; rb.title="AUTOMATION REC \u00b7 arm, then turn any knob while the loop plays to record its motion \u00b7 right-click a knob to clear its automation"; rb.onclick=()=>{ state.autoRec=!state.autoRec; rb.classList.toggle("on",state.autoRec); setStatus(state.autoRec?"AUTO REC armed \u00b7 turn a knob while playing":"AUTO REC off"); }; pb.parentNode.insertBefore(rb,pb.nextSibling); })();
+(function(){var r=document.getElementById("roll");if(r){r.oninput=function(){state.master.roll=+r.value;var sN=rollSub(state.master.roll);var rv=document.getElementById("rollval");if(rv)rv.textContent=sN>1?"1/"+(16*sN):"OFF";};r.onchange=function(){if(typeof commit==="function")commit();};}})();   // ROLL lives in the Live area now, not the transport bar
+
+/* ---- SHARE :: pack the current kit (9 voices + its 8 patterns) into a link ---- */
+function _b64u(bytes){ let bin=""; for(const b of bytes)bin+=String.fromCharCode(b); return btoa(bin).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""); }
+function _unb64u(str){ str=str.replace(/-/g,"+").replace(/_/g,"/"); while(str.length%4)str+="="; const bin=atob(str); const out=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++)out[i]=bin.charCodeAt(i); return out; }
+async function _deflate(str){ const cs=new CompressionStream("deflate-raw"); const w=cs.writable.getWriter(); w.write(new TextEncoder().encode(str)); w.close(); const buf=await new Response(cs.readable).arrayBuffer(); return new Uint8Array(buf); }
+async function _inflate(bytes){ const ds=new DecompressionStream("deflate-raw"); const w=ds.writable.getWriter(); w.write(bytes); w.close(); const buf=await new Response(ds.readable).arrayBuffer(); return new TextDecoder().decode(buf); }
+
+function kitSharePayload(){
+  const kit=state.kit;
+  const vals=state.voices.map(v=>{ const o={}; for(const k in v.vals){ const n=v.vals[k]; o[k]=(typeof n==="number")?+n.toFixed(4):n; } return o; });
+  const base=bankBase();
+  const pats=[];
+  for(let i=0;i<PATTERNS;i++){ const p=state.patterns[base+i]; if(!p){pats.push(0);continue;}
+    const rows=p.steps.map(r=>r.join(""));
+    const subs=(p.sub||[]).map(r=>r.join(","));
+    const hasAuto=p.auto&&Object.keys(p.auto).length>0;
+    const used=rows.some(r=>/[12]/.test(r))||hasAuto;
+    pats.push(used?{b:p.bars,l:p.length,s:rows,u:subs,a:hasAuto?p.auto:0}:0);
+  }
+  const mods=(state.master.modules||[]).map(m=>{ const c=JSON.parse(JSON.stringify(m,(k,v)=>k==="_nodes"?undefined:v)); delete c._nodes; return c; });
+  return { k:kit, v:vals, p:pats, m:mods, bpm:state.bpm, sw:state.swing };
+}
+
+async function shareKitLink(){
+  if(state.kit===3){ setStatus("SAMPLES kit cannot be shared (audio stays yours)"); return; }
+  try{
+    const payload=kitSharePayload();
+    payload._v=1; payload._n=KITS[state.kit].name;
+    const json=JSON.stringify(payload);
+    const blob=new Blob([json],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    const stamp=new Date().toISOString().slice(0,10);
+    a.href=url; a.download="BRACHINSKI_"+KITS[state.kit].name.replace(/[^A-Za-z0-9]/g,"")+"_"+stamp+".brk";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),2000);
+    setStatus("KIT saved \u00b7 "+a.download+" \u00b7 drop the file back in to load it");
+  }catch(e){ setStatus("share failed :: "+e.message); }
+}
+
+function applySharedKit(d){
+  if(!d||d.k==null){ setStatus("not a BRACHINSKI kit file"); return false; }
+  if(d.k===3){ setStatus("SAMPLES kit cannot be loaded this way"); return false; }
+  switchKit(d.k,true);
+  if(Array.isArray(d.v))d.v.forEach((vv,i)=>{ const vo=state.voices[i]; if(!vo||!vv)return; Object.assign(vo.vals,vv); const ev=effVals(vo); for(const k in ev)sendParam(i,k,ev[k]); });
+  const base=bankBase();
+  if(Array.isArray(d.p))d.p.forEach((pp,i)=>{ const tgt=state.patterns[base+i]; if(!tgt)return;
+    if(!pp){ tgt.steps.forEach(r=>r.fill(0)); return; }
+    tgt.bars=pp.b||1; tgt.length=pp.l||STEPS_PER_BAR;
+    (pp.s||[]).forEach((row,vi)=>{ if(!tgt.steps[vi])return; for(let sIdx=0;sIdx<tgt.steps[vi].length;sIdx++)tgt.steps[vi][sIdx]=+(row[sIdx]||0); });
+    if(pp.u&&tgt.sub)pp.u.forEach((row,vi)=>{ if(!tgt.sub[vi])return; const parts=String(row).split(","); for(let sIdx=0;sIdx<tgt.sub[vi].length;sIdx++)tgt.sub[vi][sIdx]=+(parts[sIdx]||1); });   // ratchets
+    tgt.auto=pp.a||{};   // recorded automation
+  });
+  if(Array.isArray(d.m)){ state.master.modules=d.m; if(typeof buildMaster==="function")buildMaster(); if(typeof wireMaster==="function")wireMaster(); }
+  if(d.bpm)state.bpm=d.bpm; if(d.sw!=null)state.swing=d.sw;
+  buildSeq(); buildEditor(); refreshStrip(); commit();
+  setStatus("KIT loaded \u00b7 "+(d._n||KITS[state.kit].name));
+  return true;
+}
+
+function loadKitFile(file){
+  if(!file)return;
+  const r=new FileReader();
+  r.onload=()=>{ try{ applySharedKit(JSON.parse(r.result)); }catch(e){ setStatus("could not read that file"); } };
+  r.readAsText(file);
+}
+
+function openKitFileDialog(){
+  const inp=document.createElement("input"); inp.type="file"; inp.accept=".brk,application/json";
+  inp.onchange=()=>{ if(inp.files&&inp.files[0])loadKitFile(inp.files[0]); };
+  inp.click();
+}
+
+
+
+(function(){   // drop a .brk anywhere to load a shared kit
+  window.addEventListener("dragover",(e)=>{ if(e.dataTransfer&&[...(e.dataTransfer.items||[])].some(i=>i.kind==="file"))e.preventDefault(); });
+  window.addEventListener("drop",(e)=>{ const f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];
+    if(f&&/\.brk$/i.test(f.name)){ e.preventDefault(); if(typeof loadKitFile==="function")loadKitFile(f); } });
+})();
+(function(){ const pb=document.getElementById("play"); if(!pb)return; const rb=document.createElement("button"); rb.id="autorec"; rb.className="cell-btn"; rb.textContent="REC"; rb.style.marginLeft="8px"; rb.title="AUTOMATION REC \u00b7 arm, then turn any knob while the loop plays to record its motion \u00b7 right-click a knob to clear its automation"; rb.onclick=()=>{ state.autoRec=!state.autoRec; rb.classList.toggle("on",state.autoRec); setStatus(state.autoRec?"AUTO REC armed \u00b7 turn a knob while playing":"AUTO REC off"); }; pb.parentNode.insertBefore(rb,pb.nextSibling);
+  const sh=document.createElement("button"); sh.id="sharebtn"; sh.className="cell-btn"; sh.textContent="SAVE KIT"; sh.style.marginLeft="8px"; sh.title="save this kit as a .brk file \u00b7 sounds, all patterns, ratchets, automation and the master fx"; sh.onclick=()=>shareKitLink(); rb.parentNode.insertBefore(sh,rb.nextSibling);
+  const ld=document.createElement("button"); ld.id="loadbtn"; ld.className="cell-btn"; ld.textContent="LOAD KIT"; ld.style.marginLeft="6px"; ld.title="load a .brk kit file \u00b7 you can also just drop one onto the window"; ld.onclick=()=>openKitFileDialog(); sh.parentNode.insertBefore(ld,sh.nextSibling);
+})();
 document.addEventListener("keydown",e=>{if(e.code==="Space"&&e.target.tagName!=="INPUT"){e.preventDefault();state.playing?stopSeq():startSeq();}});
 // ---- the quiet door :: STRG+Q ----
 (function(){
