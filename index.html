@@ -3859,6 +3859,10 @@ function kitSharePayload(){
   }
   const mods=(state.master.modules||[]).map(m=>{ const c=JSON.parse(JSON.stringify(m,(k,v)=>k==="_nodes"?undefined:v)); delete c._nodes; return c; });
   const out={ k:kit, v:vals, p:pats, m:mods, bpm:state.bpm, sw:state.swing };
+  out.look={ bg:(typeof BG!=="undefined"?BG.mode:"off"), col:(typeof BG!=="undefined"?BG.fxColor:"amber"), skin:(typeof skinState!=="undefined"?skinState:"invert") };
+  out.snd={ fin:(state.fin?state.fin.preset:"off"), finAmt:(state.fin&&state.fin.amount!=null?state.fin.amount:1),
+            vol:state.master.vol, limit:state.master.limit, dist:(state.sum?state.sum.dist:0),
+            mute:(state.mute||[]).slice(), bus:(state.bus||[]).slice() };
   if(kit===6){   // VOID :: slots are references, so carry where each sound came from + the groups
     out.slots=state.kits[6].map(vo=>vo&&vo.srcKit!=null?{sk:vo.srcKit,sv:vo.srcVoice,g:vo.group||0}:0);
     out.groups=voidGroups().map(g=>({id:g.id,name:g.name,color:g.color}));
@@ -3929,6 +3933,24 @@ function applySharedKit(d){
   });
   if(Array.isArray(d.m)){ state.master.modules=d.m; if(typeof buildMaster==="function")buildMaster(); if(typeof wireMaster==="function")wireMaster(); }
   if(d.bpm)state.bpm=d.bpm; if(d.sw!=null)state.swing=d.sw;
+  if(d.snd){   // sound state :: finalizer, master, mutes
+    if(state.fin){ if(d.snd.fin!=null)state.fin.preset=d.snd.fin; if(d.snd.finAmt!=null)state.fin.amount=d.snd.finAmt;
+      if(typeof buildFinbar==="function")buildFinbar(); if(typeof applyFinalizer==="function"&&typeof fin!=="undefined"&&fin)applyFinalizer(); }
+    if(d.snd.vol!=null)state.master.vol=d.snd.vol;
+    if(d.snd.limit!=null)state.master.limit=d.snd.limit;
+    if(d.snd.dist!=null&&state.sum)state.sum.dist=d.snd.dist;
+    if(Array.isArray(d.snd.mute))d.snd.mute.forEach((m,i)=>{ if(state.mute)state.mute[i]=m; });
+    if(Array.isArray(d.snd.bus))d.snd.bus.forEach((b,i)=>{ if(state.bus)state.bus[i]=b; });
+    if(typeof syncAll==="function")syncAll();
+  }
+  if(d.look){   // look :: background animation, fx colour, chassis skin
+    try{
+      if(d.look.col!=null&&typeof BG!=="undefined"){ BG.fxColor=d.look.col;
+        const cb=document.getElementById("colBtn"); if(cb)cb.textContent="FX: "+String(d.look.col).toUpperCase(); }
+      if(d.look.skin!=null&&typeof skinState!=="undefined"){ skinState=d.look.skin; if(typeof skinApply==="function")skinApply(); }
+      if(d.look.bg!=null&&typeof bgSet==="function")bgSet(d.look.bg);
+    }catch(e){}
+  }
   buildSeq(); buildEditor(); refreshStrip(); commit();
   setStatus("KIT loaded \u00b7 "+(d._n||KITS[state.kit].name));
   return true;
