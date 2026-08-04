@@ -527,6 +527,8 @@ html.live-on body>*:not(#liveScreen):not(#soundPicker):not(#slotmenu):not(#fxWin
 #patgrp.grouped .pat.has{border-color:var(--gc);color:var(--gc)}
 #patgrp.grouped .pat{border-color:color-mix(in srgb,var(--gc) 35%,var(--line))}
 .row.editg{box-shadow:inset 3px 0 0 var(--gc,var(--amber))}
+.cell-btn.pat.queued{border-color:var(--amber);animation:patq 1s steps(2) infinite}
+@keyframes patq{0%{opacity:1}50%{opacity:.45}100%{opacity:1}}
 .rowpat{margin-left:6px;min-width:14px;text-align:center;font-size:9px;color:var(--gc,var(--dim));opacity:.8;flex:0 0 auto}
 .row[data-g] .step.on{background:linear-gradient(180deg,var(--gc),var(--gc2));border-color:var(--gc);box-shadow:0 0 10px var(--gc2),inset 0 1px 0 rgba(255,255,255,.35)}
 .row[data-g] .step.acc{background:linear-gradient(180deg,#fff,var(--gc));border-color:#fff}
@@ -653,7 +655,7 @@ html.live-on body>*:not(#liveScreen):not(#soundPicker):not(#slotmenu):not(#fxWin
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 600</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 607</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -1365,7 +1367,7 @@ class BrachinisteEngine extends AudioWorkletProcessor {
     else if(m.type==="kit"){ this.kit=Math.max(0,Math.min(7,m.index|0)); for(const v of this.voices())v.active=false; this.queue.length=0; }
     else if(m.type==="voidSlots"){ const n=Math.max(1,Math.min(15,m.n|0)); const a=this.kits[6]; while(a.length<n)a.push(new VoidVoice()); if(a.length>n)a.length=n; }   // VOID :: grow/shrink the slot count at runtime
     else if(m.type==="assign"){ const B=[makeKit1,makeKit2,makeKit3,makeKit4,makeKitPerc,makeKitLab,null,makeKitRim]; const sk=m.srcKit|0, sl=m.slot|0; if(B[sk]&&m.srcVoice!=null&&sl>=0&&sl<this.kits[6].length){ this.kits[6][sl]=B[sk]()[m.srcVoice|0]; } }   // VOID :: rebuild the picked source voice into the slot (any class, correct preset)
-    else if(m.type==="sample"){ const v=this.kits[3][m.voice|0]; if(v)v.setSample(m.data,m.sr); }
+    else if(m.type==="sample"){ const kk=(m.kit!=null?m.kit|0:3); const kt=this.kits[kk]; const v=kt&&kt[m.voice|0]; if(v&&v.setSample)v.setSample(m.data,m.sr); }   // kit defaults to SAMPLES, VOID passes its own index
     else if(m.type==="bus"){ this.bus[m.voice|0]=Math.max(0,Math.min(7,m.value|0)); }   // 0 master, 1 dry, 3..7 group buses
     else if(m.type==="reset"){ for(const v of this.voices())v.active=false; this.queue.length=0; }
   }
@@ -1719,7 +1721,7 @@ registerProcessor("freeverb", Freeverb);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="600";
+const REV="607";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -1826,7 +1828,17 @@ async function restoreSamplesLocal(){ const db=await sdb(); if(!db)return;
     for(let slot=0;slot<9;slot++){ await new Promise((res)=>{ const rq=st.get(slot); rq.onsuccess=()=>{ const r=rq.result;
       if(r&&r.data){ userSamples[slot]={data:new Float32Array(r.data),sr:r.sr,name:r.name}; state.kits[3][slot].name=r.vname||("SLOT "+(slot+1)); sendSample(slot); } res(); }; rq.onerror=()=>res(); }); }
     if(state.kit===3){ buildSeq(); buildEditor(); } }catch(e){} }
-function sendSample(v){ if(!engineNode||!userSamples[v])return; const u=userSamples[v]; const copy=new Float32Array(u.data); engineNode.port.postMessage({type:"sample",voice:v,sr:u.sr,data:copy},[copy.buffer]); }
+function sendSample(v,tgtKit,tgtVoice){ if(!engineNode||!userSamples[v])return; const u=userSamples[v]; const copy=new Float32Array(u.data); engineNode.port.postMessage({type:"sample",kit:(tgtKit!=null?tgtKit:3),voice:(tgtVoice!=null?tgtVoice:v),sr:u.sr,data:copy},[copy.buffer]); }
+async function loadSampleIntoVoid(file,voidSlot){
+  if(state.kit!==6)return;
+  let free=-1; for(let i=0;i<9;i++){ if(!userSamples[i]){ free=i; break; } }
+  if(free<0){ setStatus("no free sample slot \u00b7 clear one in SAMPLES"); return; }
+  await loadSampleFile(file,free);                     // the audio itself lives in the SAMPLES kit
+  if(!userSamples[free]){ return; }
+  assignVoidSlot(voidSlot,3,free);                     // point this VOID slot at it (carries the audio along)
+  buildSeq(); buildEditor(); commit();
+  setStatus("SLOT "+(voidSlot+1)+" \u00b7 "+(state.kits[3][free].name||"SAMPLE"));
+}
 async function loadSampleFile(file,slot){
   try{ await ensureAudio(); }catch(e){ setStatus("AUDIO ENGINE needed for decode"); return; }
   try{
@@ -1872,7 +1884,10 @@ function soundMenu(x,y,vi){ closeSlotMenu(); const m=document.createElement("div
   const mk=(label,fn,dim)=>{ const b=document.createElement("button"); b.textContent=label; if(dim)b.style.opacity=".4"; b.onmousedown=(ev)=>{ev.preventDefault();ev.stopPropagation();}; b.onclick=(ev)=>{ev.stopPropagation();closeSlotMenu();fn();}; m.appendChild(b); };
   if(state.kit===6){ mk((state.voices[vi].defs.length?"REPLACE SOUND":"PICK SOUND"), ()=>{ state.selected=vi; buildEditor(); openSoundPicker(vi); }); }   // grouping is shortcut-only for now (CTRL+G / CTRL+SHIFT+G)
   mk("COPY SOUND", ()=>copySound(vi)); mk("PASTE SOUND", ()=>pasteSound(vi), !soundPasteOk(vi));
-  if(state.kit===6){ const vo=state.kits[6][vi]; if(vo&&vo.group&&groupById(vo.group)){ mk("GROUP FX", ()=>openGroupFXEditor(vo.group)); } }
+  if(state.kit===6){
+    mk("LOAD SAMPLE", ()=>{ const inp=document.createElement("input"); inp.type="file"; inp.accept="audio/*";
+      inp.onchange=()=>{ if(inp.files&&inp.files[0])loadSampleIntoVoid(inp.files[0],vi); }; inp.click(); });
+    const vo=state.kits[6][vi]; if(vo&&vo.group&&groupById(vo.group)){ mk("GROUP FX", ()=>openGroupFXEditor(vo.group)); } }
   document.body.appendChild(m); const r=m.getBoundingClientRect(); m.style.left=Math.min(x,innerWidth-r.width-6)+"px"; m.style.top=Math.min(y,innerHeight-r.height-6)+"px";
   menuGuard(m,closeSlotMenu); }
 function slotMenu(x,y,slot){ closeSlotMenu(); const m=document.createElement("div"); m.className="slotmenu"; m.id="slotmenu"; const has=!!userSamples[slot];
@@ -1985,13 +2000,13 @@ function selGroupId(){ if(state.kit!==6)return null; const vo=state.kits[6][stat
 function bankBase(){ if(state.kit===5)return PATTERNS*6; if(state.kit===7)return PATTERNS*7; const g=selGroupId(); return g?groupBank(g):0; }   // Labs :: isolated banks, Sumad playground never touches the rest
 function patIdx(){ return state.curPattern%PATTERNS; }
 function syncPatternBank(){ const b=bankBase();
-  const inBank=state.curPattern-b;                                        // already inside the right bank? then keep the pattern you picked
-  if(inBank>=0&&inBank<PATTERNS&&state.patterns[state.curPattern])return;  // no jump while editing live
-  const want=b+((state.kit===6&&selGroupId())?groupEditOf(selGroupId()):patIdx());
+  const keep=((state.curPattern%PATTERNS)+PATTERNS)%PATTERNS;             // keep the pattern number you picked
+  const want=b+keep;
   if(want!==state.curPattern&&state.patterns[want]){ state.curPattern=want; state.page=0; } }
 function curPat(){return state.patterns[state.curPattern]||state.patterns[0];}
 function patOfVoice(vi){ if(state.kit===6){ const vo=state.kits[6][vi];
-    if(vo&&vo.group&&groupById(vo.group)){ const pp=state.patterns[groupBank(vo.group)+groupEditOf(vo.group)]; if(pp)return pp; } }
+    if(vo&&vo.group&&groupById(vo.group)){ const pp=state.patterns[groupBank(vo.group)+groupEditOf(vo.group)]; if(pp)return pp; }
+    const pn=((state.curPattern%PATTERNS)+PATTERNS)%PATTERNS; const p0=state.patterns[pn]; if(p0)return p0; }   // ungrouped :: bank 0
   return curPat(); }   // in VOID every row lives in its own group bank :: display and edit must follow the same pattern the scheduler plays
 function numSteps(){return curPat().bars*(curPat().length||STEPS_PER_BAR);}
 function numPages(){return curPat().bars;}
@@ -2135,7 +2150,9 @@ function groupEditOf(gid){ const m=state.groupEdit||{}; const i=m[gid]; return (
 function voicePatMap(){ if(state.kit!==6)return null; const out=new Array(VOICES).fill(null);
   state.kits[6].forEach((vo,i)=>{ if(!vo)return;
     if(vo.group&&groupById(vo.group)&&groupStopped(vo.group)){ out[i]=null; return; }   // stopped group :: nothing plays
-    const pi=(vo.group&&groupById(vo.group))?(groupBank(vo.group)+groupPatOf(vo.group)):state.curPattern; out[i]=state.patterns[pi]||state.patterns[state.curPattern]; });
+    const pn=((state.curPattern%PATTERNS)+PATTERNS)%PATTERNS;
+    const pi=(vo.group&&groupById(vo.group))?(groupBank(vo.group)+groupPatOf(vo.group)):pn;   // ungrouped slots live in bank 0, never in a group bank
+    out[i]=state.patterns[pi]||state.patterns[state.curPattern]; });
   return out; }   // VOID live :: every group can run its own pattern
 function applyGroupMute(gid,on){ const idx=groupVoiceIdx(gid); idx.forEach(i=>{ state.mute[i]=on; });
   document.querySelectorAll(".mute").forEach(b=>{ const v=+b.dataset.v; if(!isNaN(v))b.classList.toggle("on",!!state.mute[v]); });
@@ -2153,7 +2170,7 @@ function schedule(){
     curStep=(Math.floor(seqPos/LEN)*STEPS_PER_BAR)+(seqPos%LEN);   // loop pos -> 16-grid data index · bar kappt bei LENGTH
     const sw=(curStep%2===1)?sec16()*(state.swing/100)*0.66:0;
     const t=nextTime+sw,pat=curPat(),atFrame=Math.round(t*ac.sampleRate),cs=curStep;
-    if(curStep===0)applyPendingPats();   // queued group pattern changes land on the bar
+    if(curStep===0){ applyPendingPats(); applyPendingPattern(); }   // queued pattern + group changes land on the bar
     const vpm=voicePatMap();
     for(let v=0;v<VOICES;v++){
       if(state.mute[v])continue;
@@ -2760,29 +2777,39 @@ function copyPatternToVoid(){
   const pat=curPat();
   const used=[]; for(let i=0;i<nMax;i++){ const row=pat.steps[i]; if(row&&row.some(v=>v))used.push(i); }
   if(!used.length){ setStatus("no steps to copy"); return; }
-  const va=state.kits[6]; while(va.length<used.length){ va.push(new (va[0]?va[0].constructor:Object)()); }
-  if(engineNode)engineNode.port.postMessage({type:"voidSlots",n:Math.max(used.length,va.length)});
+  const va=state.kits[6];
+  let first=0; while(first<va.length&&va[first]&&va[first].srcKit!=null)first++;   // append after what is already there
+  const need=first+used.length;
+  const cap=(typeof VOID_MAX!=="undefined"?VOID_MAX:15);
+  if(need>cap){ setStatus("not enough free VOID slots ("+used.length+" needed)"); return; }
+  while(va.length<need){ va.push(va[0]?Object.create(Object.getPrototypeOf(va[0])):{}); const nv=va[va.length-1]; nv.name="SLOT "+va.length; nv.defs=[]; nv.vals={}; nv.fxMode="drive"; nv.mute=false; }
+  if(engineNode)engineNode.port.postMessage({type:"voidSlots",n:va.length});
   const saved=used.map(i=>({ steps:pat.steps[i]?pat.steps[i].slice():null, sub:pat.sub[i]?pat.sub[i].slice():null, locks:pat.locks[i]?JSON.parse(JSON.stringify(pat.locks[i])):null }));
   const srcVals=used.map(i=>Object.assign({},state.voices[i]?state.voices[i].vals:{}));
-  used.forEach((i,j)=>{ assignVoidSlot(j,src,i); const vo=state.kits[6][j]; if(vo&&srcVals[j]){ Object.assign(vo.vals,srcVals[j]); const ev=effVals(vo); for(const k in ev)sendParam(j,k,ev[k]); } });
+  used.forEach((i,j)=>{ const dst=first+j; assignVoidSlot(dst,src,i); const vo=state.kits[6][dst]; if(vo&&srcVals[j]){ Object.assign(vo.vals,srcVals[j]); const ev=effVals(vo); for(const k in ev)sendParam(dst,k,ev[k]); } });
   state.kit=6; state.selected=0;
   const g=newVoidGroup((KITS[src].name||"KIT")+" IMPORT");
   const gb=g?groupBank(g.id):0;
-  for(let j=0;j<used.length;j++){ const vo=state.kits[6][j]; if(vo&&g)vo.group=g.id;
+  for(let j=0;j<used.length;j++){ const dst=first+j; const vo=state.kits[6][dst]; if(vo&&g)vo.group=g.id;
     const b=state.patterns[gb]; const sv=saved[j];
-    if(b&&sv.steps){ b.steps[j]=sv.steps; b.sub[j]=sv.sub||new Array(MAX_STEPS).fill(1); b.locks[j]=sv.locks||{}; }   // STRAIGHT into its own bank
+    if(b&&sv.steps){ b.steps[dst]=sv.steps; b.sub[dst]=sv.sub||new Array(MAX_STEPS).fill(1); b.locks[dst]=sv.locks||{}; }   // straight into its own bank, at the slot we actually used
   }
   if(g){ const gm=groupModules(g.id);
     (state.master.modules||[]).forEach(mm=>{ if(!mm||mm.kind==="empty"||mm.kind==="dist"||mm.bypass)return;   // dist stays on the master sum; bypassed modules are not carried either
       const clone=JSON.parse(JSON.stringify(mm,(k,v)=>k==="_nodes"?undefined:v)); delete clone._nodes; gm.push(clone); }); }
-  if(g){ state.selSlots=new Set(); state.selected=0; }
+  if(g){ state.selSlots=new Set(); state.selected=first; }
   switchKit(6,true);
   if(g){ syncPatternBank(); refreshGroupRouting(); buildSeq(); buildEditor(); }
   commit();
   setStatus("PATTERN copied to VOID // "+used.length+" sounds grouped");
 }
-function assignVoidSlot(slot,sk,sv){ const src=KITS[sk].voices[sv]; const vo=state.kits[6][slot]; vo.name=src.name; vo.defs=src.defs; vo.fxMode=src.fxMode; vo.vals=Object.assign(Object.fromEntries(src.defs.map(x=>[x.key,x.def])),src.extra||{}); vo.srcKit=sk; vo.srcVoice=sv; if(engineNode)engineNode.port.postMessage({type:"assign",slot:slot,srcKit:sk,srcVoice:sv}); buildSeq(); buildEditor(); const ev=effVals(vo); for(const k in ev)sendParam(slot,k,ev[k]); commit(); }
-function openSoundPicker(slot){ closeSoundPicker(); const ov=document.createElement("div"); ov.id="soundPicker"; ov.className="sound-picker"; const cl=document.createElement("button"); cl.className="sp-close"; cl.textContent="\u00d7"; cl.onclick=closeSoundPicker; ov.append(cl); [1,0,4,2,5,7].forEach(k=>{ const h=document.createElement("div"); h.className="sp-head"; h.textContent=KITS[k].name; ov.append(h); const lim=(k===5||k===7)?2:9; KITS[k].voices.slice(0,lim).forEach((v,vi)=>{ const b=document.createElement("button"); b.className="sp-item"; b.textContent=v.name; b.onclick=()=>{ assignVoidSlot(slot,k,vi); closeSoundPicker(); }; ov.append(b); }); }); document.body.append(ov); }
+function assignVoidSlot(slot,sk,sv){ const src=KITS[sk].voices[sv]; const vo=state.kits[6][slot]; if(sk===3&&userSamples[sv])setTimeout(()=>sendSample(sv,6,slot),0);   // carry the audio into the VOID slot
+  vo.name=(sk===3?(state.kits[3][sv].name||src.name):src.name); vo.defs=src.defs; vo.fxMode=src.fxMode; vo.vals=Object.assign(Object.fromEntries(src.defs.map(x=>[x.key,x.def])),src.extra||{}); vo.srcKit=sk; vo.srcVoice=sv; if(engineNode)engineNode.port.postMessage({type:"assign",slot:slot,srcKit:sk,srcVoice:sv}); buildSeq(); buildEditor(); const ev=effVals(vo); for(const k in ev)sendParam(slot,k,ev[k]); commit(); }
+function openSoundPicker(slot){ closeSoundPicker(); const ov=document.createElement("div"); ov.id="soundPicker"; ov.className="sound-picker"; const cl=document.createElement("button"); cl.className="sp-close"; cl.textContent="\u00d7"; cl.onclick=closeSoundPicker; ov.append(cl); [1,0,4,2,3,5,7].forEach(k=>{ const lim=(k===5||k===7)?2:9;
+    const items=KITS[k].voices.slice(0,lim).map((v,vi)=>({v,vi})).filter(o=>k!==3||userSamples[o.vi]);   // SAMPLES :: only slots that actually hold audio
+    if(!items.length)return;
+    const h=document.createElement("div"); h.className="sp-head"; h.textContent=KITS[k].name; ov.append(h);
+    items.forEach(o=>{ const b=document.createElement("button"); b.className="sp-item"; b.textContent=(k===3?(state.kits[3][o.vi].name||("SLOT "+(o.vi+1))):o.v.name); b.onclick=()=>{ assignVoidSlot(slot,k,o.vi); closeSoundPicker(); }; ov.append(b); }); }); document.body.append(ov); }
 function buildEditor(){
   window.AUTO_KNOBS={};
   closeSlotMenu(); if(window.__menuOff)window.__menuOff();   // a menu must never outlive the knob it belongs to
@@ -2798,6 +2825,10 @@ function buildEditor(){
   if(state.kit===3){
     ed.ondragover=(e)=>{e.preventDefault();};
     ed.ondrop=(e)=>{e.preventDefault();const df=e.dataTransfer;if(df&&df.files&&df.files[0])loadSampleFile(df.files[0],state.selected);};
+  } else if(state.kit===6){                                   // VOID :: drop audio straight onto the selected slot
+    ed.ondragover=(e)=>{e.preventDefault();};
+    ed.ondrop=(e)=>{e.preventDefault();const df=e.dataTransfer;const f=df&&df.files&&df.files[0];
+      if(f&&!/\.brk$/i.test(f.name))loadSampleIntoVoid(f,state.selected);};
   } else { ed.ondragover=null; ed.ondrop=null; }
   if(state.kit===2||state.kit===3||state.kit===4){
     const tonalKit=(state.kit===2||state.kit===4);
@@ -3710,7 +3741,7 @@ function buildStrip(){
   const strip=document.getElementById("strip");strip.innerHTML="";
   const gp=document.createElement("div");gp.className="grp";
   const gpl=document.createElement("span");gpl.className="gl";gpl.textContent="PATTERN //";gpl.title="right-click :: copy this pattern + sounds into VOID";gpl.style.padding="4px 10px";gpl.style.margin="-4px -6px";gpl.style.cursor="context-menu";gpl.oncontextmenu=(e)=>{e.preventDefault();openKnobMenu(e.clientX,e.clientY,[{label:"COPY TO VOID",run:()=>copyPatternToVoid()}]);};gp.appendChild(gpl);
-  gp.id="patgrp";for(let i=0;i<PATTERNS;i++){const b=document.createElement("button");b.className="cell-btn pat";b.dataset.p=i;b.textContent=(i+1);b.onclick=()=>setPattern(i);gp.appendChild(b);}   // in VOID these address the selected group's own bank
+  gp.id="patgrp";for(let i=0;i<PATTERNS;i++){const b=document.createElement("button");b.className="cell-btn pat";b.dataset.p=i;b.textContent=(i+1);b.onclick=()=>queuePattern(i);gp.appendChild(b);}   // in VOID these address the selected group's own bank
   const gb=document.createElement("div");gb.className="grp";
   const gbl=document.createElement("span");gbl.className="gl";gbl.textContent="BARS //";gb.appendChild(gbl);
   [1,2,4].forEach(n=>{const b=document.createElement("button");b.className="cell-btn bar";b.dataset.b=n;b.textContent=n;b.onclick=()=>setBars(n);gb.appendChild(b);});
@@ -3729,6 +3760,8 @@ function buildStrip(){
   refreshStrip();
 }
 function refreshStrip(){
+  setTimeout(()=>{ const gp=document.getElementById("patgrp"); if(!gp)return;
+    [...gp.querySelectorAll(".pat")].forEach(b=>b.classList.toggle("queued",state.patPending!=null&&(+b.dataset.p)===state.patPending)); },0);
   { const gid=selGroupId(), base=bankBase(), cur=gid?groupEditOf(gid):patIdx(), g=gid?groupById(gid):null;
     const gp=document.getElementById("patgrp"); if(gp){ if(g){ gp.style.setProperty("--gc",g.color); gp.style.setProperty("--gc2",shade(g.color,-38)); gp.classList.add("grouped"); gp.title="patterns of group "+g.name; } else { gp.classList.remove("grouped"); gp.title=""; } }
     document.querySelectorAll(".pat").forEach(b=>{ const i=+b.dataset.p, pat=state.patterns[base+i];
@@ -3825,10 +3858,24 @@ function setPage(pg){
 function setBars(n){curPat().bars=n;if(state.page>=n)state.page=0;setPage(state.page);refreshStrip();setStatus("PTN "+(patIdx()+1)+" // "+n+" BAR"+(n>1?"S":""));commit();}
 const LEN_STEPS=[8,16];
 function setLength(n){n=LEN_STEPS.reduce((b,x)=>Math.abs(x-n)<Math.abs(b-n)?x:b,LEN_STEPS[0]);curPat().length=n;const el=document.getElementById("lenval");if(el)el.textContent=n;refreshStrip();setStatus("PTN "+(state.curPattern+1)+" // LEN "+n);commit();}
+function queuePattern(i){
+  const n=((i%PATTERNS)+PATTERNS)%PATTERNS;
+  if(!state.playing){ setPattern(n); return; }                 // stopped :: switch right away
+  if(state.patPending===n){ state.patPending=null; refreshStrip(); setStatus("PTN change cancelled"); return; }
+  state.patPending=n; refreshStrip();
+  setStatus("PTN "+(n+1)+" \u00b7 on the next bar");
+}
+function applyPendingPattern(){ if(state.patPending==null)return; const n=state.patPending; state.patPending=null; setPattern(n); }
 function setPattern(i){ const n=i%PATTERNS; const g=selGroupId();
-  if(g){ (state.groupEdit=state.groupEdit||{})[g]=n; (state.groupPat=state.groupPat||{})[g]=n; state.curPattern=groupBank(g)+n;
+  if(state.kit===6){   // VOID :: the pattern buttons move every group, so what you see is what plays
+    state.groupEdit=state.groupEdit||{}; state.groupPat=state.groupPat||{};
+    voidGroups().forEach(gr=>{ state.groupEdit[gr.id]=n; state.groupPat[gr.id]=n; if(state.groupPatPending)delete state.groupPatPending[gr.id]; });
+    state.curPattern=(g?groupBank(g):0)+n;
+    if(state.liveOpen)buildLiveScreen();
+  }
+  else if(g){ (state.groupEdit=state.groupEdit||{})[g]=n; (state.groupPat=state.groupPat||{})[g]=n; state.curPattern=groupBank(g)+n;
     if(state.groupPatPending)delete state.groupPatPending[g];
-    if(state.liveOpen)buildLiveScreen(); }   // editing a pattern also plays it :: VOID drives live, not the other way round
+    if(state.liveOpen)buildLiveScreen(); }
   else state.curPattern=n;
   state.page=0;setPage(0);refreshStrip();buildSeq();setStatus("PTN "+(n+1)+(g?(" // "+groupById(g).name):"")+" \u00b7 "+curPat().bars+" BAR"+(curPat().bars>1?"S":""));}
 
@@ -4026,14 +4073,34 @@ let clip=null;
 let stepClip=null;
 function copyStep(v,g){ const L=patLocks(curPat())[v], lk={}; for(const key in L){ if(L[key][g]!==undefined)lk[key]=L[key][g]; } stepClip={val:curPat().steps[v][g], sub:curPat().sub[v][g], locks:lk}; const nl=Object.keys(lk).length; setStatus("STEP copied"+(nl?" \u00b7 "+nl+" lock"+(nl>1?"s":""):"")); }
 function pasteStep(v,g){ if(!stepClip){setStatus("nothing to paste");return;} const cl=stepClip; curPat().steps[v][g]=cl.val; curPat().sub[v][g]=cl.val?cl.sub:1; const L=patLocks(curPat())[v]; for(const key in L){ if(L[key][g]!==undefined)removeLock(v,key,g); } for(const key in cl.locks)setLock(v,key,g,cl.locks[key]); const i=g-state.page*STEPS_PER_BAR; if(i>=0&&i<STEPS_PER_BAR){ const st=document.querySelector('.step[data-v="'+v+'"][data-i="'+i+'"]'); if(st){ drawStep(st,curPat().steps[v][g],curPat().sub[v][g]); drawStepLock(st,v,g); } } refreshStrip(); if(typeof commit==="function")commit(); setStatus("STEP pasted @ step "+(g+1)); }
+function _snapPat(p){ return {bars:p.bars,length:(p.length||STEPS_PER_BAR),steps:p.steps.map(r=>r.slice()),sub:p.sub.map(r=>r.slice()),locks:cloneLocks(p.locks),auto:cloneAuto(p.auto)}; }
+function _voidBanks(){ const out=[0]; voidGroups().forEach(g=>out.push(groupBank(g.id))); return out; }   // bank 0 = ungrouped, then one per group
 function copySel(){
   const p=curPat(),base=state.page*STEPS_PER_BAR,bs=[],bu=[];
   for(let v=0;v<VOICES;v++){bs.push(p.steps[v].slice(base,base+STEPS_PER_BAR));bu.push(p.sub[v].slice(base,base+STEPS_PER_BAR));}
-  clip={srcPat:state.curPattern,bar:{steps:bs,sub:bu},pattern:{bars:p.bars,length:(p.length||STEPS_PER_BAR),steps:p.steps.map(r=>r.slice()),sub:p.sub.map(r=>r.slice()),locks:cloneLocks(p.locks),auto:cloneAuto(p.auto)}};
-  setStatus("COPIED // PTN "+(patIdx()+1)+" · BAR "+(state.page+1));
+  clip={srcPat:state.curPattern,bar:{steps:bs,sub:bu},pattern:_snapPat(p)};
+  if(state.kit===6){   // VOID :: a pattern spans every bank, so copy them all
+    const n=((state.curPattern%PATTERNS)+PATTERNS)%PATTERNS;
+    clip.void={n:n,banks:{}};
+    _voidBanks().forEach(b=>{ const bp=state.patterns[b+n]; if(bp)clip.void.banks[b]=_snapPat(bp); });
+  }
+  setStatus("COPIED // PTN "+(patIdx()+1)+(state.kit===6?"":(" \u00b7 BAR "+(state.page+1))));
 }
 function pasteSel(){
   if(!clip)return; const p=curPat();
+  if(state.kit===6&&clip.void){   // VOID :: restore every bank into the pattern you are on
+    const n=((state.curPattern%PATTERNS)+PATTERNS)%PATTERNS;
+    if(n===clip.void.n){ setStatus("same pattern \u00b7 pick another slot first"); return; }
+    Object.keys(clip.void.banks).forEach(b=>{ const src=clip.void.banks[b], tgt=state.patterns[(+b)+n]; if(!tgt||!src)return;
+      tgt.bars=src.bars; tgt.length=src.length;
+      for(let v=0;v<VOICES;v++){ if(src.steps[v])tgt.steps[v]=src.steps[v].slice(); if(src.sub&&src.sub[v])tgt.sub[v]=src.sub[v].slice(); }
+      tgt.locks=cloneLocks(src.locks); tgt.auto=cloneAuto(src.auto);
+    });
+    if(state.page>=curPat().bars)state.page=0;
+    setPage(state.page); refreshStrip(); buildSeq(); commit();
+    setStatus("PASTED PATTERN "+(clip.void.n+1)+" \u2192 "+(n+1));
+    return;
+  }
   if(state.curPattern!==clip.srcPat){
     p.bars=clip.pattern.bars;p.length=clip.pattern.length||STEPS_PER_BAR;
     for(let v=0;v<VOICES;v++){p.steps[v]=clip.pattern.steps[v].slice();p.sub[v]=clip.pattern.sub[v].slice();}
@@ -4820,7 +4887,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=600","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=607","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
