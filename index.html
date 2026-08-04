@@ -655,7 +655,7 @@ html.live-on body>*:not(#liveScreen):not(#soundPicker):not(#slotmenu):not(#fxWin
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 607</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 612</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -1721,7 +1721,7 @@ registerProcessor("freeverb", Freeverb);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="607";
+const REV="612";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -1829,15 +1829,38 @@ async function restoreSamplesLocal(){ const db=await sdb(); if(!db)return;
       if(r&&r.data){ userSamples[slot]={data:new Float32Array(r.data),sr:r.sr,name:r.name}; state.kits[3][slot].name=r.vname||("SLOT "+(slot+1)); sendSample(slot); } res(); }; rq.onerror=()=>res(); }); }
     if(state.kit===3){ buildSeq(); buildEditor(); } }catch(e){} }
 function sendSample(v,tgtKit,tgtVoice){ if(!engineNode||!userSamples[v])return; const u=userSamples[v]; const copy=new Float32Array(u.data); engineNode.port.postMessage({type:"sample",kit:(tgtKit!=null?tgtKit:3),voice:(tgtVoice!=null?tgtVoice:v),sr:u.sr,data:copy},[copy.buffer]); }
+const voidSamples={};   // VOID slots keep their own audio, independent of the SAMPLES kit
+function detectLoopBPM(seconds){   // a cut loop spans a whole number of bars :: try the usual ones and keep the musical answer
+  let best=null;
+  for(const bars of [1,2,4,8,16]){
+    const bpm=(bars*4*60)/seconds;
+    if(bpm>=70&&bpm<=180){ const round=Math.abs(bpm-Math.round(bpm)); if(!best||round<best.round)best={bpm:bpm,bars:bars,round:round}; }
+  }
+  return best;   // {bpm, bars} or null when nothing musical fits
+}
 async function loadSampleIntoVoid(file,voidSlot){
   if(state.kit!==6)return;
-  let free=-1; for(let i=0;i<9;i++){ if(!userSamples[i]){ free=i; break; } }
-  if(free<0){ setStatus("no free sample slot \u00b7 clear one in SAMPLES"); return; }
-  await loadSampleFile(file,free);                     // the audio itself lives in the SAMPLES kit
-  if(!userSamples[free]){ return; }
-  assignVoidSlot(voidSlot,3,free);                     // point this VOID slot at it (carries the audio along)
-  buildSeq(); buildEditor(); commit();
-  setStatus("SLOT "+(voidSlot+1)+" \u00b7 "+(state.kits[3][free].name||"SAMPLE"));
+  try{ await ensureAudio(); }catch(e){ setStatus("AUDIO ENGINE needed for decode"); return; }
+  try{
+    const ab=await file.arrayBuffer();
+    const audio=await ac.decodeAudioData(ab);
+    const n=audio.length, ch=audio.numberOfChannels, mono=new Float32Array(n);
+    for(let c=0;c<ch;c++){ const dta=audio.getChannelData(c); for(let i=0;i<n;i++)mono[i]+=dta[i]/ch; }
+    const nm=(file.name||"SAMPLE").replace(/\.[^.]+$/,"").toUpperCase().slice(0,12)||"SAMPLE";
+    voidSamples[voidSlot]={data:mono,sr:audio.sampleRate,name:nm};
+    // build the slot as a sample voice, then push the audio straight into it
+    assignVoidSlot(voidSlot,3,0,true);                                   // build a sample voice, but do NOT pull kit-3 audio in
+    const vo=state.kits[6][voidSlot]; if(vo)vo.name=nm;
+    setTimeout(()=>{ if(engineNode){ const copy=new Float32Array(mono); engineNode.port.postMessage({type:"sample",kit:6,voice:voidSlot,sr:audio.sampleRate,data:copy},[copy.buffer]); } },0);
+    const secs=n/audio.sampleRate;
+    const det=(secs>0.8)?detectLoopBPM(secs):null;                       // only worth guessing on loop-length material
+    if(det&&vo){
+      const semis=12*Math.log2(state.bpm/det.bpm);                        // stretch it onto the project tempo via playback rate
+      if(isFinite(semis)&&Math.abs(semis)<=12){ vo.vals.pitch=semis; sendParam(voidSlot,"pitch",semis); }
+    }
+    buildSeq(); buildEditor(); commit();
+    setStatus("SLOT "+(voidSlot+1)+" \u00b7 "+nm+" \u00b7 "+secs.toFixed(1)+"s"+(det?(" \u00b7 "+Math.round(det.bpm)+" BPM \u2192 "+state.bpm):""));
+  }catch(e){ setStatus("DECODE failed :: "+(e&&e.message||"unsupported file")); }
 }
 async function loadSampleFile(file,slot){
   try{ await ensureAudio(); }catch(e){ setStatus("AUDIO ENGINE needed for decode"); return; }
@@ -1972,6 +1995,9 @@ function restore(snap){
   if(snap.voidGroups)state.voidGroups=JSON.parse(JSON.stringify(snap.voidGroups));
   if(snap.liveMacros)state.liveMacros=JSON.parse(JSON.stringify(snap.liveMacros));
   if(snap.groupPat)state.groupPat=JSON.parse(JSON.stringify(snap.groupPat));
+  if(snap.groupModules){ state.groupModules=JSON.parse(JSON.stringify(snap.groupModules)); }   // group fx are part of the undo history too
+  if(snap.groupFX){ state.groupFX=JSON.parse(JSON.stringify(snap.groupFX)); }
+  if(typeof refreshGroupRouting==="function"){ try{ refreshGroupRouting(); }catch(e){} }
   if(snap.groupEdit)state.groupEdit=JSON.parse(JSON.stringify(snap.groupEdit));
   if(snap.groupFX){ state.groupFX=JSON.parse(JSON.stringify(snap.groupFX)); for(const gid in state.groupFX)applyGroupFX(gid); }
   snap.kits.forEach((kit,ki)=>kit.forEach((vs,vi)=>{const vo=state.kits[ki]&&state.kits[ki][vi];if(vo){vo.vals=Object.assign({},vs.vals);vo.fxMode=vs.fxMode;vo.mute=vs.mute;if("group" in vs)vo.group=vs.group;}}));
@@ -2640,6 +2666,16 @@ function openFXWindow(gid,idx){ closeFXWindow(); const g=groupById(gid); if(!g)r
   const ctx={list:mods,rebuild:()=>{ buildLiveSide(); if(mods[idx])openFXWindow(gid,idx); else closeFXWindow(); }};
   body.appendChild(buildModule(mods[idx],idx,ctx));
   document.body.appendChild(ov); }
+function removeGroupModule(gid,idx){
+  const mods=groupModules(gid); const m=mods[idx]; if(!m)return;
+  const nn=m._nodes; if(nn){ [nn.input,nn.output,nn.dry,nn.wet,nn.fxOut].forEach(x=>{ if(x){ try{x.disconnect();}catch(e){} } }); }
+  mods.splice(idx,1);
+  closeFXWindow();
+  if(typeof refreshGroupRouting==="function")refreshGroupRouting();
+  const ov=document.getElementById("gfxEditor"); if(ov){ ov.remove(); openGroupFXEditor(gid); }   // rebuild the editor so the rack matches
+  commit();
+  setStatus("REMOVED "+m.kind.toUpperCase()+" \u00b7 "+(groupById(gid)?groupById(gid).name:""));
+}
 function openGroupFXEditor(gid){ const g=groupById(gid); if(!g)return;
   const ov=document.createElement("div"); ov.className="kbd-overlay"; ov.id="gfxEditor";
   const pop=document.createElement("div"); pop.className="kbd-pop mfx-pop"; pop.style.setProperty("--amber",g.color); pop.style.setProperty("--amber-glow",g.color+"66");
@@ -2657,7 +2693,11 @@ function openGroupFXEditor(gid){ const g=groupById(gid); if(!g)return;
   // fx rack
   const rack=document.createElement("div"); rack.className="mfx-hd"; rack.style.flexWrap="wrap"; rack.style.marginTop="10px";
   const rebuild=()=>{ rack.innerHTML="";
-    groupModules(gid).forEach((m,i)=>{ const b=document.createElement("button"); b.className="mfx-b snd"; b.textContent=(m.kind==="shaper"?shaperModel(m.stype||"snad").label:m.kind.toUpperCase()); b.onclick=()=>openFXWindow(gid,i); rack.appendChild(b); });
+    groupModules(gid).forEach((m,i)=>{ const b=document.createElement("button"); b.className="mfx-b snd"; b.textContent=(m.kind==="shaper"?shaperModel(m.stype||"snad").label:m.kind.toUpperCase());
+      b.title=(m.kind.toUpperCase())+" \u00b7 click to open \u00b7 right-click to remove";
+      b.onclick=()=>openFXWindow(gid,i);
+      b.oncontextmenu=(e)=>{ e.preventDefault(); openKnobMenu(e.clientX,e.clientY,[{label:"REMOVE "+m.kind.toUpperCase(),run:()=>removeGroupModule(gid,i)}]); };
+      rack.appendChild(b); });
     const ab=document.createElement("button"); ab.className="mfx-b"; ab.textContent="+ ADD FX"; ab.onclick=()=>{ openGroupFXPicker(gid); const iv=setInterval(()=>{ if(!document.getElementById("soundPicker")){ clearInterval(iv); rebuild(); } },200); }; rack.appendChild(ab);
   };
   rebuild(); pop.appendChild(rack);
@@ -2803,7 +2843,7 @@ function copyPatternToVoid(){
   commit();
   setStatus("PATTERN copied to VOID // "+used.length+" sounds grouped");
 }
-function assignVoidSlot(slot,sk,sv){ const src=KITS[sk].voices[sv]; const vo=state.kits[6][slot]; if(sk===3&&userSamples[sv])setTimeout(()=>sendSample(sv,6,slot),0);   // carry the audio into the VOID slot
+function assignVoidSlot(slot,sk,sv,noAudio){ const src=KITS[sk].voices[sv]; const vo=state.kits[6][slot]; if(sk===3&&userSamples[sv]&&!noAudio)setTimeout(()=>sendSample(sv,6,slot),0);   // carry the audio into the VOID slot
   vo.name=(sk===3?(state.kits[3][sv].name||src.name):src.name); vo.defs=src.defs; vo.fxMode=src.fxMode; vo.vals=Object.assign(Object.fromEntries(src.defs.map(x=>[x.key,x.def])),src.extra||{}); vo.srcKit=sk; vo.srcVoice=sv; if(engineNode)engineNode.port.postMessage({type:"assign",slot:slot,srcKit:sk,srcVoice:sv}); buildSeq(); buildEditor(); const ev=effVals(vo); for(const k in ev)sendParam(slot,k,ev[k]); commit(); }
 function openSoundPicker(slot){ closeSoundPicker(); const ov=document.createElement("div"); ov.id="soundPicker"; ov.className="sound-picker"; const cl=document.createElement("button"); cl.className="sp-close"; cl.textContent="\u00d7"; cl.onclick=closeSoundPicker; ov.append(cl); [1,0,4,2,3,5,7].forEach(k=>{ const lim=(k===5||k===7)?2:9;
     const items=KITS[k].voices.slice(0,lim).map((v,vi)=>({v,vi})).filter(o=>k!==3||userSamples[o.vi]);   // SAMPLES :: only slots that actually hold audio
@@ -4887,7 +4927,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=607","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=612","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
