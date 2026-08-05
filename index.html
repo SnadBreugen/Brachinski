@@ -658,7 +658,7 @@ html.live-on body>*:not(#liveScreen):not(#soundPicker):not(#slotmenu):not(#fxWin
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 626</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 628</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -1724,7 +1724,7 @@ registerProcessor("freeverb", Freeverb);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="626";
+const REV="628";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -1816,7 +1816,7 @@ KITRIMV[1]={name:"RIM B",defs:[d("tune",0.5,2,0.98,1,"TUNE"),d("decay",0.15,3,0.
 const KITVOIDV=[]; for(let _i=0;_i<9;_i++)KITVOIDV.push({name:"SLOT "+(_i+1),defs:[],empty:true});
 const KITS=[{name:"RAW",voices:KIT1V},{name:"PCKRT",voices:KIT2V},{name:"SUBS",voices:KIT3V},{name:"SAMPLES",voices:KIT4V},{name:"RESONANT",voices:KITPERCV},{name:"DRUM LAB",voices:KITLABV},{name:"VOID",voices:KITVOIDV},{name:"RIM LAB",voices:KITRIMV}];
 const KIT_ORDER=[1,0,4,2,3,6];   // display order (pos->internal index) :: samples stays internal 3, VOID appended
-const KITKEYS=["raw","pckrt","subs","samples","resonant"];   // internal index -> tutorial key
+const KITKEYS=["raw","pckrt","subs","samples","resonant","kicklab","void","rimlab"];   // internal index -> tutorial key
 const userSamples=Array(9).fill(null);   // {data:Float32Array, sr, name} · session store, re-sent to worklet on engine start
 // ---- local sample persistence (IndexedDB) ----
 let _sdb=null;
@@ -3760,7 +3760,7 @@ function buildKit(){
   const block=document.createElement("div");block.className="kit-block";
   const hd=document.createElement("div");hd.className="kit-hd";hd.textContent="DRUMKITS";hd.title=(window.TIP&&TIP.KIT)||"";block.appendChild(hd);
   const field=document.createElement("div");field.className="kit-field";
-  KIT_ORDER.forEach((ki,pos)=>{const b=document.createElement("button");b.className="cell-btn"+(ki===state.kit?" on":"");b.textContent=(pos+1);b.title=(window.TIP_KIT&&TIP_KIT[KITKEYS[ki]])||"";b.onclick=()=>switchKit(ki);field.appendChild(b);});
+  KIT_ORDER.forEach((ki,pos)=>{const b=document.createElement("button");b.className="cell-btn"+(ki===state.kit?" on":"");b.textContent=(pos+1);b.title=(window.TIP_KIT&&TIP_KIT[KITKEYS[ki]])||"";b.dataset.desc=b.title;b.onclick=()=>switchKit(ki);field.appendChild(b);});
   block.appendChild(field);host.appendChild(block);
   const disp=document.createElement("div");disp.className="kit-disp";
   const dl=document.createElement("span");dl.className="kit-disp-l";dl.textContent="KIT";
@@ -3769,7 +3769,7 @@ function buildKit(){
   const lab=document.createElement("div");lab.className="kit-block";
   const lhd=document.createElement("div");lhd.className="kit-hd";lhd.textContent="SUMAD\u0027S DRUM LAB";lhd.title="sound design by Sumad";lab.appendChild(lhd);
   const lfield=document.createElement("div");lfield.className="kit-field";lfield.style.flex="0 0 auto";
-  const kb=document.createElement("button");kb.className="cell-btn"+(state.kit===5?" on":"");kb.textContent="KICK";kb.title="Sumad\u0027s Kick Lab";kb.onclick=()=>switchKit(5);lfield.appendChild(kb);
+  const kb=document.createElement("button");kb.className="cell-btn"+(state.kit===5?" on":"");kb.textContent="KICK";kb.title="Sumad\u0027s Kick Lab"; kb.dataset.desc=(window.TIP_KIT&&TIP_KIT.kicklab)||kb.title;kb.onclick=()=>switchKit(5);lfield.appendChild(kb);
   const rb=document.createElement("button");rb.className="cell-btn"+(state.kit===7?" on":"");rb.textContent="RIMSHOT";rb.title="Sumad\u0027s 909 rimshot lab"; rb.dataset.desc=(window.TIP_KIT&&TIP_KIT.rimlab)||rb.title;rb.onclick=()=>switchKit(7);lfield.appendChild(rb);
   lab.appendChild(lfield);host.appendChild(lab);
 }   // LIVE island hidden while the live page is unfinished :: CTRL+SHIFT+L opens it
@@ -4930,7 +4930,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=626","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=628","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
@@ -5389,7 +5389,9 @@ function applyLang(l){ const pk=LANGPACK[l]||LANGPACK.en; state.lang=l;
   {  // the export controls carry their explanation on the element itself
     const map={uplink:"UPLINK",export:"EXPORT",looptest:"EXPORTWAV"};
     for(const id in map){ const el=document.getElementById(id); if(el&&TIP[map[id]])el.dataset.desc=TIP[map[id]]; }
-  } }
+  }
+  if(typeof buildKit==="function"){ try{ buildKit(); }catch(e){} }   // kit + lab buttons pick up their own descriptions
+  if(typeof showDeviceInfo==="function"){ try{ showDeviceInfo(); }catch(e){} } }
 applyLang((state&&state.lang)||"en");
 
 const featPanel=document.getElementById("featPanel"),featLines=document.getElementById("featLines"),featHover=document.getElementById("featHover");
