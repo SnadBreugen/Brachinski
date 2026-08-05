@@ -217,7 +217,8 @@ body{
 .mfx.add .mfx-add{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--dim);text-align:center}
 .mfx.add:hover{border-color:var(--amber)}
 .mfx.add:hover .mfx-add{color:var(--amber)}
-.kbd-overlay{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.65)}
+.kbd-overlay{position:fixed;inset:0;z-index:9500;   /* above the live screen, which sits at 9000 */
+  display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.65)}
 .rev-ov{position:fixed;inset:0;z-index:220;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.72)}
 .rev-panel{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1.5px solid var(--line-hi);border-radius:9px;padding:18px 18px 14px;width:min(440px,92vw);max-height:82vh;display:flex;flex-direction:column;gap:10px;box-shadow:0 12px 40px rgba(0,0,0,.6)}
 .rev-h{font-family:var(--pixel);font-size:16px;letter-spacing:2px;color:var(--amber);text-shadow:0 0 10px var(--amber-glow)}
@@ -438,18 +439,21 @@ html.inv .eyebrow span{color:rgba(34,16,0,.72)}
 html.inv .bars-ico i{background:#2a1400}
 html.inv .foot{color:rgba(34,16,0,.62)}
 html.inv .meter .ml{color:rgba(34,16,0,.62)}
-html.inv .chassis::before,html.inv .chassis::after{background:radial-gradient(circle at 35% 30%,#5a3000,#1f1000 70%)}
+html.inv .chassis::before,html.inv .chassis::after,html.inv .lv-bolt{background:radial-gradient(circle at 35% 30%,#5a3000,#1f1000 70%)}
+html.inv .lv-brand,html.inv .lv-lbl,html.inv .lv-val,html.inv .lv-pos,html.inv .lv-sclab{color:#2a1400}   /* these sit on the yellow chassis, not on a dark panel */
+html.inv .lv-brand span{color:rgba(34,16,0,.72)}
 html.inv .chassis::before{box-shadow:inset 0 -1px 2px rgba(0,0,0,.6),0 1px 1px rgba(0,0,0,.5),760px 0 0 0 #7a4400}
 html.inv .crt{background:radial-gradient(ellipse 88% 78% at center,transparent 74%,rgba(120,55,0,.12) 100%),repeating-linear-gradient(0deg,rgba(120,60,0,.025) 0 1px,transparent 1px 3px)}
-html.inv .chassis{box-shadow:0 0 0 1px rgba(150,80,0,.32),0 20px 50px rgba(0,0,0,.42),inset 0 2px 0 rgba(255,255,255,.38),inset 0 -2px 7px rgba(190,95,0,.16)}
+html.inv .chassis,html.inv .lv-case{box-shadow:0 0 0 1px rgba(150,80,0,.32),0 20px 50px rgba(0,0,0,.42),inset 0 2px 0 rgba(255,255,255,.38),inset 0 -2px 7px rgba(190,95,0,.16)}
 html.ghost{--dim:#d5e8dd;--dimmer:#a9c4b6;--amber:#35D592;--amber-deep:#1c9c68;--amber-glow:rgba(53,213,146,.55)}
 html.ghost .btn.play.on{background:linear-gradient(180deg,#6ee7b7,#22a06b);color:#03231a;border-color:var(--amber)}
 html.ghost .step.on{background:linear-gradient(180deg,#6ee7b7,#22a06b);border-color:#9df3d0}
 html.ghost .step.acc{background:linear-gradient(180deg,#fff,#6ee7b7);border-color:#fff}
 html.ghost .slider::-webkit-slider-thumb{background:linear-gradient(180deg,#6ee7b7,#22a06b)}
 html.ghost .cell-btn.on{color:#03231a}
-html.ghost .chassis{background:transparent;border-color:rgba(176,112,255,.45);box-shadow:0 0 0 1px rgba(176,112,255,.3)}
-html.ghost .chassis::before,html.ghost .chassis::after{opacity:.45}
+html.ghost .chassis,html.ghost .lv-case{background:transparent;border-color:rgba(176,112,255,.45);box-shadow:0 0 0 1px rgba(176,112,255,.3)}
+html.ghost .lv-case::before{opacity:0}   /* ghost keeps its open chassis :: that is where the movement is meant to show */
+html.ghost .chassis::before,html.ghost .chassis::after,html.ghost .lv-bolt{opacity:.45}
 #bgrefl{position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:0;border-radius:9px}
 html.skin-shadow #bgrefl{opacity:.4;mix-blend-mode:multiply}
 html.skin-invert{--amber:#CB99FF;--amber-deep:#9a5ce8;--amber-glow:rgba(203,153,255,.55)}
@@ -459,7 +463,7 @@ html.skin-invert .step.acc{background:linear-gradient(180deg,#fff,#ddbaff);borde
 html.skin-invert .slider::-webkit-slider-thumb{background:linear-gradient(180deg,#ddbaff,#a869f0)}
 html.skin-invert .cell-btn.on{color:#150322}
 html.skin-invert #bgrefl{opacity:.9;mix-blend-mode:difference}
-html.ghost .island{background:rgba(14,10,22,.34)}
+html.ghost .island{background:rgba(14,10,22,.34)}   /* live rows and side panel stay solid in every skin :: nothing moves behind the work surface */
 html.ghost .crt{opacity:.14}
 .step.play::after{content:"";position:absolute;inset:0;border-radius:3px;box-shadow:0 0 0 2px var(--signal),0 0 14px rgba(255,92,200,.6)}
 
@@ -467,43 +471,74 @@ html.ghost .crt{opacity:.14}
 .foot .rev{font-family:var(--pixel);font-size:16px;color:var(--amber);text-shadow:0 0 8px var(--amber-glow)}
 .hint{color:var(--dim);font-size:9px;letter-spacing:1px;padding:2px 12px 8px}
 html.live-on{overflow:hidden}
-html.live-on body>*:not(#liveScreen):not(#soundPicker):not(#slotmenu):not(#fxWindow){display:none!important}
+html.live-on body>*:not(#liveScreen):not(#soundPicker):not(#slotmenu):not(#fxWindow):not(#loopEditor):not(#gfxEditor):not(#livePatEd):not(.kbd-overlay){display:none!important}
 #liveScreen[hidden]{display:none!important}   /* author display:flex would otherwise beat the hidden attribute */
-#liveScreen{position:fixed;inset:0;z-index:9000;background:radial-gradient(1200px 700px at 50% -10%,#1a1030,#07060c 70%);display:flex;flex-direction:column;padding:16px 20px 20px;overflow:auto;font-family:var(--mono,inherit)}
+#liveScreen{position:fixed;inset:0;z-index:9000;background:radial-gradient(1100px 600px at 50% -5%,#1a0d2e 0%,transparent 60%),var(--bg);display:flex;flex-direction:column;padding:30px 34px 34px;overflow:auto;font-family:var(--mono,inherit)}
+#liveScreen>#bgfx{z-index:0}   /* window-sized canvas, stays fixed :: only the stacking order changes */
+.lv-case{position:relative;z-index:1;flex:1 0 auto;display:flex;flex-direction:column;padding:12px 14px 14px;border-radius:9px;background:transparent;border:1.5px solid var(--chassis-edge);box-shadow:0 0 0 1px #1a0c38,0 30px 80px rgba(0,0,0,.7),inset 0 2px 0 rgba(255,255,255,.14),inset 0 -4px 11px rgba(0,0,0,.52)}   /* same recipe as .chassis on the main page */
+.lv-case::before{content:"";position:absolute;inset:0;border-radius:9px;background:linear-gradient(165deg,var(--chassis1),var(--chassis2));opacity:.88;z-index:-1}   /* the case, with the background moving through it */
+.btn.livebtn{background:linear-gradient(180deg,var(--amber),var(--amber-deep));border-color:var(--amber);color:#180e00;font-weight:700;letter-spacing:3px;box-shadow:0 0 14px var(--amber-glow),inset 0 1px 0 rgba(255,255,255,.35)}
+.btn.livebtn:hover{filter:brightness(1.12)}
+.btn.livebtn[disabled]{background:linear-gradient(180deg,#241a35,#150e22);border-color:var(--line);color:var(--dimmer);font-weight:400;box-shadow:inset 0 1px 0 rgba(255,255,255,.06);cursor:not-allowed;opacity:.55}
+.lv-fxbar{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:12px;flex:0 0 auto}
+.lv-fxs{position:relative;display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:7px;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1.5px solid #050208;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),inset 0 0 0 1px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.5);overflow:hidden}
+.lv-fxs::after{content:"";position:absolute;inset:0;border-radius:7px;pointer-events:none;opacity:0;background:radial-gradient(120% 90% at 50% 120%,var(--fxc),transparent 70%);transition:opacity .18s}
+.lv-fxs.on::after{opacity:.22}
+.lv-fxs.on{border-color:var(--fxc)}
+.lv-fxk{width:80px;height:80px;flex:0 0 auto;cursor:ns-resize;touch-action:none;user-select:none}
+.lv-fxk .trk{fill:none;stroke:rgba(255,255,255,.09);stroke-width:7;stroke-linecap:round}
+.lv-fxk .val{fill:none;stroke:var(--fxc);stroke-width:7;stroke-linecap:round;filter:drop-shadow(0 0 5px var(--fxc));transition:stroke-dashoffset .05s}
+.lv-fxk .ndl{stroke:#fff;stroke-width:2.5;stroke-linecap:round;opacity:.9}
+.lv-fxk .det{stroke:rgba(255,255,255,.35);stroke-width:2}
+.lv-fxk.off .val{opacity:.28;filter:none}
+.lv-fxi{flex:1;min-width:0;display:flex;flex-direction:column;gap:7px}
+.lv-fxn{font-size:19px;letter-spacing:4px;font-weight:700;color:var(--fxc);text-shadow:0 0 12px var(--fxc)}
+.lv-fxs:not(.on) .lv-fxn{color:var(--dim);text-shadow:none}
+.lv-fxh{font-size:9px;line-height:1.35;letter-spacing:.5px;color:var(--dimmer);height:2.7em;overflow:hidden}
+.lv-fxb{position:relative;height:26px;border-radius:4px;border:1px solid var(--line);background:linear-gradient(180deg,#241a35,#150e22);color:var(--dim);font-family:inherit;font-size:10px;letter-spacing:3px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 2px 4px rgba(0,0,0,.4);transition:.1s}
+.lv-fxs.on .lv-fxb{background:linear-gradient(180deg,var(--fxc),rgba(0,0,0,.45));border-color:var(--fxc);color:#0a0710;font-weight:700;box-shadow:0 0 14px var(--fxc),inset 0 1px 0 rgba(255,255,255,.3)}
+.lv-fxv{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:9px;letter-spacing:1px;opacity:.75}
+.lv-bolt{position:absolute;width:9px;height:9px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#d9c3ff,#3a1f6e 70%);box-shadow:inset 0 -1px 2px rgba(0,0,0,.6),0 1px 1px rgba(0,0,0,.5)}
+.lv-bolt.tl{top:9px;left:9px}.lv-bolt.tr{top:9px;right:9px}.lv-bolt.bl{bottom:9px;left:9px}.lv-bolt.br{bottom:9px;right:9px}
 .lv-top{display:flex;align-items:center;gap:18px;padding-bottom:14px;border-bottom:1px solid var(--line)}
 .lv-brand{font-size:15px;letter-spacing:3px;font-weight:800;color:#fff}
 .lv-brand span{color:var(--amber);font-weight:400}
-.lv-tr{background:linear-gradient(180deg,#241a3c,#160f28);border:1px solid var(--line-hi);color:#fff;border-radius:6px;padding:9px 20px;font-family:inherit;font-size:12px;letter-spacing:2px;cursor:pointer}
-.lv-tr.on{background:linear-gradient(180deg,#ffc869,#d6891c);color:#1a1000;border-color:#ffd98a}
-.lv-exit{margin-left:auto;padding:9px 16px}
+.lv-tr{background:linear-gradient(180deg,#241a35,#150e22);border:1px solid var(--line);color:var(--ink);border-radius:4px;padding:9px 20px;font-family:inherit;font-size:12px;letter-spacing:2px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 2px 4px rgba(0,0,0,.4)}
+.lv-tr.on{background:linear-gradient(180deg,var(--amber),var(--amber-deep));color:#1a1000;border-color:var(--amber)}
+.lv-ctrl{margin-left:auto;display:flex;gap:8px;align-items:center}
+.lv-ctrl #ctrlbar{position:static;display:flex;gap:8px}   /* out of its fixed corner, into the row */
 .lv-bpm{display:flex;align-items:center;gap:9px}
 .lv-lbl{font-size:9px;letter-spacing:2px;color:var(--dim)}
 .lv-val{font-size:13px;color:var(--amber);min-width:34px}
 .lv-pos{font-size:13px;color:var(--amber);min-width:52px;letter-spacing:1px}
 .lv-body{display:flex;gap:18px;padding-top:16px;flex:1;min-height:0;align-items:stretch}
-.lv-groups{flex:1;display:grid;grid-template-rows:repeat(5,1fr);gap:12px;min-width:0;align-content:stretch}   /* always 5 slots high :: fewer groups just leave space empty */
-.lv-grow{min-height:0;display:flex;align-items:stretch;gap:16px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-left:6px solid var(--gc,var(--amber));border-radius:11px;padding:14px 16px;cursor:pointer}
-.lv-grow.sel{background:rgba(255,255,255,.07);border-color:var(--gc,var(--amber))}
-.lv-gname{min-width:150px;flex:0 0 auto;display:flex;flex-direction:column;justify-content:center;font-size:17px;letter-spacing:2px;font-weight:700;color:var(--gc,#fff)}
-.lv-gsub{font-size:10px;letter-spacing:1px;color:var(--dim);display:block;font-weight:400;margin-top:5px}
+.lv-groups{flex:1;display:flex;flex-direction:column;gap:12px;min-width:0;align-content:flex-start}   /* every row keeps its own height :: spare space stays at the bottom */
+.lv-grow{height:78px;min-height:78px;max-height:78px;box-sizing:border-box;display:flex;align-items:stretch;gap:16px;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1.5px solid #050208;border-left:6px solid var(--gc,var(--amber));border-radius:7px;padding:10px 16px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),inset 0 0 0 1px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.5)}   /* fixed :: rows must never resize with their content */
+.lv-grow.sel{border-color:var(--gc,var(--amber));box-shadow:inset 0 0 0 1px var(--gc,var(--amber)),inset 0 1px 0 rgba(255,255,255,.05),0 6px 18px rgba(0,0,0,.5)}
+.lv-gname{width:150px;min-width:150px;max-width:150px;overflow:hidden;flex:0 0 auto;display:flex;flex-direction:column;justify-content:center;font-size:17px;line-height:1.15;letter-spacing:2px;font-weight:700;color:var(--gc,#fff)}
+.lv-gsub{font-size:10px;line-height:1.2;letter-spacing:1px;color:var(--dim);display:block;font-weight:400;margin-top:3px}
 .lv-pads{flex:1;display:flex;gap:10px;min-width:0}
-.lv-pad{flex:1;min-width:0;height:auto;border-radius:9px;border:1px solid var(--line);background:linear-gradient(180deg,#1c1430,#120c22);color:var(--dim);font-family:inherit;font-size:20px;cursor:pointer;transition:.08s}
+.lv-pad{flex:1;min-width:0;height:auto;border-radius:3px;letter-spacing:1px;border:1px solid #4a3a6c;background:#100b1c;box-shadow:inset 0 2px 4px rgba(0,0,0,.7);color:var(--dim);font-family:inherit;font-size:20px;cursor:pointer;transition:.08s}
 .lv-pad:hover{border-color:var(--gc,var(--amber))}
 .lv-pad.on{background:linear-gradient(180deg,var(--gc,#ffc869),var(--gc2,#d6891c));color:#0b0b0f;border-color:var(--gc,#ffd98a);box-shadow:0 0 14px var(--gc2,rgba(255,180,61,.5))}
 .lv-pad.pend{animation:lvblink .45s steps(2,end) infinite;border-color:var(--gc,var(--amber))}
+.lv-pad.dragsrc{outline:2px dashed var(--amber);outline-offset:-3px}
+.lv-pad.dragtgt{box-shadow:inset 0 0 0 2px var(--amber),0 0 14px var(--amber-glow)}
 .lv-pad{position:relative}
 .lv-pad.filled{background:var(--gc2,#3a2a0c);border-color:var(--gc,var(--amber));color:rgba(255,255,255,.8)}   /* has content, not playing :: solid but dark */
-.lv-pad.hollow{background:transparent;border-style:dashed;border-color:rgba(255,255,255,.12);color:rgba(255,255,255,.18)}   /* empty :: outline only */
+.lv-pad.hollow{background:#0d0916;border-style:dashed;border-color:rgba(255,255,255,.12);color:rgba(255,255,255,.18)}   /* empty :: outline only */
 .lv-pad.on,.lv-pad.on.filled,.lv-pad.on.hollow{background:linear-gradient(180deg,var(--gc,#ffc869),var(--gc2,#d6891c));border-style:solid;border-color:var(--gc,#ffd98a);color:#0b0b0f;box-shadow:0 0 14px var(--gc2,rgba(255,180,61,.5))}   /* playing :: full colour */
 .lv-pad.hollow:hover{border-color:var(--gc,var(--amber));color:rgba(255,255,255,.45)}
 .lv-pad.hollow.on{background:transparent;border-style:solid;border-color:var(--gc,var(--amber));color:var(--gc,var(--amber));box-shadow:none}
 @keyframes lvblink{0%{opacity:1}50%{opacity:.35}100%{opacity:1}}
-.lv-gstate{flex:0 0 auto;align-self:center;min-width:74px;text-align:right;font-size:10px;letter-spacing:1px;color:var(--dim)}
+.lv-gstate{width:74px;min-width:74px;flex:0 0 auto;overflow:hidden;flex:0 0 auto;align-self:center;min-width:74px;text-align:right;font-size:10px;letter-spacing:1px;color:var(--dim)}
 .lv-grow.stopped{opacity:.55}
 .lv-gmute{flex:0 0 auto;align-self:stretch;background:transparent;border:1px solid var(--line);color:var(--dim);border-radius:7px;padding:0 18px;font-family:inherit;font-size:11px;letter-spacing:1px;cursor:pointer}
 .lv-gmute.on{background:#c0392b;color:#fff;border-color:#e35b4b}
 .lv-gmute.pend{animation:lvblink .45s steps(2,end) infinite;border-color:#e35b4b;color:#ffb3a8}
-.lv-side{width:400px;flex:0 0 auto;align-self:stretch;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:11px;padding:16px 18px;overflow:hidden}
+.lv-side{position:relative;width:400px;flex:0 0 auto;align-self:stretch;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1.5px solid #050208;border-radius:7px;padding:18px 16px 16px;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),inset 0 0 0 1px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.5)}
+.lv-side .screw{position:absolute;width:8px;height:8px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#4a3a66,#0c0814 70%);box-shadow:inset 0 -1px 1px rgba(0,0,0,.6),0 1px 1px rgba(0,0,0,.45)}
+.lv-side .screw.tl{top:8px;left:8px}.lv-side .screw.bl{bottom:8px;left:8px}.lv-side .screw.br{bottom:8px;right:8px}
 .lv-fxlist{display:flex;flex-direction:column;gap:8px}
 .lv-fxbtn{width:100%;padding:11px 0;border-radius:9px;border:1px solid var(--gc,var(--line));background:transparent;color:var(--gc,var(--amber));font-family:inherit;font-size:11px;letter-spacing:2px;cursor:pointer}
 .lv-fxbtn.add{border-style:dashed;color:var(--dim);border-color:var(--line)}
@@ -517,6 +552,31 @@ html.live-on body>*:not(#liveScreen):not(#soundPicker):not(#slotmenu):not(#fxWin
 .lv-sh{font-size:15px;letter-spacing:2px;font-weight:700;color:var(--gc,var(--amber));margin-bottom:14px}
 .lv-sec{font-size:9px;letter-spacing:2px;color:var(--dim);margin:14px 0 8px}
 .lv-knobs{display:flex;gap:16px;flex-wrap:wrap;min-height:93px;align-items:flex-start}
+.lv-loopbar{display:flex;gap:8px;padding:2px 0 6px}
+.lpe-grid{display:flex;flex-direction:column;gap:4px;margin-top:10px;max-height:56vh;overflow:auto}
+.lpe-row{display:flex;align-items:center;gap:8px}
+.lpe-name{width:120px;min-width:120px;font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--dim);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.lpe-cells{display:flex;gap:3px;flex:1}
+.lpe-step{flex:1;height:26px;min-width:0;border-radius:4px;border:1px solid var(--line);background:rgba(0,0,0,.35);cursor:pointer;transition:.08s}
+.lpe-step.beat{border-color:var(--line-hi)}
+.lpe-step.on{background:var(--amber);border-color:var(--amber)}
+.lpe-step.acc{background:#fff;border-color:#fff}
+.lpe-step:hover{border-color:var(--amber)}
+.lv-addtrack{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--dim);background:transparent;border:1px dashed var(--line-hi);border-radius:6px;padding:5px 12px;cursor:pointer;transition:.12s}
+.lv-addtrack:hover{color:var(--ink);border-color:var(--amber)}
+.lv-looprow{opacity:1}
+.lv-strip{display:flex;gap:14px;align-items:center;margin-left:14px;flex:0 0 auto;width:176px}
+
+.lv-fader{display:flex;flex-direction:column;align-items:center;gap:1px;width:74px;flex:0 0 auto}
+.lv-flab{font-family:var(--mono);font-size:8px;letter-spacing:1.5px;color:var(--dim)}
+.lv-frange{width:70px;accent-color:var(--gc,var(--amber))}
+.lv-fval{font-family:var(--mono);font-size:9px;color:var(--ink);height:1.1em;line-height:1.1em;overflow:hidden}
+.lv-scenes{display:flex;align-items:center;gap:6px;padding:8px 14px;border-bottom:1px solid var(--line)}
+.lv-sclab{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--dim);margin-right:6px}
+.lv-scene{width:34px;height:26px;border-radius:4px;border:1px solid var(--line-hi);background:rgba(0,0,0,.35);color:var(--dim);font-family:var(--mono);font-size:11px;cursor:pointer;transition:.12s}
+.lv-scene:hover{border-color:var(--amber);color:var(--ink)}
+.lv-scene.on{background:var(--amber);color:#12060a;border-color:var(--amber);box-shadow:0 0 12px var(--amber-glow)}
+.lv-scene.pend{border-color:var(--amber);animation:patq 1s steps(2) infinite}
 .lv-empty{font-size:10px;letter-spacing:1px;color:var(--dim);padding:8px 0}
 .live-grp{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-top:1px solid var(--line)}
 .live-grp:first-child{border-top:none}
@@ -592,6 +652,7 @@ html.live-on body>*:not(#liveScreen):not(#soundPicker):not(#slotmenu):not(#fxWin
     <span class="screw tl"></span><span class="screw bl"></span><span class="screw br"></span>
     <div class="transport" style="margin-bottom:14px">
       <button class="btn play" id="play">PLAY</button>
+      <button class="btn livebtn" id="liveBtn" title="live performance screen \u00b7 ctrl+shift+L">LIVE</button>
       <div class="field"><label>BPM</label><input class="slider" id="bpm" type="range" min="60" max="200" value="120"><span class="readout" id="bpmval">120</span></div>
       <div class="field"><label>SWING</label><input class="slider" id="swing" type="range" min="0" max="70" value="0"><span class="readout" id="swingval">0</span></div>
     </div>
@@ -609,16 +670,22 @@ html.live-on body>*:not(#liveScreen):not(#soundPicker):not(#slotmenu):not(#fxWin
   </div>
 
   <div id="liveScreen" hidden>
+    <div class="lv-case">
+    <span class="lv-bolt tl"></span><span class="lv-bolt tr"></span><span class="lv-bolt bl"></span><span class="lv-bolt br"></span>
     <div class="lv-top">
       <div class="lv-brand">BRACHINSKI <span>// LIVE</span></div>
       <button class="lv-tr" id="lvPlay">PLAY</button>
+      <button class="lv-tr" id="lvExit">STUDIO</button>
       <div class="lv-bpm"><span class="lv-lbl">BPM</span><input type="range" id="lvBpm" class="slider" min="60" max="200" step="1"><span id="lvBpmV" class="lv-val">120</span></div>
       <div class="lv-pos" id="lvPos">1.1</div>
-      <button class="lv-tr lv-exit" id="lvExit">EXIT</button>
+      <div class="lv-ctrl" id="lvCtrl"></div>
     </div>
+    <div class="lv-scenes" id="lvScenes"></div>
     <div class="lv-body">
       <div class="lv-groups" id="lvGroups"></div>
-      <div class="lv-side" id="lvSide"></div>
+      <div class="lv-side" id="lvSide"><span class="screw tl"></span><span class="screw bl"></span><span class="screw br"></span></div>
+    </div>
+    <div class="lv-fxbar" id="lvFxBar"></div>
     </div>
   </div>
 
@@ -658,7 +725,7 @@ html.live-on body>*:not(#liveScreen):not(#soundPicker):not(#slotmenu):not(#fxWin
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 628</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 679</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -1717,6 +1784,34 @@ class Freeverb extends AudioWorkletProcessor{
 }
 registerProcessor("freeverb", Freeverb);
 
+class CrushFX extends AudioWorkletProcessor{   // sample rate reduction :: hold a sample for a while, quantise it while you are at it
+  static get parameterDescriptors(){ return [
+    {name:"rate",defaultValue:1,minValue:0.0004,maxValue:1,automationRate:"k-rate"},
+    {name:"bits",defaultValue:16,minValue:1,maxValue:16,automationRate:"k-rate"} ]; }
+  constructor(){ super(); this.ph=[0,0]; this.hold=[0,0]; }
+  process(inputs,outputs,p){
+    const i=inputs[0], o=outputs[0]; if(!o||!o.length)return true;
+    const rate=Math.max(0.0004,Math.min(1,p.rate[0]));
+    const bits=Math.max(1,Math.min(16,p.bits[0]));
+    const half=Math.pow(2,bits-1);   // mid tread :: zero has to land on a step, or every low bit setting adds dc
+    for(let c=0;c<o.length;c++){
+      const src=(i&&i[c])?i[c]:((i&&i[0])?i[0]:null), dst=o[c];
+      let ph=this.ph[c]||0, h=this.hold[c]||0;
+      for(let n=0;n<dst.length;n++){
+        ph+=rate;
+        if(ph>=1){ ph-=1; const x=src?src[n]:0;
+          h=Math.max(-1,Math.min(1,Math.round(x*half)/half)); }   // grab and quantise at the same instant, then sit on it
+        dst[n]=h;
+      }
+      this.ph[c]=ph; this.hold[c]=h;
+    }
+    return true;
+  }
+}
+registerProcessor("crush-fx", CrushFX);
+
+
+
 </script>
 
 <script>
@@ -1724,7 +1819,7 @@ registerProcessor("freeverb", Freeverb);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="628";
+const REV="679";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -1913,7 +2008,17 @@ function soundMenu(x,y,vi){ closeSlotMenu(); const m=document.createElement("div
   if(state.kit===6){
     mk("LOAD SAMPLE", ()=>{ const inp=document.createElement("input"); inp.type="file"; inp.accept="audio/*";
       inp.onchange=()=>{ if(inp.files&&inp.files[0])loadSampleIntoVoid(inp.files[0],vi); }; inp.click(); });
-    const vo=state.kits[6][vi]; if(vo&&vo.group&&groupById(vo.group)){ mk("GROUP FX", ()=>openGroupFXEditor(vo.group)); } }
+    const vo=state.kits[6][vi];
+    const gs=voidGroups();
+    if(vo&&vo.group&&groupById(vo.group)){
+      mk("GROUP FX", ()=>openGroupFXEditor(vo.group));
+      mk("REMOVE FROM GROUP", ()=>ungroupSlot(vi));
+    }
+    if(vo&&vo.srcKit!=null){
+      const others=gs.filter(g=>g.id!==vo.group);
+      if(others.length)others.forEach(g=>mk("ADD TO "+g.name, ()=>addSlotToGroup(vi,g.id)));
+      mk("NEW GROUP FROM THIS", ()=>newGroupFromSlot(vi));
+    } }
   document.body.appendChild(m); const r=m.getBoundingClientRect(); m.style.left=Math.min(x,innerWidth-r.width-6)+"px"; m.style.top=Math.min(y,innerHeight-r.height-6)+"px";
   menuGuard(m,closeSlotMenu); }
 function slotMenu(x,y,slot){ closeSlotMenu(); const m=document.createElement("div"); m.className="slotmenu"; m.id="slotmenu"; const has=!!userSamples[slot];
@@ -1984,6 +2089,7 @@ function snapshot(){
     groupEdit: JSON.parse(JSON.stringify(state.groupEdit||{})),
     groupFX: JSON.parse(JSON.stringify(state.groupFX||{})),
     groupModules: JSON.parse(JSON.stringify(state.groupModules||{},(k,v)=>k==="_nodes"?undefined:v)),
+    liveFx: JSON.parse(JSON.stringify(state.liveFx||{},(k,v)=>k==="_nodes"?undefined:v)),
     kits: state.kits.map(kit=>kit.map(vo=>({vals:Object.assign({},vo.vals),fxMode:vo.fxMode,mute:vo.mute,group:vo.group||null}))),
     patterns: state.patterns.map(p=>({bars:p.bars,length:(p.length||STEPS_PER_BAR),steps:p.steps.map(r=>r.slice()),sub:p.sub.map(r=>r.slice()),locks:cloneLocks(p.locks),auto:cloneAuto(p.auto)}))
   };
@@ -2170,7 +2276,7 @@ function meterLoop(){
 
 // ---- scheduler (sample-accurate via worklet event queue) ----
 let curStep=0,nextTime=0,timer=null,absStep=0,loop0Time=0,seqPos=0;
-const LOOK=0.025,AHEAD=0.12,playQ=[];
+const LOOK=0.025,AHEAD=0.22,playQ=[];   // 0.12 was barely one sixteenth at 120 bpm :: one late timer tick and the grid collapsed
 function sec16(){return (60/state.bpm)/4;}
 function rollSub(r){ if(!r||r<0.02)return 1; const i=Math.round(r*3); return [1,2,4,8][i<0?0:(i>3?3:i)]; }   // RATE/ROLL :: powers of 2 :: 1/16, 1/32, 1/64, 1/128
 function groupPatOf(gid){ const m=state.groupPat||{}; const i=m[gid]; return (i===undefined)?0:i; }   // what the group PLAYS :: null means stopped
@@ -2194,12 +2300,16 @@ function applyPendingPats(){ let any=false;
   if(any&&state.liveOpen&&typeof buildLiveScreen==="function")buildLiveScreen(); }
 function schedule(){
   const N=numSteps();
+  if(nextTime<ac.currentTime){                                  // a timer tick came late :: rejoin the grid, never dump the backlog at once
+    const step=sec16(), miss=Math.ceil((ac.currentTime-nextTime)/step);
+    nextTime+=miss*step; seqPos=(seqPos+miss)%N; absStep+=miss;
+  }
   while(nextTime<ac.currentTime+AHEAD){
     const LEN=curPat().length||STEPS_PER_BAR;
     curStep=(Math.floor(seqPos/LEN)*STEPS_PER_BAR)+(seqPos%LEN);   // loop pos -> 16-grid data index · bar kappt bei LENGTH
     const sw=(curStep%2===1)?sec16()*(state.swing/100)*0.66:0;
     const t=nextTime+sw,pat=curPat(),atFrame=Math.round(t*ac.sampleRate),cs=curStep;
-    if(curStep===0){ applyPendingPats(); applyPendingPattern(); }   // queued pattern + group changes land on the bar
+    if(curStep===0){ applyPendingPats(); applyPendingPattern(); if(typeof loopApplyPending==="function")loopApplyPending(t); }   // queued pattern + group changes land on the bar
     const vpm=voicePatMap();
     for(let v=0;v<VOICES;v++){
       if(state.mute[v])continue;
@@ -2245,10 +2355,19 @@ async function startSeq(){
   const pb=document.getElementById("play");pb.classList.add("on");pb.textContent="STOP";
   document.getElementById("status").classList.add("run");
   setStatus("RUN // PTN "+(patIdx()+1)+" · "+state.bpm+" BPM");
+  if(typeof loopState!=="undefined"){   // pick the loops back up where the transport left them
+    loopState.tracks.forEach((tr,ti)=>{ if(tr.armed!=null&&tr.slots[tr.armed])loopStart(ti,tr.armed,nextTime); });
+    if(state.liveOpen&&typeof buildLiveScreen==="function")buildLiveScreen();
+  }
   schedule();paint();glitchClearAll();
 }
 function stopSeq(){
   state.playing=false;clearTimeout(timer);timer=null;playQ.length=0;
+  if(typeof loopState!=="undefined"){   // loop tracks follow the transport, exactly like the patterns do
+    loopState.tracks.forEach((tr,ti)=>{ tr.armed=(tr.cur>=0?tr.cur:null); tr.pending=null; loopStop(ti); });
+    state.groupPatPending={}; state.groupMutePending={};   // groups drop their queue on STOP too, same as the loop tracks
+    if(state.liveOpen&&typeof buildLiveScreen==="function")buildLiveScreen();
+  }
   if(engineNode)engineNode.port.postMessage({type:"reset"});
   glitchClearAll();
   const pb=document.getElementById("play");pb.classList.remove("on");pb.textContent="PLAY";
@@ -2436,7 +2555,7 @@ const PARAM_GROUPS=[   // grouped detail params live behind a button + popup :: 
 ];
 document.addEventListener("keydown",(e)=>{ if(e.key==="Escape"&&document.getElementById("fxWindow")){ closeFXWindow(); return; }
   if(e.key==="Escape"&&state.liveOpen){ closeLive(); return; }
-  if((e.ctrlKey||e.metaKey)&&e.shiftKey&&(e.key==="L"||e.key==="l")){ e.preventDefault(); if(state.kit!==6)switchKit(6); openLive(); return; }   // hidden entry while the live page is still work in progress if(state.kit!==6)return; const t=e.target; if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"))return;
+  if((e.ctrlKey||e.metaKey)&&e.shiftKey&&(e.key==="L"||e.key==="l")){ e.preventDefault(); enterLive(); return; }   // same path as the LIVE button if(state.kit!==6)return; const t=e.target; if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"))return;
   if((e.ctrlKey||e.metaKey)&&(e.key==="g"||e.key==="G")){ e.preventDefault(); if(e.shiftKey)ungroupSelection(); else groupSelection(); } });   // ctrl+G groups the selected VOID slots
 function groupOfKey(k){for(const g of PARAM_GROUPS)if(g.keys.indexOf(k)>=0)return g;return null;}
 function knobColor(k){ const g=groupOfKey(k); if(g){ const m={FM:"#3f9fe0",NOISE:"#5ac85a",WAVE:"#2fd0c0",TRANS:"#a06cff",EQ:"#e070c8",OSC:"#ffab3d"}; if(m[g.label])return m[g.label]; }
@@ -2574,28 +2693,637 @@ function seedVoid(force){
   if(typeof refreshGroupRouting==="function")refreshGroupRouting();
   buildSeq(); buildEditor(); refreshStrip();
 }
+function paintLiveBtn(){ const b=document.getElementById("liveBtn"); if(!b)return;
+  const inVoid=(state.kit===6);
+  b.disabled=!inVoid;                                   // live builds on VOID groups and loop tracks, so it only opens from there
+  b.title=inVoid?"live performance screen \u00b7 ctrl+shift+L":"switch to VOID first \u00b7 live plays what you assembled there"; }
+function enterLive(){
+  if(state.kit!==6){ setStatus("// LIVE \u00b7 switch to VOID first \u00b7 that is what live plays"); return; }
+  const gs=(typeof voidGroups==="function")?voidGroups():[];
+  if(!gs.length){ setStatus("// LIVE \u00b7 nothing to play yet \u00b7 collect sounds in VOID, select them with shift and press CTRL+G to make a group"); }
+  openLive();
+}
 function openLive(){ const el=document.getElementById("liveScreen"); if(!el)return;
   if(el.parentNode!==document.body)document.body.appendChild(el);   // out of the device stacking context, otherwise the fixed side panels sit on top
+  const bx=document.getElementById("bgfx"); if(bx)el.insertBefore(bx,el.firstChild);   // first child :: it paints behind the case
+  const cb=document.getElementById("ctrlbar"), ch=document.getElementById("lvCtrl"); if(cb&&ch)ch.appendChild(cb);   // one set of buttons, moved not copied
+  if(ac){ ensureLiveBus(); wireLiveBus(); refreshGroupRouting(); loopState.tracks.forEach((tr,ti)=>{ if(tr.shNode)loopRewire(ti); }); }
   state.liveOpen=true; document.documentElement.classList.add("live-on"); el.hidden=false;
   if(!state.liveSel&&voidGroups().length)state.liveSel=voidGroups()[0].id;
   const bp=document.getElementById("lvBpm"); if(bp){ bp.value=state.bpm; document.getElementById("lvBpmV").textContent=state.bpm;
-    bp.oninput=()=>{ state.bpm=+bp.value; document.getElementById("lvBpmV").textContent=state.bpm; const m=document.getElementById("bpm"); if(m)m.value=state.bpm; const mv=document.getElementById("bpmval"); if(mv)mv.textContent=state.bpm; }; }
+    bp.oninput=()=>{ state.bpm=+bp.value; document.getElementById("lvBpmV").textContent=state.bpm; const m=document.getElementById("bpm"); if(m)m.value=state.bpm; const mv=document.getElementById("bpmval"); if(mv)mv.textContent=state.bpm; loopSyncRates(); if(typeof updateDelayTimes==="function")updateDelayTimes(); }; }
   const pl=document.getElementById("lvPlay"); if(pl)pl.onclick=async()=>{ if(state.playing)stopSeq(); else await startSeq(); buildLiveScreen(); };
   const ex=document.getElementById("lvExit"); if(ex)ex.onclick=closeLive;
   buildLiveScreen(); }
-function closeLive(){ state.liveOpen=false; document.documentElement.classList.remove("live-on"); const el=document.getElementById("liveScreen"); if(el)el.hidden=true; }
+function closeLive(){ state.liveOpen=false; document.documentElement.classList.remove("live-on");
+  const bx=document.getElementById("bgfx"); if(bx)document.body.insertBefore(bx,document.body.firstChild);
+  const cb=document.getElementById("ctrlbar"); if(cb)document.body.appendChild(cb);   // hand both back to the studio
+  const el=document.getElementById("liveScreen"); if(el)el.hidden=true; }
 function groupPatHasContent(gid,n){ const pat=state.patterns[groupBank(gid)+n]; if(!pat)return false;
   return groupVoiceIdx(gid).some(vi=>pat.steps[vi]&&pat.steps[vi].some(x=>x>0)); }   // only the group\u0027s own rows count
 function queueGroupPat(gid,pi){ const pend=(state.groupPatPending=state.groupPatPending||{});
   if(!state.playing){ (state.groupPat=state.groupPat||{})[gid]=pi; }   // live only moves playback :: the VOID editor stays where you left it
   else pend[gid]=(pi===null?"stop":pi);
   buildLiveScreen(); }
-function buildLiveScreen(){ if(!state.liveOpen)return;
+
+/* ---- LIVE LOOP TRACKS :: four tracks, several loops each, running in sync ---- */
+const LOOPMAX=4, LOOPSLOTS=8;
+const PATLETTER="ABCDEFGH";   // live thinks in letters, and the keyboard rows map straight onto them
+const ROWLETTER="ABCDEFGH";   // each row gets its own letter, so a pad reads A1, B3 · unique across the screen
+function rowTag(idx){ return ROWLETTER[idx]||String.fromCharCode(65+idx); }
+const loopState={tracks:[],shown:1};
+function loopTrack(i){ const t=loopState.tracks;
+  while(t.length<=i&&t.length<LOOPMAX)t.push({slots:new Array(LOOPSLOTS).fill(null),cur:-1,pending:null,gain:1,filt:0,drive:0,node:null,src:null,filtNode:null,gainNode:null,shNode:null});
+  return t[i]||t[0]; }
+function loopEnsureChain(tr){
+  if(!ac)return null;
+  if(!tr.gainNode){   // build the nodes only :: loopRewire owns every connection, so effects never get bypassed
+    tr.gainNode=ac.createGain(); tr.gainNode.gain.value=tr.gain;
+    tr.sendNode=ac.createGain(); tr.sendNode.gain.value=1;      // send bus, like a group has
+    tr.shNode=ac.createWaveShaper(); tr.shNode.curve=makeDriveCurve(tr.drive||0); tr.shNode.oversample="2x";
+    tr.filtNode=ac.createBiquadFilter(); tr.filtNode.type="lowpass"; tr.filtNode.frequency.value=20000;
+    tr.filtNode.connect(tr.shNode);
+    const ti=loopState.tracks.indexOf(tr);
+    loopRewire(ti>=0?ti:0);
+  }
+  return tr.filtNode;
+}
+function loopModules(ti){ const tr=loopTrack(ti); if(!tr.fx)tr.fx=[]; return tr.fx; }
+function loopRewire(ti){
+  const tr=loopState.tracks[ti]; if(!ac||!tr||!tr.shNode)return;
+  const mods=loopModules(ti);
+  mods.forEach(m=>{ if(!m._nodes)buildModuleNodes(m); const n=m._nodes; if(!n)return;
+    [n.input,n.output,n.dry,n.wet,n.fxOut].forEach(x=>{ if(x){try{x.disconnect();}catch(e){}} }); });
+  try{ tr.shNode.disconnect(); }catch(e){}     // everything downstream of the shaper is rebuilt from scratch
+  try{ tr.gainNode.disconnect(); }catch(e){}
+  try{ if(tr.sendNode)tr.sendNode.disconnect(); }catch(e){}
+  const tgt=liveBusIn()||ac.destination;
+  const tail=chainModules(mods,tr.shNode,tr.sendNode||tr.gainNode);   // sends land on the track bus, not straight at the output
+  tail.connect(tr.gainNode);
+  if(tr.sendNode)tr.sendNode.connect(tr.gainNode);
+  tr.gainNode.connect(tgt);
+}
+function addLoopModule(ti,kind){
+  const mods=loopModules(ti);
+  const m=newModule(kind);                        // same factory the groups use :: carries every default, so no parameter ends up NaN
+  mods.push(m);
+  const wire=()=>{ if(!ac)return; const tr=loopTrack(ti); loopEnsureChain(tr); if(!m._nodes)buildModuleNodes(m); loopRewire(ti); };
+  if(ac)wire(); else { try{ ensureAudio().then(wire).catch(wire); }catch(e){} }
+  buildLiveScreen(); if(state.liveOpen)openFXWindow("loop"+ti,mods.length-1);   // opens straight away, like a group effect does
+  if(typeof commit==="function")commit();
+  setStatus("LOOP "+(ti+1)+" \u00b7 "+kind.toUpperCase()+" added");
+}
+function removeLoopModule(ti,idx){
+  const mods=loopModules(ti); const m=mods[idx]; if(!m)return;
+  const n=m._nodes; if(n){ [n.input,n.output,n.dry,n.wet,n.fxOut].forEach(x=>{ if(x){try{x.disconnect();}catch(e){}} }); }
+  mods.splice(idx,1); closeFXWindow(); loopRewire(ti); buildLiveScreen(); commit();
+  setStatus("LOOP "+(ti+1)+" \u00b7 "+m.kind.toUpperCase()+" removed");
+}
+function openLoopFXPicker(ti){
+  closeSoundPicker(); const ov=document.createElement("div"); ov.id="soundPicker"; ov.className="sound-picker";
+  const cl=document.createElement("button"); cl.className="sp-close"; cl.textContent="\u00d7"; cl.onclick=closeSoundPicker; ov.append(cl);
+  const hd=document.createElement("div"); hd.className="sp-head"; hd.textContent="ADD FX // LOOP "+(ti+1); ov.append(hd);
+  GROUP_EFFECT_LIST.forEach(e=>{ const b=document.createElement("button"); b.className="sp-item"; b.textContent=e.label;
+    b.onclick=()=>{ addLoopModule(ti,e.kind); closeSoundPicker(); }; ov.append(b); });
+  document.body.append(ov);
+}
+function loopApply(ti){
+  const tr=loopTrack(ti); if(!tr.gainNode)return;
+  tr.gainNode.gain.value=tr.gain;
+  if(tr.shNode)tr.shNode.curve=makeDriveCurve(tr.drive||0);
+  const f=tr.filt||0;
+  if(f>0.01){ tr.filtNode.type="highpass"; tr.filtNode.frequency.value=20*Math.pow(1200,f); }
+  else if(f<-0.01){ tr.filtNode.type="lowpass"; tr.filtNode.frequency.value=20000*Math.pow(0.0055,-f); }
+  else { tr.filtNode.type="lowpass"; tr.filtNode.frequency.value=20000; }
+}
+function loopStop(ti){
+  const tr=loopTrack(ti);
+  if(tr.src){ try{tr.src.stop();}catch(e){} try{tr.src.disconnect();}catch(e){} tr.src=null; }
+  tr.cur=-1;
+}
+function loopRate(sl){ if(!sl)return 1;
+  if(sl.bpm)return (state.bpm||120)/sl.bpm;                  // detector knew the source tempo
+  if(sl.baseBpm)return (sl.rate||1)*(state.bpm||120)/sl.baseBpm;   // it did not :: scale from whatever the project ran at on import
+  return (sl.rate||1); }
+function loopStampBase(sl){ if(sl&&!sl.bpm&&!sl.baseBpm)sl.baseBpm=(state.bpm||120); return sl; }   // older slots and files get their anchor the first time they are touched
+function loopSyncRates(){ if(!ac||typeof loopState==="undefined")return;
+  if(state.playing)loopState.resync=true;   // rate is right at once, the grid is right on the next bar
+  loopState.tracks.forEach(tr=>{ if(!tr||!tr.src||tr.cur<0)return; const sl=loopStampBase(tr.slots[tr.cur]); if(!sl)return;
+    try{ tr.src.playbackRate.setTargetAtTime(loopRate(sl),ac.currentTime,0.02); }catch(e){ tr.src.playbackRate.value=loopRate(sl); } }); }
+function loopStart(ti,si,when,inPlace){
+  const tr=loopTrack(ti), sl=loopStampBase(tr.slots[si]);
+  if(!ac||!sl||!sl.buf)return;
+  loopStop(ti);
+  const dest=loopEnsureChain(tr); if(!dest)return;
+  const src=ac.createBufferSource();
+  src.buffer=sl.buf;
+  const dur=sl.buf.duration;
+  const a=Math.max(0,Math.min(1,sl.start!=null?sl.start:0))*dur;
+  const b=Math.max(0,Math.min(1,sl.end!=null?sl.end:1))*dur;
+  const lo=Math.min(a,b), hi=Math.max(a,b), len=Math.max(0.01,hi-lo);
+  src.loop=(sl.oneshot?false:true);
+  if(src.loop){ src.loopStart=lo; src.loopEnd=hi; }
+  src.playbackRate.value=loopRate(sl);   // tempo only :: PITCH is baked into the buffer
+  src.connect(dest);
+  const t0=(when!=null?when:ac.currentTime);
+  let off=lo;
+  if(inPlace&&!sl.oneshot&&loop0Time!=null&&state.playing){
+    const played=Math.max(0,(t0-loop0Time))*src.playbackRate.value;   // where the loop would be if it had never been restarted
+    off=lo+(played%len);
+  }
+  if(sl.oneshot){ src.start(t0,lo,len); src.onended=()=>{ if(tr.src===src){tr.src=null;tr.cur=-1;buildLiveScreen();} }; }
+  else src.start(t0,off);
+  tr.src=src; tr.cur=si;
+  loopApply(ti);
+}
+function loopQueue(ti,si){
+  const tr=loopTrack(ti);
+  if(si===null){ if(!state.playing){ tr.armed=null; tr.cur=-1; loopStop(ti); buildLiveScreen(); return; } tr.pending="stop"; buildLiveScreen(); return; }
+  if(!tr.slots[si]||!tr.slots[si].buf)return;
+  if(!state.playing){ tr.armed=si; tr.cur=si; buildLiveScreen(); return; }   // stopped :: arm it, PLAY brings it in on the beat
+  tr.pending=si; buildLiveScreen();
+}
+function loopApplyPending(when){       // called on the bar, like the group patterns
+  let any=false;
+  if(loopState.resync){ loopState.resync=false;
+    loopState.tracks.forEach((tr,ti)=>{ if(tr&&tr.src&&tr.cur>=0&&tr.pending==null)loopStart(ti,tr.cur,when,true); }); }   // restart in place :: carry on where the loop would have been, never from the top
+  loopState.tracks.forEach((tr,ti)=>{
+    if(tr.pending==null)return;
+    const p=tr.pending; tr.pending=null; any=true;
+    if(p==="stop")loopStop(ti); else loopStart(ti,p,when);
+  });
+  if(any&&state.liveOpen&&typeof buildLiveScreen==="function")buildLiveScreen();   // repaint like the groups do, or the pad keeps blinking
+}
+async function loopLoadFile(file,ti,si){
+  try{ await ensureAudio(); }catch(e){}                       // the engine is nice to have, but a loop only needs a context
+  if(!ac){ try{ ac=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ setStatus("no audio context"); return; } }
+  if(ac.state==="suspended"){ try{ await ac.resume(); }catch(e){} }
+  try{
+    const ab=await file.arrayBuffer();
+    const audio=await ac.decodeAudioData(ab);
+    const secs=audio.duration;
+    const det=(secs>0.8&&typeof detectLoopBPM==="function")?detectLoopBPM(secs):null;
+    const rate=det?(state.bpm/det.bpm):1;                  // play it at the project tempo
+    const nm=(file.name||"LOOP").replace(/\.[^.]+$/,"").toUpperCase().slice(0,14)||"LOOP";
+    const tr=loopTrack(ti);
+    tr.slots[si]={buf:audio,name:nm,bpm:det?Math.round(det.bpm):null,rate:rate,secs:secs,baseBpm:state.bpm};
+    buildLiveScreen(); if(typeof commit==="function")commit();
+    setStatus("LOOP "+(ti+1)+"."+(si+1)+" \u00b7 "+nm+(det?(" \u00b7 "+Math.round(det.bpm)+" BPM \u2192 "+state.bpm):(" \u00b7 "+secs.toFixed(1)+"s")));
+  }catch(e){ setStatus("DECODE failed :: "+(e&&e.message||"unsupported file")); }
+}
+function loopPickFile(ti,si){
+  const inp=document.createElement("input"); inp.type="file"; inp.accept="audio/*";
+  inp.onchange=()=>{ if(inp.files&&inp.files[0])loopLoadFile(inp.files[0],ti,si); };
+  inp.click();
+}
+function loopClearSlot(ti,si){
+  const tr=loopTrack(ti);
+  if(tr.cur===si)loopStop(ti);
+  tr.slots[si]=null; buildLiveScreen(); if(typeof commit==="function")commit();
+}
+function loopSlices(sl,res){   // the DRECKSLER way :: slice length comes from the tempo, so every cut lands on a beat
+  if(!sl||!sl.buf)return [];
+  const bpm=sl.bpm||state.bpm||120;
+  const sd=(60/bpm)*res;                       // seconds per slice
+  const dur=sl.buf.duration;
+  const n=Math.max(1,Math.floor(dur/sd+0.001));
+  const out=[];
+  for(let i=0;i<n;i++)out.push({t0:Math.max(0,Math.min(dur-sd,i*sd)),dur:sd});
+  return out;
+}
+function loopSliceTo(ti,si,idx,res){   // play exactly one slice of the loop
+  const tr=loopTrack(ti), sl=tr.slots[si]; if(!sl||!sl.buf)return;
+  const sl2=loopSlices(sl,res); const s2=sl2[idx]; if(!s2)return;
+  const dur=sl.buf.duration;
+  sl.start=s2.t0/dur; sl.end=(s2.t0+s2.dur)/dur;
+  sl.sliceRes=res; sl.sliceIdx=idx;
+  if(tr.cur===si){ if(state.playing&&state.liveOpen)tr.pending=si; else { tr.pending=null; loopStart(ti,si); } }
+  buildLiveScreen(); if(typeof commit==="function")commit();
+  const lab=(res===2?"1/2 bar":res===1?"1 beat":res===0.5?"1/8":"1/16");
+  setStatus("SLICE "+(idx+1)+"/"+sl2.length+" \u00b7 "+lab);
+}
+function pitchShiftBuffer(buf,semis){   // WSOLA :: moves the pitch, keeps the length and the timing
+  if(!ac||!semis)return buf;
+  const ratio=Math.pow(2,semis/12);
+  const sr=buf.sampleRate, ch=buf.numberOfChannels, n=buf.length;
+  let grain=Math.min(Math.round(sr*0.045),Math.floor(n/6));
+  if(n<1024||grain<128)return buf;
+  grain-=grain&1;
+  const out=ac.createBuffer(ch,n,sr);
+  const hop=grain>>1;
+  const seek=Math.min(Math.round(sr*0.010),hop>>1);
+  const win=new Float32Array(grain);
+  for(let i=0;i<grain;i++)win[i]=0.5-0.5*Math.cos(2*Math.PI*i/(grain-1));
+  const chans=[],dsts=[];
+  for(let c=0;c<ch;c++){ chans.push(buf.getChannelData(c)); dsts.push(out.getChannelData(c)); }
+  const src0=chans[0];
+  const rd=(a,p)=>{ const i0=p|0; if(i0<0||i0+1>=n)return 0; const fr=p-i0; return a[i0]*(1-fr)+a[i0+1]*fr; };
+
+  // --- find the attacks, so the grid can be re-laid on top of them ---
+  const B=128, nb=Math.floor(n/B), env=new Float32Array(nb);
+  for(let b=0;b<nb;b++){ let s=0; for(let i=0;i<B;i++){ const x=src0[b*B+i]; s+=x*x; } env[b]=Math.sqrt(s/B); }
+  let peak=0; for(let b=0;b<nb;b++)if(env[b]>peak)peak=env[b];
+  const floor=peak*0.06, minGap=Math.round(sr*0.030), hits=[];
+  let lastHit=-1e9;
+  for(let b=1;b<nb;b++){
+    if(env[b]>floor && env[b]>env[b-1]*2.2 && b*B-lastHit>minGap){
+      let mx=0; for(let i=0;i<B;i++){ const a=Math.abs(src0[b*B+i]); if(a>mx)mx=a; }
+      let p=b*B; for(let i=0;i<B;i++)if(Math.abs(src0[b*B+i])>mx*0.35){ p=b*B+i; break; }
+      hits.push(p); lastHit=p;
+    }
+  }
+
+  const norm=new Float32Array(n);
+  const wipe=Math.min(hop,Math.round(sr*0.002));
+  let hi=0, o=0, haveTail=false;
+  const tail=new Float32Array(hop);
+  while(o+grain<=n){
+    let onset=(o===0);
+    if(!onset){ while(hi<hits.length&&hits[hi]<o)hi++; if(hi<hits.length&&hits[hi]===o)onset=true; }
+    let pos=o;
+    if(onset){
+      for(let i=0;i<grain&&o+i<n;i++){   // clear whatever bled past this attack
+        const f=i<wipe?1-i/wipe:0;
+        for(let c=0;c<ch;c++)dsts[c][o+i]*=f;
+        norm[o+i]*=f;
+      }
+    }else if(haveTail&&seek>0){
+      const scan=(a,b,st,dec)=>{ let best=-1e30,bo=a;
+        for(let off=a;off<=b;off+=st){ const p=o+off; if(p<0)continue;
+          let num=0,den=1e-9;
+          for(let i=0;i<hop;i+=dec){ const s=rd(src0,p+i*ratio); num+=s*tail[i]; den+=s*s; }
+          const sc=num/Math.sqrt(den); if(sc>best){ best=sc; bo=off; } }
+        return bo; };
+      const c=scan(-seek,seek,4,4);
+      pos=Math.max(0,o+scan(Math.max(-seek,c-4),Math.min(seek,c+4),1,2));
+    }
+    let lim=n, prev=0;   // never read across the next attack :: that is where pre-echo comes from
+    { let j=0; while(j<hits.length&&hits[j]<=pos)j++; if(j<hits.length)lim=hits[j]; if(j>0)prev=hits[j-1]; }
+    if(!onset&&pos+grain*ratio>lim)pos=Math.max(prev,Math.min(pos,lim-grain*ratio));   // slide back instead of running dry
+    const ramp=Math.max(1,Math.round(sr*0.002*ratio)), rs=lim-ramp;
+    for(let i=0;i<grain;i++){
+      const w=(onset&&i<hop)?1:win[i];   // an attack goes in flat, never faded
+      const p=pos+i*ratio;
+      const g=p<rs?w:(p<lim?w*(lim-p)/ramp:0);
+      if(g)for(let c=0;c<ch;c++)dsts[c][o+i]+=rd(chans[c],p)*g;
+      norm[o+i]+=g;
+    }
+    for(let i=0;i<hop;i++){ const p=pos+(hop+i)*ratio; tail[i]=p<lim?rd(src0,p):0; }
+    haveTail=true;
+    let nx=o+hop;
+    while(hi<hits.length&&hits[hi]<=o)hi++;
+    if(hi<hits.length&&hits[hi]<nx&&hits[hi]>o)nx=hits[hi];   // land exactly on the next attack
+    o=nx;
+  }
+  for(let i=0;i<n;i++){ const g=norm[i]>0.02?1/Math.max(norm[i],0.4):0;
+    for(let c=0;c<ch;c++)dsts[c][i]*=g; }
+  return out;
+}
+
+function applyLoopPitch(ti,si,semis){
+  const tr=loopTrack(ti), sl=tr.slots[si]; if(!sl)return;
+  if(!sl.rawBuf)sl.rawBuf=sl.buf;
+  sl.pitch=semis;
+  try{ sl.buf=semis?pitchShiftBuffer(sl.rawBuf,semis):sl.rawBuf; }catch(e){ sl.buf=sl.rawBuf; }
+  if(tr.cur===si){ if(state.playing&&state.liveOpen)tr.pending=si; else { tr.pending=null; loopStart(ti,si); } }
+  buildLiveScreen(); if(typeof commit==="function")commit();
+  setStatus("PITCH "+(semis>0?"+":"")+(+semis).toFixed(1)+" \u00b7 tempo unchanged");
+}
+function copyLoopSlot(ti,si){   // duplicate this loop onto the next free pad
+  const tr=loopTrack(ti), sl=tr.slots[si]; if(!sl)return;
+  const free=tr.slots.findIndex(x=>!x);
+  if(free<0){ setStatus("no free pad on this track"); return; }
+  tr.slots[free]=Object.assign({},sl);
+  buildLiveScreen(); if(typeof commit==="function")commit();
+  setStatus("COPIED \u2192 pad "+(PATLETTER[free]||(free+1)));
+}
+
+function openLoopEditor(ti,si){
+  const tr=loopTrack(ti), sl=tr.slots[si]; if(!sl)return;
+  const old=document.getElementById("loopEditor"); if(old)old.remove();
+  const ov=document.createElement("div"); ov.className="kbd-overlay"; ov.id="loopEditor";
+  const pop=document.createElement("div"); pop.className="kbd-pop mfx-pop";
+  const title=document.createElement("div"); title.className="kbd-title";
+  const tl=document.createElement("span"); tl.textContent="// LOOP "+(ti+1)+"."+(si+1)+" \u00b7 "+sl.name;
+  const close=document.createElement("button"); close.className="mfx-b"; close.textContent="\u2715 CLOSE"; close.onclick=()=>ov.remove();
+  title.append(tl,close); pop.appendChild(title);
+
+  const restart=()=>{ if(tr.cur===si){ if(state.playing&&state.liveOpen)tr.pending=si; else { tr.pending=null; loopStart(ti,si); } } };   // takes effect on the bar while running
+
+  // mode row
+  const row=document.createElement("div"); row.className="mfx-hd"; row.style.flexWrap="wrap";
+  const mode=document.createElement("button"); mode.className="mfx-b"+(sl.oneshot?"":" snd");
+  const paintMode=()=>{ mode.textContent=sl.oneshot?"ONE-SHOT":"LOOP"; mode.className="mfx-b"+(sl.oneshot?"":" snd"); };
+  paintMode();
+  mode.title="LOOP repeats forever \u00b7 ONE-SHOT plays once and stops (crashes, risers)";
+  mode.onclick=()=>{ sl.oneshot=!sl.oneshot; paintMode();
+    if(tr.cur===si){ loopStop(ti); if(!sl.oneshot||state.playing)loopStart(ti,si); }   // the loop flag lives on the source, so it has to be rebuilt
+    buildLiveScreen(); commit(); };
+  const rev=document.createElement("button"); rev.className="mfx-b"+(sl.reversed?" snd":"");
+  rev.textContent="REVERSE";
+  rev.onclick=()=>{
+    try{ const b=sl.buf, nb=ac.createBuffer(b.numberOfChannels,b.length,b.sampleRate);
+      for(let c=0;c<b.numberOfChannels;c++){ const src=b.getChannelData(c), dst=nb.getChannelData(c);
+        for(let i=0,n=b.length;i<n;i++)dst[i]=src[n-1-i]; }
+      sl.buf=nb; sl.reversed=!sl.reversed; rev.className="mfx-b"+(sl.reversed?" snd":"");
+      restart(); commit(); setStatus("REVERSED \u00b7 "+sl.name);
+    }catch(e){ setStatus("reverse failed"); }
+  };
+  const del=document.createElement("button"); del.className="mfx-b"; del.textContent="\u2715 CLEAR SLOT";
+  del.onclick=()=>{ loopClearSlot(ti,si); ov.remove(); };
+  const cpy=document.createElement("button"); cpy.className="mfx-b"; cpy.textContent="COPY TO PAD";
+  cpy.title="put a copy on the next free pad";
+  cpy.onclick=()=>{ copyLoopSlot(ti,si); };
+  row.append(mode,rev,cpy,del); pop.appendChild(row);
+
+  {   // slice picker :: coarse first (bars), then fine inside the chosen bar · never more than a handful of boxes
+    const bpm=sl.bpm||state.bpm||120, barSec=(60/bpm)*4, dur=sl.buf.duration;   // grid is in source time :: playback rate does the rest
+    const nBars=Math.max(1,Math.round(dur/barSec));
+    let selBar=(sl.selBar!=null?sl.selBar:null);      // null = whole loop
+    let curRes=sl.sliceRes||1;
+
+    const coarseRow=document.createElement("div"); coarseRow.className="mfx-hd"; coarseRow.style.marginTop="10px";
+    const cl2=document.createElement("span"); cl2.className="mfx-grp on"; cl2.textContent="BAR"; coarseRow.appendChild(cl2);
+    const fineRow=document.createElement("div"); fineRow.className="mfx-hd"; fineRow.style.marginTop="8px";
+    const fl=document.createElement("span"); fl.className="mfx-grp on"; fl.textContent="INSIDE"; fineRow.appendChild(fl);
+    const padHost=document.createElement("div"); padHost.className="lpe-cells"; padHost.style.flexWrap="wrap"; padHost.style.marginTop="8px";
+
+    const applyRange=(t0,len)=>{ sl.start=t0/dur; sl.end=(t0+len)/dur;
+      if(tr.cur===si){ if(state.playing&&state.liveOpen)tr.pending=si; else { tr.pending=null; loopStart(ti,si); } }
+      buildLiveScreen(); if(typeof commit==="function")commit(); };
+
+    const drawCoarse=()=>{
+      [...coarseRow.querySelectorAll("button")].forEach(b=>b.remove());
+      const full=document.createElement("button"); full.className="mfx-b"+(selBar===null?" snd":"");
+      full.textContent="FULL"; full.title="the whole loop";
+      full.onclick=()=>{ selBar=null; sl.selBar=null; sl.sliceIdx=null; applyRange(0,dur); drawCoarse(); drawFine(); };
+      coarseRow.appendChild(full);
+      for(let b=0;b<nBars;b++){
+        const btn=document.createElement("button"); btn.className="mfx-b"+(selBar===b?" snd":"");
+        btn.textContent=(b+1); btn.title="bar "+(b+1)+" of "+nBars;
+        btn.onclick=()=>{ selBar=b; sl.selBar=b; sl.sliceIdx=null; applyRange(b*barSec,Math.min(barSec,dur-b*barSec)); drawCoarse(); drawFine(); };
+        coarseRow.appendChild(btn);
+      }
+      if(nBars>1){
+        const half=document.createElement("button"); half.className="mfx-b";
+        half.textContent="1ST HALF"; half.title="the first half of the loop";
+        half.onclick=()=>{ selBar=null; sl.selBar=null; applyRange(0,dur/2); drawCoarse(); drawFine(); };
+        const half2=document.createElement("button"); half2.className="mfx-b";
+        half2.textContent="2ND HALF"; half2.title="the second half of the loop";
+        half2.onclick=()=>{ selBar=null; sl.selBar=null; applyRange(dur/2,dur/2); drawCoarse(); drawFine(); };
+        coarseRow.append(half,half2);
+      }
+    };
+
+    const drawFine=()=>{
+      [...fineRow.querySelectorAll("button")].forEach(b=>b.remove());
+      padHost.innerHTML="";
+      if(selBar===null){ const e=document.createElement("div"); e.className="hint";
+        e.textContent="pick a bar above to slice inside it"; padHost.appendChild(e); return; }
+      const RES=[[1,"BEAT"],[0.5,"1/8"],[0.25,"1/16"]];
+      RES.forEach(([r,l])=>{ const b=document.createElement("button"); b.className="mfx-b"+(curRes===r?" snd":"");
+        b.textContent=l; b.onclick=()=>{ curRes=r; sl.sliceRes=r; drawFine(); }; fineRow.appendChild(b); });
+      const t0=selBar*barSec, len=Math.min(barSec,dur-t0);
+      const sd=(60/bpm)*curRes, n=Math.max(1,Math.round(len/sd));
+      for(let idx=0;idx<n;idx++){
+        const b=document.createElement("button");
+        b.className="lpe-step"+((sl.sliceIdx===idx)?" on":"")+((idx%Math.max(1,Math.round(1/curRes))===0)?" beat":"");
+        b.style.flex="0 0 auto"; b.style.width="38px";
+        b.textContent=(idx+1);
+        b.title=(t0+idx*sd).toFixed(2)+"s \u00b7 "+sd.toFixed(2)+"s";
+        b.onclick=()=>{ sl.sliceIdx=idx; applyRange(t0+idx*sd,sd); drawFine(); };
+        padHost.appendChild(b);
+      }
+    };
+
+    drawCoarse(); drawFine();
+    pop.append(coarseRow,fineRow,padHost);
+  }
+
+  // knobs
+  const kc=document.createElement("div"); kc.className="mfx-knobs mfx-pop-knobs"; pop.appendChild(kc);
+  const K=(key,label,min,max,def,step)=>{
+    kc.appendChild(makeKnob({key:"__lp"+key,label:label,min:min,max:max,def:def},
+      ()=>(sl[key]!=null?sl[key]:def),
+      (v)=>{ sl[key]=v; if(key==="start"||key==="end")restart(); else if(tr.src&&tr.cur===si&&key==="pitch"){ tr.src.playbackRate.value=loopRate(sl)*Math.pow(2,v/12); } },
+      null,false));
+  };
+  if(sl.oneshot){   // trimming only matters for a one-shot :: a loop is shaped with SPLIT
+    K("start","START",0,1,0);
+    K("end","END",0,1,1);
+  }
+  {   // PITCH shifts the sound without touching the speed :: the buffer is recalculated when you let go
+    const pk=makeKnob({key:"__lppitch",label:"PITCH",min:-12,max:12,def:0},
+      ()=>(sl.pitch||0), (v)=>{ sl.pitch=v; }, null, false);
+    kc.appendChild(pk);
+    pk.addEventListener("pointerup",()=>{ applyLoopPitch(ti,si,sl.pitch||0); });
+  }
+  pop.appendChild(kc);
+
+  const hint=document.createElement("div"); hint.className="hint";
+  hint.textContent="START and END trim the loop \u00b7 changes land on the next bar while it runs. PITCH also changes speed, like a record.";
+  pop.appendChild(hint);
+
+  ov.appendChild(pop); ov.onclick=(e)=>{ if(e.target===ov)ov.remove(); };
+  document.body.appendChild(ov);
+}
+function buildLiveLoops(){
+  const host=document.getElementById("lvGroups"); if(!host)return;   // same list as the groups, so they line up
+  for(let ti=0;ti<loopState.shown;ti++){
+    const tr=loopTrack(ti);
+    const anyLoaded=tr.slots.some(x=>x);
+    const lid="loop"+ti;
+    const ltag=rowTag(voidGroups().length+ti);
+    const row=document.createElement("div"); row.className="lv-grow lv-looprow"+(anyLoaded?"":" stopped")+(state.liveSel===lid?" sel":"");
+    row.onclick=()=>{ state.liveSel=lid; buildLiveScreen(); };   // dim only while the track is truly empty
+    row.style.setProperty("--gc","#8ab4ff"); row.style.setProperty("--gc2",shade("#8ab4ff",-38));
+    const n=document.createElement("div"); n.className="lv-gname";
+    const cur=tr.cur>=0?tr.slots[tr.cur]:null;
+    const filled=tr.slots.filter(x=>x).length;
+    const sub=cur?cur.name:(filled?(filled+" loaded"):"empty \u00b7 click a pad");
+    n.innerHTML="LOOP "+(ti+1)+"<span class=\"lv-gsub\">"+sub+"</span>";
+    row.appendChild(n);
+    const pads=document.createElement("div"); pads.className="lv-pads";
+    for(let si=0;si<LOOPSLOTS;si++){
+      const sl=tr.slots[si];
+      const b=document.createElement("button");
+      b.className="lv-pad"+(tr.cur===si?" on":"")+((state.playing&&tr.pending===si&&tr.cur!==si)?" pend":"")+(sl?" filled":" hollow");   // blink only while a change is still waiting for the bar
+      b.textContent=ltag+(si+1);
+      b.title=sl?(sl.name+(sl.bpm?(" \u00b7 "+sl.bpm+" BPM"):"")+(sl.oneshot?" \u00b7 one-shot":"")+" \u00b7 click to play, right-click to edit"):"empty \u00b7 click to load a loop";
+      b.onclick=(e)=>{ e.stopPropagation(); if(!sl){ loopPickFile(ti,si); return; } loopQueue(ti,(tr.cur===si)?null:si); };
+      b.oncontextmenu=(e)=>{ e.preventDefault(); e.stopPropagation(); if(sl)openLoopEditor(ti,si); };
+      pads.appendChild(b);
+    }
+    row.appendChild(pads);
+    {  const strip=document.createElement("div"); strip.className="lv-strip";
+       const mk=(key,label,min,max,fmt)=>{
+         const w=document.createElement("div"); w.className="lv-fader";
+         const l=document.createElement("div"); l.className="lv-flab"; l.textContent=label;
+         const r=document.createElement("input"); r.type="range"; r.className="lv-frange"; r.min=min; r.max=max; r.step=0.01; r.value=tr[key];
+         const v=document.createElement("div"); v.className="lv-fval"; v.textContent=fmt(tr[key]);
+         r.oninput=()=>{ tr[key]=+r.value; v.textContent=fmt(tr[key]); loopApply(ti); };
+         r.onchange=()=>{ if(typeof commit==="function")commit(); };
+         r.oncontextmenu=(e)=>{ e.preventDefault(); tr[key]=(key==="gain")?1:0; r.value=tr[key]; v.textContent=fmt(tr[key]); loopApply(ti); };
+         w.append(l,r,v); strip.appendChild(w);
+       };
+       mk("gain","VOL",0,1.5,(x)=>Math.round(x*100));
+       mk("filt","FILT",-1,1,(x)=>Math.abs(x)<0.01?"\u2013":(x>0?"HP "+Math.round(x*100):"LP "+Math.round(-x*100)));
+       row.appendChild(strip);
+    }
+    const stx=document.createElement("div"); stx.className="lv-gstate";
+    stx.textContent=anyLoaded?((state.playing&&tr.pending==="stop")?"STOPPING\u2026":(tr.cur<0?"STOPPED":"")):"";
+    row.appendChild(stx);   // same trailing column as a group row, so every row lines up
+    host.appendChild(row);
+  }
+  const bar=document.createElement("div"); bar.className="lv-loopbar";
+  if(loopState.shown<LOOPMAX){
+    const add=document.createElement("button"); add.className="lv-addtrack"; add.textContent="+ LOOP TRACK";
+    add.onclick=()=>{ loopState.shown++; buildLiveScreen(); };
+    bar.appendChild(add);
+  }
+  if(loopState.shown>1){
+    const last=loopTrack(loopState.shown-1);
+    if(!last.slots.some(x=>x)){
+      const rm=document.createElement("button"); rm.className="lv-addtrack"; rm.textContent="\u2212 TRACK";
+      rm.onclick=()=>{ loopStop(loopState.shown-1); loopState.shown--; buildLiveScreen(); };
+      bar.appendChild(rm);
+    }
+  }
+  host.appendChild(bar);
+}
+
+/* ---- LIVE KEYBOARD :: rows of keys map onto the pattern letters of each row ---- */
+const LIVEKEYROWS=["qwertzui","asdfghjk","yxcvbnm,","1234567890"];   // row 1 = first row of the live list, and so on
+function liveKeyRows(){   // the visible order: groups first, then loop tracks
+  const rows=[];
+  voidGroups().forEach(g=>rows.push({kind:"group",id:g.id}));
+  for(let i=0;i<loopState.shown;i++)rows.push({kind:"loop",i:i});
+  return rows;
+}
+function liveKeyHandler(e){
+  if(!state.liveOpen)return;
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  const t=e.target;
+  if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.isContentEditable))return;
+  const k=(e.key||"").toLowerCase();
+  // digits fire a scene across every row
+  const dig="12345678".indexOf(k);
+  if(dig>=0){ e.preventDefault(); fireScene(dig); return; }
+  if(k===" "){ e.preventDefault(); const pb=document.getElementById("lvPlay"); if(pb)pb.click(); return; }
+  if(k==="escape"){ return; }
+  const rows=liveKeyRows();
+  for(let r=0;r<LIVEKEYROWS.length&&r<rows.length;r++){
+    const col=LIVEKEYROWS[r].indexOf(k);
+    if(col<0||col>=PATTERNS)continue;
+    e.preventDefault();
+    const row=rows[r];
+    if(row.kind==="group"){
+      const cur=groupStopped(row.id)?-1:groupPatOf(row.id);
+      state.liveSel=row.id;
+      queueGroupPat(row.id,(cur===col)?null:col);       // hitting the running one stops it
+    } else {
+      const tr=loopTrack(row.i);
+      state.liveSel="loop"+row.i;
+      if(tr.slots[col])loopQueue(row.i,(tr.cur===col)?null:col);
+    }
+    return;
+  }
+}
+window.addEventListener("keydown",liveKeyHandler,true);
+let livePatClip=null, livePatDrag=null;
+function pasteLivePattern(gid,pi){
+  if(!livePatClip){ setStatus("nothing copied"); return; }
+  const src=state.patterns[groupBank(livePatClip.g)+livePatClip.i];
+  const dst=state.patterns[groupBank(gid)+pi];
+  if(!src||!dst){ setStatus("paste failed"); return; }
+  dst.bars=src.bars; dst.length=src.length;
+  for(let v=0;v<VOICES;v++){
+    if(src.steps[v])dst.steps[v]=src.steps[v].slice();
+    if(src.sub&&src.sub[v])dst.sub[v]=src.sub[v].slice();
+  }
+  dst.locks=cloneLocks(src.locks); dst.auto=cloneAuto(src.auto);
+  buildLiveScreen(); commit();
+  setStatus("PASTED \u2192 "+(PATLETTER[pi]||(pi+1)));
+}
+function openLivePatternEditor(gid,pi){
+  const g=groupById(gid); if(!g)return;
+  const old=document.getElementById("livePatEd"); if(old)old.remove();
+  const bank=groupBank(gid)+pi, pat=state.patterns[bank]; if(!pat)return;
+  const slots=groupVoiceIdx(gid);
+  const ov=document.createElement("div"); ov.className="kbd-overlay"; ov.id="livePatEd";
+  const pop=document.createElement("div"); pop.className="kbd-pop mfx-pop"; pop.style.maxWidth="1080px"; pop.style.setProperty("--amber",g.color);
+  const title=document.createElement("div"); title.className="kbd-title";
+  const tl=document.createElement("span"); tl.textContent="// "+g.name+" \u00b7 PATTERN "+(PATLETTER[pi]||(pi+1));
+  const bar=document.createElement("span"); bar.style.marginLeft="auto"; bar.style.display="flex"; bar.style.gap="6px";
+  const cp=document.createElement("button"); cp.className="mfx-b"; cp.textContent="COPY";
+  cp.onclick=()=>{ livePatClip={g:gid,i:pi}; setStatus("PATTERN "+(PATLETTER[pi]||(pi+1))+" copied"); };
+  const ps=document.createElement("button"); ps.className="mfx-b"; ps.textContent="PASTE";
+  ps.onclick=()=>{ pasteLivePattern(gid,pi); ov.remove(); openLivePatternEditor(gid,pi); };
+  const cl=document.createElement("button"); cl.className="mfx-b"; cl.textContent="\u2715 CLOSE"; cl.onclick=()=>ov.remove();
+  bar.append(cp,ps,cl); title.append(tl,bar); pop.appendChild(title);
+
+  const grid=document.createElement("div"); grid.className="lpe-grid";
+  const draw=()=>{
+    grid.innerHTML="";
+    const len=pat.length||STEPS_PER_BAR;
+    slots.forEach(vi=>{
+      const vo=state.kits[6][vi]; if(!vo)return;
+      const row=document.createElement("div"); row.className="lpe-row";
+      const nm=document.createElement("div"); nm.className="lpe-name"; nm.textContent=vo.name||("SLOT "+(vi+1));
+      row.appendChild(nm);
+      const cells=document.createElement("div"); cells.className="lpe-cells";
+      for(let sIdx=0;sIdx<len;sIdx++){
+        const val=pat.steps[vi]?pat.steps[vi][sIdx]:0;
+        const c=document.createElement("button");
+        c.className="lpe-step"+(val===2?" acc":(val===1?" on":""))+((sIdx%4===0)?" beat":"");
+        c.onclick=()=>{ const cur=pat.steps[vi][sIdx]||0; pat.steps[vi][sIdx]=(cur+1)%3; draw(); commit(); };
+        cells.appendChild(c);
+      }
+      row.appendChild(cells); grid.appendChild(row);
+    });
+  };
+  draw(); pop.appendChild(grid);
+  const hint=document.createElement("div"); hint.className="hint";
+  hint.textContent="tap a step: on \u00b7 accent \u00b7 off. Changes are live \u2014 the group keeps playing while you edit.";
+  pop.appendChild(hint);
+  ov.appendChild(pop); ov.onclick=(e)=>{ if(e.target===ov)ov.remove(); };
+  document.body.appendChild(ov);
+}
+function fireScene(pi){   // every row jumps to the same slot, on the bar :: groups and loop tracks alike
+  const gs=voidGroups();
+  gs.forEach(g=>queueGroupPat(g.id,pi));
+  for(let ti=0;ti<loopState.shown;ti++){
+    const tr=loopTrack(ti);
+    if(tr.slots[pi])loopQueue(ti,pi);          // a loop track only follows where it actually holds something
+  }
+  if(!gs.length&&!loopState.shown)return;
+  setStatus("SCENE "+(pi+1)+(state.playing?" \u00b7 on the next bar":""));
+  buildLiveScreen();
+}
+function buildLiveScenes(){
+  const host=document.getElementById("lvScenes"); if(!host)return; host.innerHTML="";
+  const gs=voidGroups(); if(!gs.length&&!loopState.shown)return;
+  const lab=document.createElement("div"); lab.className="lv-sclab"; lab.textContent="SCENES"; host.appendChild(lab);
+  for(let i=0;i<PATTERNS;i++){
+    const b=document.createElement("button"); b.className="lv-scene"; b.textContent=(i+1);
+    const loopsOn=[]; for(let ti=0;ti<loopState.shown;ti++){ const tr=loopTrack(ti); if(tr.slots[i])loopsOn.push(tr); }
+    const rows=gs.length+loopsOn.length;   // an empty row list must not count as "all of them"
+    const all=rows>0&&gs.every(g=>!groupStopped(g.id)&&groupPatOf(g.id)===i)&&loopsOn.every(tr=>tr.cur===i);
+    const pend=state.playing&&rows>0&&!all&&gs.every(g=>((state.groupPatPending||{})[g.id])===i)&&loopsOn.every(tr=>tr.pending===i);
+    if(all)b.classList.add("on"); if(pend)b.classList.add("pend");
+    b.title="scene "+(i+1)+" :: send every row to its slot "+(i+1)+" \u00b7 keys 1-8";
+    b.onclick=()=>fireScene(i);
+    host.appendChild(b);
+  }
+}
+function buildLiveScreen(){ if(!state.liveOpen)return; buildLiveScenes();
+  { const fb=document.getElementById("lvFxBar"); if(fb&&!fb.firstChild)buildLiveFxBar(); else paintLiveFxBar(); }   // built once, the rest of the screen is torn down constantly
   const host=document.getElementById("lvGroups"); if(!host)return; host.innerHTML="";
   const pl=document.getElementById("lvPlay"); if(pl){ pl.textContent=state.playing?"STOP":"PLAY"; pl.classList.toggle("on",!!state.playing); }
   const gs=voidGroups();
-  if(!gs.length){ const e=document.createElement("div"); e.className="lv-empty"; e.textContent="// no groups \u00b7 leave live, select slots in VOID and press CTRL+G"; host.appendChild(e); buildLiveSide(); return; }
-  gs.forEach(g=>{
+  if(!gs.length){ const e=document.createElement("div"); e.className="lv-empty"; e.textContent="// NO GROUPS YET \u00b7 leave live, collect sounds in VOID, select them with shift and press CTRL+G \u00b7 loop tracks below work without a group"; host.appendChild(e); buildLiveLoops(); buildLiveSide(); return; }
+  gs.forEach((g,gi)=>{
+    const tag=rowTag(gi);
     const row=document.createElement("div"); row.className="lv-grow"+(state.liveSel===g.id?" sel":"")+(groupStopped(g.id)?" stopped":"");
     row.style.setProperty("--gc",g.color); row.style.setProperty("--gc2",shade(g.color,-38));
     row.onclick=()=>{ state.liveSel=g.id; buildLiveScreen(); };
@@ -2608,19 +3336,99 @@ function buildLiveScreen(){ if(!state.liveOpen)return;
     let pend=(state.groupPatPending||{})[g.id]; if(pend==="stop")pend=-1;
     for(let i=0;i<PATTERNS;i++){ const b=document.createElement("button");
       const has=groupPatHasContent(g.id,i);
-      b.className="lv-pad"+(cur===i?" on":"")+(pend===i?" pend":"")+(has?" filled":" hollow");
-      b.textContent=i+1; b.onclick=(e)=>{ e.stopPropagation(); state.liveSel=g.id;
+      b.className="lv-pad"+(cur===i?" on":"")+((state.playing&&pend===i&&cur!==i)?" pend":"")+(has?" filled":" hollow");   // blink only while a change is still waiting for the bar
+      b.textContent=tag+(i+1); b.onclick=(e)=>{ e.stopPropagation(); state.liveSel=g.id;
         queueGroupPat(g.id,(!groupStopped(g.id)&&cur===i)?null:i); };   // clicking the running pad stops the group
+      b.ondblclick=(e)=>{ e.preventDefault(); e.stopPropagation(); openLivePatternEditor(g.id,i); };
+      b.dataset.g=g.id; b.dataset.p=i;
+      b.addEventListener("pointerdown",(e)=>{   // ctrl-drag a pattern onto another pad to copy it
+        if(!(e.ctrlKey||e.metaKey))return;
+        e.preventDefault(); e.stopPropagation();
+        livePatDrag={g:g.id,i:i}; b.classList.add("dragsrc");
+        const move=(ev)=>{ const el=document.elementFromPoint(ev.clientX,ev.clientY);
+          document.querySelectorAll(".lv-pad.dragtgt").forEach(x=>x.classList.remove("dragtgt"));
+          if(el&&el.classList.contains("lv-pad")&&el.dataset.g)el.classList.add("dragtgt"); };
+        const up=(ev)=>{ document.removeEventListener("pointermove",move,true); document.removeEventListener("pointerup",up,true);
+          b.classList.remove("dragsrc");
+          document.querySelectorAll(".lv-pad.dragtgt").forEach(x=>x.classList.remove("dragtgt"));
+          const el=document.elementFromPoint(ev.clientX,ev.clientY);
+          if(el&&el.classList.contains("lv-pad")&&el.dataset.g&&livePatDrag){
+            const tg=el.dataset.g, tp=+el.dataset.p;
+            if(!(tg===livePatDrag.g&&tp===livePatDrag.i)){ livePatClip={g:livePatDrag.g,i:livePatDrag.i}; pasteLivePattern(tg,tp); }
+          }
+          livePatDrag=null; };
+        document.addEventListener("pointermove",move,true); document.addEventListener("pointerup",up,true);
+      });
+      b.oncontextmenu=(e)=>{ e.preventDefault(); e.stopPropagation();
+        openKnobMenu(e.clientX,e.clientY,[
+          {label:"EDIT PATTERN "+(PATLETTER[i]||(i+1)),run:()=>openLivePatternEditor(g.id,i)},
+          {label:"COPY PATTERN",run:()=>{ livePatClip={g:g.id,i:i}; setStatus("PATTERN "+(PATLETTER[i]||(i+1))+" copied"); }},
+          {label:"PASTE PATTERN",run:()=>pasteLivePattern(g.id,i)}
+        ]); };
       pads.appendChild(b); }
     row.appendChild(pads);
+    {   // the two things you actually reach for while playing
+      const P=groupFXParams(g.id);
+      const strip=document.createElement("div"); strip.className="lv-strip";
+      const mk=(key,label,min,max,fmt)=>{
+        const w=document.createElement("div"); w.className="lv-fader";
+        const l=document.createElement("div"); l.className="lv-flab"; l.textContent=label;
+        const r=document.createElement("input"); r.type="range"; r.className="lv-frange";
+        r.min=min; r.max=max; r.step=0.01; r.value=P[key];
+        const v=document.createElement("div"); v.className="lv-fval"; v.textContent=fmt(P[key]);
+        r.oninput=()=>{ P[key]=+r.value; v.textContent=fmt(P[key]); applyGroupFX(g.id); };
+        r.onchange=()=>{ if(typeof commit==="function")commit(); };
+        r.onpointerdown=(e)=>e.stopPropagation();
+        r.oncontextmenu=(e)=>{ e.preventDefault(); P[key]=(key==="gain")?1:0; r.value=P[key]; v.textContent=fmt(P[key]); applyGroupFX(g.id); commit(); };
+        w.append(l,r,v); strip.appendChild(w);
+      };
+      mk("gain","VOL",0,1.5,(x)=>Math.round(x*100));
+      mk("filt","FILT",-1,1,(x)=>Math.abs(x)<0.01?"\u2013":(x>0?"HP "+Math.round(x*100):"LP "+Math.round(-x*100)));
+      row.appendChild(strip);
+    }
     const stx=document.createElement("div"); stx.className="lv-gstate"; stx.textContent=stopped?"STOPPED":((pend===-1)?"STOPPING\u2026":"");
     row.appendChild(stx);
     host.appendChild(row); });
+  buildLiveLoops();   // loop tracks sit in the same list, below the groups
   buildLiveSide(); }
 function buildLiveSide(){ const side=document.getElementById("lvSide"); if(!side)return; side.innerHTML="";
   const g=groupById(state.liveSel);
-  side.style.setProperty("--gc",g?g.color:"var(--amber)");
-  const h=document.createElement("div"); h.className="lv-sh"; h.textContent=g?("// "+g.name):"// NO GROUP"; side.appendChild(h);
+  const lti=(typeof state.liveSel==="string"&&state.liveSel.indexOf("loop")===0)?(+state.liveSel.slice(4)):-1;
+  const ltr=(lti>=0)?loopTrack(lti):null;
+  side.style.setProperty("--gc",g?g.color:(ltr?"#8ab4ff":"var(--amber)"));
+  const h=document.createElement("div"); h.className="lv-sh"; h.textContent=g?("// "+g.name):(ltr?("// LOOP "+(lti+1)):"// NO GROUP"); side.appendChild(h);
+  if(ltr){   // loop tracks get the same panel as a group
+    const sf=document.createElement("div"); sf.className="lv-sec"; sf.textContent="LOOP FX"; side.appendChild(sf);
+    const fc=document.createElement("div"); fc.className="lv-knobs"; side.appendChild(fc);
+    const mkl=(key,def,label)=>{ const w=document.createElement("div"); w.style.setProperty("--amber","#8ab4ff"); w.style.setProperty("--amber-glow","#8ab4ff66");
+      w.appendChild(makeKnob(Object.assign({key:"__l"+key,label:label},def),()=>(ltr[key]!=null?ltr[key]:def.def),(v)=>{ ltr[key]=v; loopApply(lti); },null,false)); fc.appendChild(w); };
+    mkl("filt",{min:-1,max:1,def:0,detent:0},"FILTER");
+    mkl("drive",{min:0,max:1,def:0},"DRIVE");
+    mkl("gain",{min:0,max:1.5,def:1},"GAIN");
+    const s2=document.createElement("div"); s2.className="lv-sec"; s2.textContent="LOOPS"; side.appendChild(s2);
+    const list=document.createElement("div"); list.className="lv-fxlist"; side.appendChild(list);
+    ltr.slots.forEach((sl,si)=>{ if(!sl)return;
+      const b=document.createElement("button"); b.className="lv-fxbtn"+(ltr.cur===si?" add":"");
+      b.textContent=(si+1)+" \u00b7 "+sl.name;
+      b.title="open the loop editor";
+      b.onclick=()=>openLoopEditor(lti,si);
+      list.appendChild(b); });
+    const ab=document.createElement("button"); ab.className="lv-fxbtn add"; ab.textContent="+ LOAD LOOP";
+    ab.onclick=()=>{ const free=ltr.slots.findIndex(x=>!x); loopPickFile(lti,free<0?0:free); };
+    list.appendChild(ab);
+    const s3=document.createElement("div"); s3.className="lv-sec"; s3.textContent="FX RACK"; side.appendChild(s3);
+    const fxl=document.createElement("div"); fxl.className="lv-fxlist"; side.appendChild(fxl);
+    loopModules(lti).forEach((m,mi)=>{ const b=document.createElement("button"); b.className="lv-fxbtn";
+      b.textContent=(m.kind==="shaper"?shaperModel(m.stype||"snad").label:m.kind.toUpperCase());
+      b.title="open "+m.kind+" \u00b7 right-click to remove";
+      b.onclick=()=>openFXWindow("loop"+lti,mi);
+      b.oncontextmenu=(e)=>{ e.preventDefault(); removeLoopModule(lti,mi); };
+      fxl.appendChild(b); });
+    const afx=document.createElement("button"); afx.className="lv-fxbtn add"; afx.textContent="+ ADD FX";
+    afx.onclick=()=>openLoopFXPicker(lti); fxl.appendChild(afx);
+    side.appendChild(document.createElement("div"));
+    return;
+  }
   _MID_CTX=g?("grp:"+g.id):null;
   if(g){
     const s1=document.createElement("div"); s1.className="lv-sec"; s1.textContent="MACROS"; side.appendChild(s1);
@@ -2657,8 +3465,12 @@ function buildLiveSide(){ const side=document.getElementById("lvSide"); if(!side
   }
   side.appendChild(document.createElement("div")); }
 function closeFXWindow(){ const e=document.getElementById("fxWindow"); if(e)e.remove(); }
-function openFXWindow(gid,idx){ closeFXWindow(); const g=groupById(gid); if(!g)return;
-  const mods=groupModules(gid); if(idx==null||!mods[idx])return;
+function openFXWindow(gid,idx){ closeFXWindow();
+  const isLoop=(typeof gid==="string"&&gid.indexOf("loop")===0);
+  const lti=isLoop?(+gid.slice(4)):-1;
+  const g=isLoop?{name:"LOOP "+(lti+1),color:"#8ab4ff",id:gid}:groupById(gid);
+  if(!g)return;
+  const mods=isLoop?loopModules(lti):groupModules(gid); if(idx==null||!mods[idx])return;
   const ov=document.createElement("div"); ov.id="fxWindow"; ov.className="fx-window";
   ov.style.setProperty("--gc",g.color);
   const hd=document.createElement("div"); hd.className="fxw-head";
@@ -2666,8 +3478,11 @@ function openFXWindow(gid,idx){ closeFXWindow(); const g=groupById(gid); if(!g)r
   const cl=document.createElement("button"); cl.className="fxw-close"; cl.textContent="\u00d7"; cl.onclick=closeFXWindow;
   hd.append(ti,cl); ov.appendChild(hd);
   const body=document.createElement("div"); body.className="fxw-body"; ov.appendChild(body);
-  const ctx={list:mods,rebuild:()=>{ buildLiveSide(); if(mods[idx])openFXWindow(gid,idx); else closeFXWindow(); }};
+  if(ac&&!mods[idx]._nodes)buildModuleNodes(mods[idx]);
+  const ctx={list:mods,rebuild:()=>{ if(isLoop)loopRewire(lti); else if(typeof refreshGroupRouting==="function")refreshGroupRouting();
+    buildLiveSide(); if(mods[idx])openFXWindow(gid,idx); else closeFXWindow(); }};
   body.appendChild(buildModule(mods[idx],idx,ctx));
+  if(isLoop)loopRewire(lti);   // knobs act on live nodes, so make sure they are wired
   document.body.appendChild(ov); }
 function removeGroupModule(gid,idx){
   const mods=groupModules(gid); const m=mods[idx]; if(!m)return;
@@ -2678,6 +3493,29 @@ function removeGroupModule(gid,idx){
   const ov=document.getElementById("gfxEditor"); if(ov){ ov.remove(); openGroupFXEditor(gid); }   // rebuild the editor so the rack matches
   commit();
   setStatus("REMOVED "+m.kind.toUpperCase()+" \u00b7 "+(groupById(gid)?groupById(gid).name:""));
+}
+function addSlotToGroup(vi,gid){
+  const vo=state.kits[6][vi]; if(!vo||!groupById(gid))return;
+  const from=vo.group?groupBank(vo.group):0;
+  vo.group=gid; moveVoiceRows(vi,from,groupBank(gid));
+  refreshGroupRouting(); buildSeq(); buildEditor(); commit();
+  setStatus((vo.name||"SLOT")+" \u2192 "+groupById(gid).name);
+}
+function ungroupSlot(vi){
+  const vo=state.kits[6][vi]; if(!vo||!vo.group)return;
+  const from=groupBank(vo.group), nm=groupById(vo.group)?groupById(vo.group).name:"";
+  vo.group=null; moveVoiceRows(vi,from,0);          // its notes come back to bank 0
+  refreshGroupRouting(); buildSeq(); buildEditor(); commit();
+  setStatus((vo.name||"SLOT")+" \u00b7 out of "+nm);
+}
+function newGroupFromSlot(vi){
+  const vo=state.kits[6][vi]; if(!vo)return;
+  const nm=prompt("group name","GROUP "+(voidGroups().length+1)); if(nm===null)return;
+  const g=newVoidGroup(nm.trim()||undefined); if(!g)return;
+  const from=vo.group?groupBank(vo.group):0;
+  vo.group=g.id; moveVoiceRows(vi,from,groupBank(g.id));
+  refreshGroupRouting(); buildSeq(); buildEditor(); commit();
+  setStatus("GROUP "+g.name+" \u00b7 "+(vo.name||"SLOT"));
 }
 function openGroupFXEditor(gid){ const g=groupById(gid); if(!g)return;
   const ov=document.createElement("div"); ov.className="kbd-overlay"; ov.id="gfxEditor";
@@ -2711,7 +3549,7 @@ function openGroupFXPicker(gid){ closeSoundPicker(); const ov=document.createEle
   const cl=document.createElement("button"); cl.className="sp-close"; cl.textContent="\u00d7"; cl.onclick=closeSoundPicker; ov.append(cl);
   const g=groupById(gid); const h=document.createElement("div"); h.className="sp-head"; h.textContent="ADD FX // "+(g?g.name:""); ov.append(h);
   GROUP_EFFECT_LIST.forEach(e=>{ const b=document.createElement("button"); b.className="sp-item"; b.textContent=e.label;
-    b.onclick=()=>{ addGroupModule(gid,e.kind); closeSoundPicker(); }; ov.append(b); });
+    b.onclick=()=>{ addGroupModule(gid,e.kind,e.preset); closeSoundPicker(); }; ov.append(b); });
   document.body.append(ov); }
 const GFX_DEF={gain:1,filt:0,drive:0};
 let groupFX={};
@@ -2734,7 +3572,155 @@ function applyGroupFX(gid){ const n=groupFX[gid]; if(!n)return; const p=groupFXP
   else { n.filt.type="lowpass"; n.filt.frequency.value=20000; }
   n.sh.curve=makeDriveCurve(p.drive||0); }
 function groupModules(gid){ const m=(state.groupModules=state.groupModules||{}); if(!m[gid])m[gid]=[]; return m[gid]; }
-function addGroupModule(gid,kind){ const mo=newModule(kind); const L=groupModules(gid); L.push(mo); if(ac)buildModuleNodes(mo); buildLiveSide(); if(state.liveOpen)openFXWindow(gid,L.length-1); wireGroupBuses(); commit(); }
+function addGroupModule(gid,kind,preset){ const mo=newModule(kind); if(preset)Object.assign(mo,preset); const L=groupModules(gid); L.push(mo); if(ac)buildModuleNodes(mo); buildLiveSide(); if(state.liveOpen)openFXWindow(gid,L.length-1); wireGroupBuses(); commit(); }
+function lvArcPath(cx,cy,r){ const p=(d)=>{const a=(-225+d*270)*Math.PI/180;return [cx+r*Math.cos(a),cy+r*Math.sin(a)];};
+  const s0=p(0), s1=p(1); return "M"+s0[0].toFixed(2)+" "+s0[1].toFixed(2)+" A"+r+" "+r+" 0 1 1 "+s1[0].toFixed(2)+" "+s1[1].toFixed(2); }
+function buildLiveFxBar(){ const host=document.getElementById("lvFxBar"); if(!host)return;
+  host.innerHTML=""; const st=liveFx().slots;
+  const R=30, C=2*Math.PI*R*0.75;
+  LVFX_SLOTS.forEach(sl=>{
+    const s=st[sl.id];
+    const box=document.createElement("div"); box.className="lv-fxs"; box.id="lvfx_"+sl.id; box.style.setProperty("--fxc",sl.hue);
+    const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
+    svg.setAttribute("viewBox","0 0 80 80"); svg.setAttribute("class","lv-fxk"); svg.dataset.slot=sl.id;
+    const d=lvArcPath(40,40,R);
+    svg.innerHTML='<path class="trk" d="'+d+'"></path><path class="val" d="'+d+'" stroke-dasharray="'+C.toFixed(2)+'" stroke-dashoffset="'+C.toFixed(2)+'"></path>'
+      +(sl.detent!=null?'<line class="det" x1="40" y1="6" x2="40" y2="13"></line>':'')
+      +'<line class="ndl" x1="40" y1="40" x2="40" y2="17" transform="rotate(0 40 40)"></line>';
+    const info=document.createElement("div"); info.className="lv-fxi";
+    const nm=document.createElement("div"); nm.className="lv-fxn"; nm.textContent=sl.label;
+    const hi=document.createElement("div"); hi.className="lv-fxh"; hi.textContent=sl.hint;
+    const bt=document.createElement("button"); bt.className="lv-fxb"; bt.innerHTML='ENGAGE<span class="lv-fxv"></span>';
+    info.appendChild(nm); info.appendChild(hi); info.appendChild(bt);
+    box.appendChild(svg); box.appendChild(info); host.appendChild(box);
+
+    let drag=null;
+    svg.addEventListener("pointerdown",(e)=>{ if(e.button===2)return; e.preventDefault(); svg.setPointerCapture(e.pointerId);
+      drag={y:e.clientY,v:s.amt}; });
+    svg.addEventListener("pointermove",(e)=>{ if(!drag)return;
+      const step=(e.shiftKey?0.0016:0.005);                       // shift for fine work, same feel as the knobs
+      liveFxSet(sl.id,drag.v+(drag.y-e.clientY)*step,null); });
+    const end=()=>{ if(drag){ drag=null; if(typeof commit==="function")commit(); } };
+    svg.addEventListener("pointerup",end); svg.addEventListener("pointercancel",end);
+    svg.addEventListener("contextmenu",(e)=>{ e.preventDefault(); liveFxSet(sl.id,(sl.detent!=null?sl.detent:0),null); if(typeof commit==="function")commit(); });
+    svg.addEventListener("dblclick",(e)=>{ e.preventDefault(); liveFxSet(sl.id,(sl.detent!=null?sl.detent:0),null); });
+
+    let t0=0, was=false;
+    bt.addEventListener("pointerdown",(e)=>{ e.preventDefault(); bt.setPointerCapture(e.pointerId);
+      t0=Date.now(); was=s.on; if(!s.on)liveFxSet(sl.id,null,true); });
+    bt.addEventListener("pointerup",()=>{ const held=Date.now()-t0>250;
+      if(was||held)liveFxSet(sl.id,null,false);                   // tap an idle one to latch it, hold it for a stab
+      if(typeof commit==="function")commit(); });
+  });
+  paintLiveFxBar(); }
+function paintLiveFxBar(){ const st=(state.liveFx&&state.liveFx.slots)||null; if(!st)return;
+  const R=30, C=2*Math.PI*R*0.75;
+  LVFX_SLOTS.forEach(sl=>{ const s=st[sl.id], box=document.getElementById("lvfx_"+sl.id); if(!s||!box)return;
+    box.classList.toggle("on",!!s.on);
+    const svg=box.querySelector(".lv-fxk"); if(svg){ svg.classList.toggle("off",!s.on);
+      const v=svg.querySelector(".val"); if(v)v.setAttribute("stroke-dashoffset",(C*(1-s.amt)).toFixed(2));
+      const n=svg.querySelector(".ndl"); if(n)n.setAttribute("transform","rotate("+(-135+s.amt*270).toFixed(1)+" 40 40)"); }
+    const val=box.querySelector(".lv-fxv"); if(val)val.textContent=(sl.id==="sweep"?(s.amt<0.03?"OPEN":Math.round(20*Math.pow(180,s.amt))+" HZ"):Math.round(s.amt*100));
+  }); }
+// ---- live sum bus :: everything that skips the master rack meets here first ----
+let LIVEBUS=null;
+const LVFX_SLOTS=[
+  {id:"space", kind:"reverb", label:"SPACE", hue:"#37d6c4", hint:"dj filter \u00b7 high pass the sum, wide tail, flanger starts to ring", bus:"space",
+   apply(m,a){ m.mode="insert"; m.modon=false;                       // the ring comes from the bus flanger, not from the room
+               m.size=0.86; m.rstereo=0.9; m.width=1; m.pre=0.05;    // wide tail, fixed :: only the amount moves
+               m.tone=0.30; m.lp=0.9; m.hp=0.25; m.mix=a*0.22; }},
+  {id:"sweep", kind:"filter", label:"SWEEP", hue:"#ffb020", hint:"high pass \u00b7 open on the left, climbs to the right",
+   apply(m,a){ m.mode="insert"; m.mix=1; m.ftype="hp";
+               if(a<0.03){ m.bypass=true; m.cutoff=20; m.reso=0.3; return; }
+               m.bypass=false;
+               m.cutoff=20*Math.pow(180,a);          // 20 Hz up to about 3.6 kHz, nothing below
+               m.reso=0.3+a*0.5; }},
+
+];
+function liveFx(){ const L=(state.liveFx=state.liveFx||{}); if(!L.slots)L.slots={};
+  LVFX_SLOTS.forEach(sl=>{ if(!L.slots[sl.id])L.slots[sl.id]={on:false,amt:(sl.detent!=null?sl.detent:0)}; });
+  return L; }
+function liveFxMods(){ const L=liveFx(); if(!L.mods)L.mods=[];
+  LVFX_SLOTS.forEach((sl,i)=>{ if(!sl.kind){ L.mods[i]=null; return; }                 // gate slots own a node, not a module
+    if(!L.mods[i]||L.mods[i].kind!==sl.kind)L.mods[i]=newModule(sl.kind); });
+  L.mods.length=LVFX_SLOTS.length; return L.mods; }
+function liveOutTarget(){ return ((state.fin&&state.fin.preset!=="off"&&fin)?fin.finIn:masterOut)||(ac?ac.destination:null); }
+function ensureLiveBus(){ if(!ac)return null;
+  if(!LIVEBUS){ LIVEBUS={inp:ac.createGain(),send:ac.createGain()};
+    LIVEBUS.inp.gain.value=1; LIVEBUS.send.gain.value=1;
+    const hp=ac.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=18; hp.Q.value=0.9;
+    const dl=ac.createDelay(0.03); dl.delayTime.value=0.0022;        // short delay :: this is what makes it ring instead of swoosh
+    const fb=ac.createGain(); fb.gain.value=0;
+    const wet=ac.createGain(); wet.gain.value=0;
+    const lfo=ac.createOscillator(); lfo.frequency.value=0.09;
+    const lfoG=ac.createGain(); lfoG.gain.value=0.0011;
+    const outG=ac.createGain(); outG.gain.value=1;
+    hp.connect(dl); dl.connect(fb); fb.connect(dl);                  // feedback loop :: the higher it goes the more metallic
+    dl.connect(wet); wet.connect(outG); hp.connect(outG);
+    lfo.connect(lfoG); lfoG.connect(dl.delayTime); try{ lfo.start(); }catch(e){}
+    LIVEBUS.sp={hp,dl,fb,wet,lfo,lfoG,out:outG};
+    wireLiveBus(); }
+  return LIVEBUS; }
+function liveBusIn(){ const b=ensureLiveBus(); return b?b.inp:liveOutTarget(); }   // stable node :: rows never need rewiring when the rack changes
+function wireLiveBus(){ if(!ac||!LIVEBUS)return;
+  const mods=liveFxMods(), st=liveFx().slots;
+  LVFX_SLOTS.forEach((sl,i)=>{ const m=mods[i], s=st[sl.id]; if(!m)return;
+    m.bypass=false; sl.apply(m,s.amt); if(!s.on)m.bypass=true;    // clear first :: apply may set it again (sweep detent), off always wins
+    if(!m._nodes)buildModuleNodes(m);
+    liveFxPush(m);
+    const n=m._nodes; if(n)[n.input,n.output,n.dry,n.wet,n.fxOut].forEach(x=>{ if(x){try{x.disconnect();}catch(e){}} }); });
+  try{ LIVEBUS.inp.disconnect(); }catch(e){}
+  try{ LIVEBUS.send.disconnect(); }catch(e){}
+  try{ if(LIVEBUS.sp)LIVEBUS.sp.out.disconnect(); }catch(e){}
+  const tgt=liveOutTarget(); if(!tgt)return;
+  const tail=chainModules(mods.filter(Boolean),LIVEBUS.inp,LIVEBUS.send);
+  const sp=LIVEBUS.sp;
+  tail.connect(sp.hp); LIVEBUS.send.connect(sp.hp);   // the dj filter takes the whole sum, echoes and tails included
+  sp.out.connect(tgt);
+  lvSpacePush(); }
+function lvSpacePush(){ const sp=LIVEBUS&&LIVEBUS.sp; if(!sp||!ac)return;
+  const s=liveFx().slots.space, a=(s&&s.on)?s.amt:0;
+  lvRamp(sp.hp.frequency, 18*Math.pow(52,a));                       // 18 Hz up to about 950 :: the classic sweep
+  lvRamp(sp.hp.Q, 0.9+a*1.4);
+  lvRamp(sp.fb.gain, a*0.86);                                       // ring builds with the sweep
+  lvRamp(sp.wet.gain, a*0.55);
+  lvRamp(sp.lfoG.gain, 0.0004+a*0.0012); }
+function lvRamp(p,v){ if(p)try{ p.setTargetAtTime(v,ac.currentTime,0.012); }catch(e){ p.value=v; } }   // sliding, not stepping :: writing .value on every mouse move is what clicked
+function liveFxPush(m){ const n=m&&m._nodes; if(!n||!ac)return;   // buildModuleNodes reads the object once and never again :: the macro has to write the nodes itself
+  if(m.kind==="reverb"){ lvRamp(n.pre&&n.pre.delayTime,Math.max(0,m.pre));
+    lvRamp(n.hpf&&n.hpf.frequency,revHpHz(m.hp)); lvRamp(n.lpf&&n.lpf.frequency,revLpHz(m.lp));
+    lvRamp(n.sideW&&n.sideW.gain,m.width);
+    if(n._lastSize==null||Math.abs(n._lastSize-m.size)>0.02){ n._lastSize=m.size; applyReverbIR(m); }   // the room worklet rebuilds on this message, so only send it when it matters
+    if(n._lastMove==null||Math.abs(n._lastMove-m.move)>0.02){ n._lastMove=m.move; applyReverbMove(m); }
+    return; }
+  if(m.kind==="crush"){ applyCrush(m); return; }
+  if(m.kind==="filter"){ const bq=n.fxIn; if(!bq)return;
+    const want=ftypeToBiquad(m.ftype); if(bq.type!==want)bq.type=want;
+    lvRamp(bq.frequency,m.cutoff); lvRamp(bq.Q,resoToQ(m.reso)); return; }
+  if(m.kind==="delay"){ const fbv=(m.fb!=null?m.fb:0.35);
+    if(n.fbGains)n.fbGains.forEach(g=>lvRamp(g&&g.gain,fbv));
+    if(n.hps)n.hps.forEach(f=>lvRamp(f&&f.frequency,dlyHpHz(m.hp!=null?m.hp:0)));
+    if(n.tones)n.tones.forEach(f=>lvRamp(f&&f.frequency,toneToHz(m.tone))); return; }
+}
+function liveFxMix(m){ const n=m&&m._nodes; if(!n||m.bypass||!ac)return;
+  const mix=(m.mix!=null?m.mix:0.25);
+  if(m.mode==="send")lvRamp(n.wet&&n.wet.gain,mix);
+  else { lvRamp(n.dry&&n.dry.gain,1-mix); lvRamp(n.wet&&n.wet.gain,mix); } }
+function liveFxSet(id,amt,on){ const s=liveFx().slots[id]; if(!s)return;
+  if(amt!=null)s.amt=Math.max(0,Math.min(1,amt));
+  if(on!=null)s.on=!!on;
+  if(!ac){ paintLiveFxBar(); return; }
+  ensureLiveBus();
+  const i=LVFX_SLOTS.findIndex(x=>x.id===id), sl=LVFX_SLOTS[i], m=liveFxMods()[i];
+  if(!sl){ paintLiveFxBar(); return; }
+
+  const was=m.bypass, wasMode=m.mode;
+  m.bypass=false; sl.apply(m,s.amt); if(!s.on)m.bypass=true;
+  if(!m._nodes)buildModuleNodes(m);
+  if(m.bypass!==was||m.mode!==wasMode)wireLiveBus();          // topology moved :: rebuild, one click is unavoidable there
+  else { liveFxPush(m); liveFxMix(m); }                        // values only :: no disconnect, no click
+  if(sl.bus==="space")lvSpacePush();
+  paintLiveFxBar(); }
 function chainModules(mods,cursor,sendTarget){   // same wiring rules as the master rack, reusable per group
   mods.forEach(m=>{ const n=m._nodes; if(!n)return;
     if(m.kind==="glitch"&&n.glitch)n.glitch.port.postMessage({type:"wetonly",value:m.mode==="send"});
@@ -2755,7 +3741,7 @@ function wireGroupBuses(){ if(!ac||!engineNode||!masterIn)return;
     try{ engineNode.disconnect(n.inp); }catch(e){}
     try{ engineNode.connect(n.inp,3+i); }catch(e){}
     const tail=chainModules(mods,n.out,n.send);
-    const tgt=(state.fin&&state.fin.preset!=="off"&&fin)?fin.finIn:masterOut;   // skip the master fx, but keep the finalizer
+    const tgt=liveBusIn();   // skip the master fx, but go through the live rack and the finalizer
     tail.connect(tgt); n.send.connect(tgt);
   }); }
 function syncBuses(){ if(!engineNode)return;
@@ -2848,7 +3834,13 @@ function copyPatternToVoid(){
 }
 function assignVoidSlot(slot,sk,sv,noAudio){ const src=KITS[sk].voices[sv]; const vo=state.kits[6][slot]; if(sk===3&&userSamples[sv]&&!noAudio)setTimeout(()=>sendSample(sv,6,slot),0);   // carry the audio into the VOID slot
   vo.name=(sk===3?(state.kits[3][sv].name||src.name):src.name); vo.defs=src.defs; vo.fxMode=src.fxMode; vo.vals=Object.assign(Object.fromEntries(src.defs.map(x=>[x.key,x.def])),src.extra||{}); vo.srcKit=sk; vo.srcVoice=sv; if(engineNode)engineNode.port.postMessage({type:"assign",slot:slot,srcKit:sk,srcVoice:sv}); buildSeq(); buildEditor(); const ev=effVals(vo); for(const k in ev)sendParam(slot,k,ev[k]); commit(); }
-function openSoundPicker(slot){ closeSoundPicker(); const ov=document.createElement("div"); ov.id="soundPicker"; ov.className="sound-picker"; const cl=document.createElement("button"); cl.className="sp-close"; cl.textContent="\u00d7"; cl.onclick=closeSoundPicker; ov.append(cl); [1,0,4,2,3,5,7].forEach(k=>{ const lim=(k===5||k===7)?2:9;
+function openSoundPicker(slot){ closeSoundPicker(); const ov=document.createElement("div"); ov.id="soundPicker"; ov.className="sound-picker";
+  setTimeout(()=>{   // click anywhere outside, or Escape, closes it
+    const away=(e)=>{ if(!ov.contains(e.target))shut(); };
+    const key=(e)=>{ if(e.key==="Escape")shut(); };
+    function shut(){ document.removeEventListener("pointerdown",away,true); document.removeEventListener("keydown",key,true); closeSoundPicker(); }
+    document.addEventListener("pointerdown",away,true); document.addEventListener("keydown",key,true);
+  },0); const cl=document.createElement("button"); cl.className="sp-close"; cl.textContent="\u00d7"; cl.onclick=closeSoundPicker; ov.append(cl); [1,0,4,2,3,5,7].forEach(k=>{ const lim=(k===5||k===7)?2:9;
     const items=KITS[k].voices.slice(0,lim).map((v,vi)=>({v,vi})).filter(o=>k!==3||userSamples[o.vi]);   // SAMPLES :: only slots that actually hold audio
     if(!items.length)return;
     const h=document.createElement("div"); h.className="sp-head"; h.textContent=KITS[k].name; ov.append(h);
@@ -3300,6 +4292,13 @@ function buildModuleNodes(m){
     inG.connect(svf);svf.connect(outG);outG.connect(flt);
     m._nodes={input,output,dry,wet,fxIn:inG,fxOut:flt,svf,flt,all:[inG,outG,svf,flt]};applyModFilter(m);
     resoSend(m);
+  }else if(m.kind==="crush"){
+    const inG=ac.createGain(),outG=ac.createGain();
+    const cr=new AudioWorkletNode(ac,"crush-fx",{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[2]});
+    const lp=ac.createBiquadFilter();lp.type="lowpass";lp.frequency.value=crushToneHz(m.ctone!=null?m.ctone:1);lp.Q.value=0.7;
+    inG.connect(cr);cr.connect(lp);lp.connect(outG);   // no filter in front :: the aliasing is the effect, the one behind tames the screech
+    m._nodes={input,output,dry,wet,fxIn:inG,fxOut:outG,crush:cr,lp,all:[inG,cr,lp,outG]};
+    applyCrush(m);
   }else if(m.kind==="glitch"){
     const inG=ac.createGain(),outG=ac.createGain();
     const glitch=new AudioWorkletNode(ac,"glitch-fx",{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[2]});
@@ -3375,8 +4374,16 @@ function wireMaster(){
 }
 function moveModule(i,dir){const a=state.master.modules,j=i+dir;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];buildMaster();wireMaster();commit();}
 function reorderModule(from,to,ctx){const a=(ctx&&ctx.list)||state.master.modules;if(from==null||from===to||from<0||from>=a.length||to<0||to>=a.length)return;const mod=a.splice(from,1)[0];let t=to>from?to-1:to;a.splice(t,0,mod);if(ctx&&ctx.rebuild)ctx.rebuild();else buildMaster();wireMaster();commit();}
-const EFFECT_LIST=[{kind:"filter",label:"FILTER"},{kind:"eq",label:"EQ"},{kind:"delay",label:"DELAY"},{kind:"reverb",label:"REVERB"},{kind:"resonator",label:"RESONATOR"},{kind:"glitch",label:"GLITCH"},{kind:"trans",label:"TRANS"}];   // rumble + shaper struck from the SUM menu :: saved patches keep working
-const GROUP_EFFECT_LIST=[{kind:"shaper",label:"SHAPER"}].concat(EFFECT_LIST);   // saturation belongs on a group, not on everything at once
+const EFFECT_LIST=[{kind:"filter",label:"FILTER"},{kind:"eq",label:"EQ"},{kind:"crush",label:"CRUSH"},{kind:"delay",label:"DELAY"},{kind:"reverb",label:"REVERB"},{kind:"resonator",label:"RESONATOR"},{kind:"glitch",label:"GLITCH"},{kind:"trans",label:"TRANS"}];   // rumble + shaper struck from the SUM menu :: saved patches keep working
+const DUB_PRESET={mode:"send",sync:true,divIdx:3,fb:0.52,tone:0.34,hp:0.34,reso:0.15,drive:0.22,cross:0.3,mrate:0.12,mdepth:0.15,width:1,mix:0.3};   // dark, filtered, drifting :: the classic send
+const GROUP_EFFECT_LIST=[{kind:"shaper",label:"SHAPER"},{kind:"delay",label:"DUB DELAY",preset:DUB_PRESET}].concat(EFFECT_LIST);   // saturation belongs on a group, not on everything at once
+function crushRateHz(v){ const sr=ac?ac.sampleRate:48000; return sr*Math.pow(600/sr,1-Math.max(0,Math.min(1,v))); }   // full rate down to 600 Hz, logarithmic
+function crushToneHz(v){ return 400*Math.pow(50,Math.max(0,Math.min(1,v))); }                                            // 400 Hz up to 20k
+function applyCrush(m){ const n=m._nodes; if(!n||!n.crush||!ac)return; const sr=ac.sampleRate;
+  const r=n.crush.parameters.get("rate"), b=n.crush.parameters.get("bits");
+  if(r)r.setTargetAtTime(Math.max(0.0004,Math.min(1,crushRateHz(m.crate!=null?m.crate:1)/sr)),ac.currentTime,0.01);
+  if(b)b.setTargetAtTime(Math.max(1,Math.min(16,m.cbits!=null?m.cbits:16)),ac.currentTime,0.01);
+  if(n.lp)n.lp.frequency.setTargetAtTime(crushToneHz(m.ctone!=null?m.ctone:1),ac.currentTime,0.01); }
 const GLITCH_DIVS=[{k:"1/4",b:1},{k:"1/8",b:0.5},{k:"1/16",b:0.25},{k:"1/32",b:0.125}];
 function newModule(kind){
   if(kind==="delay")return {kind:"delay",bypass:false,mode:"send",sync:true,divIdx:3,timeMs:300,fb:0.35,tone:0.5,reso:0,hp:0,cross:0,drive:0.2,mrate:0,mdepth:0,duck:0,width:1,stereo:0,flt:0,mix:0.3};
@@ -3388,6 +4395,7 @@ function newModule(kind){
   if(kind==="shaper")return {kind:"shaper",bypass:false,mode:"insert",stype:"snad",sdrive:0.4,spref:1000,spostf:20000,mix:0.5};
   if(kind==="filter")return {kind:"filter",bypass:false,mode:"insert",cutoff:18000,reso:0.3,ftype:"lp",mix:1};
   if(kind==="eq")return {kind:"eq",bypass:false,mode:"insert",low:0,mid:0,high:0,midf:0.5,mix:1};
+  if(kind==="crush")return {kind:"crush",bypass:false,mode:"insert",crate:1,cbits:16,ctone:1,mix:1};
   return {kind,bypass:false,mix:0.5};
 }
 function addModule(kind){const m=newModule(kind);state.master.modules.push(m);if(ac)buildModuleNodes(m);buildMaster();wireMaster();commit();}
@@ -3667,6 +4675,11 @@ function appendModuleKnobs(m,kc){
     K(d("eqmid",-15,15,0,0,"MID"),()=>m.mid,(v)=>{m.mid=v;if(m._nodes)m._nodes.eqmd.gain.value=v;});
     K(d("eqmidf",0,1,0.5,0,"MID FRQ"),()=>(m.midf!=null?m.midf:0.5),(v)=>{m.midf=v;if(m._nodes)m._nodes.eqmd.frequency.value=eqMidHz(v);});
     K(d("eqhigh",-15,15,0,0,"HIGH"),()=>m.high,(v)=>{m.high=v;if(m._nodes)m._nodes.eqhi.gain.value=v;});
+  }else if(m.kind==="crush"){
+    K(d("crate",0,1,1,0,"RATE"),()=>(m.crate!=null?m.crate:1),(v)=>{m.crate=v;applyCrush(m);});
+    K(d("cbits",1,16,16,0,"BITS"),()=>(m.cbits!=null?m.cbits:16),(v)=>{m.cbits=Math.round(v);applyCrush(m);});
+    K(d("ctone",0,1,1,0,"TONE"),()=>(m.ctone!=null?m.ctone:1),(v)=>{m.ctone=v;applyCrush(m);});
+    K(d("cmix",0,1,1,0,"MIX"),()=>(m.mix!=null?m.mix:1),(v)=>{m.mix=v;if(m._nodes){m._nodes.dry.gain.value=1-v;m._nodes.wet.gain.value=v;}});
   }else if(m.kind==="delay"){
     if(m.sync){const def=d("dlydiv",0,DIVS.length-1,2);def.label="TIME";K(def,()=>m.divIdx,(v)=>{m.divIdx=Math.round(v);setDelayTimes(m);});}
     else{const def=d("dlyms",30,1500,300);def.label="TIME";K(def,()=>m.timeMs,(v)=>{m.timeMs=v;setDelayTimes(m);});}
@@ -3746,6 +4759,7 @@ function appendModuleKnobs(m,kc){
 function switchKit(i,force){
   if(i===state.kit&&!force)return;
   state.plock=null;
+  setTimeout(()=>{ if(typeof paintLiveBtn==="function")paintLiveBtn(); },0);   // the LIVE button follows the kit
   state.kit=i; state.voices=state.kits[i]; if(state.selected>=state.voices.length)state.selected=0;
   if(i===5||i===6||i===7)syncPatternBank(); else state.curPattern=state.curPattern%PATTERNS;   // Labs + VOID use their own banks
   if(engineNode) engineNode.port.postMessage({type:"kit",index:i});
@@ -3927,7 +4941,8 @@ function setPattern(i){ const n=i%PATTERNS; const g=selGroupId();
 
 // ---- transport ----
 document.getElementById("play").onclick=()=>{state.playing?stopSeq():startSeq();};
-document.getElementById("bpm").oninput=e=>{state.bpm=+e.target.value;document.getElementById("bpmval").textContent=state.bpm;updateDelayTimes();};
+{ const lb=document.getElementById("liveBtn"); if(lb)lb.onclick=()=>enterLive(); paintLiveBtn(); }
+document.getElementById("bpm").oninput=e=>{state.bpm=+e.target.value;document.getElementById("bpmval").textContent=state.bpm;updateDelayTimes();if(typeof loopSyncRates==="function")loopSyncRates();};
 document.getElementById("swing").oninput=e=>{state.swing=+e.target.value;document.getElementById("swingval").textContent=state.swing;};
 (function(){var r=document.getElementById("roll");if(r){r.oninput=function(){state.master.roll=+r.value;var sN=rollSub(state.master.roll);var rv=document.getElementById("rollval");if(rv)rv.textContent=sN>1?"1/"+(16*sN):"OFF";};r.onchange=function(){if(typeof commit==="function")commit();};}})();   // ROLL lives in the Live area now, not the transport bar
 
@@ -3957,6 +4972,14 @@ function kitSharePayload(){
             mute:(state.mute||[]).slice(), bus:(state.bus||[]).slice() };
   if(kit===6){   // VOID :: slots are references, so carry where each sound came from + the groups
     out.slots=state.kits[6].map(vo=>vo&&vo.srcKit!=null?{sk:vo.srcKit,sv:vo.srcVoice,g:vo.group||0}:0);
+    out.smp={};   // whole samples travel with the file so the receiver can still re-trim them
+    state.kits[6].forEach((vo,i)=>{
+      const src=(typeof voidSamples!=="undefined"&&voidSamples[i])||(vo&&vo.srcKit===3&&userSamples[vo.srcVoice]);
+      if(!src||!src.data)return;
+      let bin=""; const bytes=new Uint8Array(new Float32Array(src.data).buffer);
+      for(let b=0;b<bytes.length;b+=8192)bin+=String.fromCharCode.apply(null,bytes.subarray(b,b+8192));
+      out.smp[i]={n:src.name||"SAMPLE",sr:src.sr||48000,d:btoa(bin)};
+    });
     out.groups=voidGroups().map(g=>({id:g.id,name:g.name,color:g.color}));
     out.gmods={}; out.gfx={};
     voidGroups().forEach(g=>{
@@ -3977,6 +5000,11 @@ async function shareKitLink(){
   if(state.kit===3){ setStatus("SAMPLES kit cannot be shared (audio stays yours)"); return; }
   try{
     const payload=kitSharePayload();
+    const nSmp=payload.smp?Object.keys(payload.smp).length:0;
+    if(nSmp){   // audio travels with the file :: make that explicit once
+      const q=(window.TIP&&TIP.SMPWARN)||"This kit carries $N sample(s). They will be written into the file. Only share it if the licence of that audio allows passing it on.";
+      if(!confirm(q.replace("$N",nSmp)))return;
+    }
     payload._v=1; payload._n=KITS[state.kit].name;
     const json=JSON.stringify(payload);
     const blob=new Blob([json],{type:"application/json"});
@@ -4016,6 +5044,18 @@ function _applySharedKit(d){
       (pp.s||[]).forEach((row,vi)=>{ if(!tgt.steps[vi])return; for(let sI=0;sI<tgt.steps[vi].length;sI++)tgt.steps[vi][sI]=+(row[sI]||0); });
       if(pp.u&&tgt.sub)pp.u.forEach((row,vi)=>{ if(!tgt.sub[vi])return; const pr=String(row).split(","); for(let sI=0;sI<tgt.sub[vi].length;sI++)tgt.sub[vi][sI]=+(pr[sI]||1); });
     }); } }
+    if(d.smp){   // put the embedded audio back into its slots
+      for(const key in d.smp){ const idx=+key, e=d.smp[key]; if(!e||!e.d)continue;
+        try{
+          const bin=atob(e.d); const bytes=new Uint8Array(bin.length);
+          for(let b=0;b<bin.length;b++)bytes[b]=bin.charCodeAt(b);
+          const data=new Float32Array(bytes.buffer);
+          if(typeof voidSamples!=="undefined")voidSamples[idx]={data:data,sr:e.sr||48000,name:e.n||"SAMPLE"};
+          const vo=state.kits[6][idx]; if(vo&&e.n)vo.name=e.n;
+          if(engineNode){ const copy=new Float32Array(data); engineNode.port.postMessage({type:"sample",kit:6,voice:idx,sr:e.sr||48000,data:copy},[copy.buffer]); }
+        }catch(err){}
+      }
+    }
     if(typeof refreshGroupRouting==="function")refreshGroupRouting();
   }
   if(Array.isArray(d.v))d.v.forEach((vv,i)=>{ const vo=state.voices[i]; if(!vo||!vv)return; Object.assign(vo.vals,vv); const ev=effVals(vo); for(const k in ev)sendParam(i,k,ev[k]); });
@@ -4930,7 +5970,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=628","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=679","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
@@ -5347,7 +6387,7 @@ const LANGPACK={
   voice:{ "KICK 1":"KICK 1 : the main kick · tuned body plus a pitch-drop at the attack. Your foundation.","KICK 2":"KICK 2 : a second kick · layer it under KICK 1 for weight, or use it alone.","SNARE":"SNARE : tone plus noise. The tone gives the body, the noise gives the snap and buzz.","CLAP":"CLAP : stacked noise bursts fired in quick succession · the spread is many hands not quite landing together.","CL HAT":"CLOSED HAT : a short, tight metallic tick. The off-beat pulse of most grooves.","OP HAT":"OPEN HAT : a longer noise wash · its decay is what holds it open. Choke it against the closed hat.","TOM 1":"TOM 1 : a pitched drum · TUNE sets the note it sings as it falls.","TOM 2":"TOM 2 : a second tom · tune it apart from TOM 1 for fills.","WOOD":"WOOD : a dry rim/wood click. Cuts through a busy mix without adding any weight.","PING 1":"PING : a pinged resonator · a tuned body struck and left to ring.","PING 2":"PING : a pinged resonator · a tuned body struck and left to ring.","PING 3":"PING : a pinged resonator · a tuned body struck and left to ring.","PING 4":"PING : a pinged resonator · a tuned body struck and left to ring.","PING 5":"PING : a pinged resonator · a tuned body struck and left to ring.","PING 6":"PING : a pinged resonator · a tuned body struck and left to ring.","PING 7":"PING : a pinged resonator · a tuned body struck and left to ring.","PING 8":"PING : a pinged resonator · a tuned body struck and left to ring.","PING 9":"PING : a pinged resonator · a tuned body struck and left to ring." },
   param:{ pitch:"PITCH : the base note of the voice. This one number decides whether something reads as a kick, a tom or a blip · the same envelope at 50 Hz is a kick, at 200 Hz a tom, at 800 Hz a zap. Nothing else changes, only where it sits.",tune:"TUNE : the centre pitch of the voice. Up thins it out, down makes it fat and heavy. On tuned kits this is the note itself · right-click it to pick from a keyboard instead of guessing by ear.",penv:"P.ENV : how far the pitch drops at the very start. This is the single most important control on a kick · the fast fall from high to low is what your ear reads as an attack. Zero and you get a flat tone, high and you get a whip.",pdec:"P.DEC : how fast that pitch drop settles. Very short is a click of pitch, almost a tick. Longer and you hear the note bend down, which is the 808 sound. The difference between punchy and rubbery lives here.",wave:"WAVE : reshapes the oscillator from a pure sine towards harder, richer shapes. A sine has no harmonics at all · it is only the fundamental, which is why it feels round and deep. Adding harmonics makes it cut through a mix, at the cost of weight.",oscDecay:"DECAY : how long the tone rings after the hit. Short is a tight dry knock, long lets it bloom and hold. This is what separates a techno kick (short, gets out of the way) from an 808 kick (long, becomes the bass).",decay:"DECAY : how long the sound lasts after the hit. Short means it is out of the way before the next step, long means it bleeds into what follows. In fast patterns short decays keep the groove readable.",oscLevel:"OSC.LVL : how much of the tuned oscillator you hear. Turn it down and only the noise part remains · that alone turns a snare into a hat. The balance between tone and noise defines what a drum is.",noise:"NOISE : the unpitched part of the sound. Every real drum has it · stick on skin, wire on shell. Pure tone sounds synthetic, pure noise sounds like a hat. Most convincing drums are a mix of both.",noiseLevel:"NOISE : how much unpitched noise sits on top of the tone. This is the snap, the air, the stick hitting. Too little and it sounds synthetic, too much and the pitch disappears.",noiseColor:"N.COL : the colour of the noise · low is a dull rumble, high is a thin hiss. This filter decides whether noise reads as a kick's thump, a snare's rasp or a hat's sizzle. Same noise, different frequency window.",noiseDecay:"N.DEC : how fast the noise dies. Very short is a click on the attack only, longer becomes a sustained hiss. On a snare this is the difference between a tight crack and a long wash.",reso:"RESO : how sharply the resonance rings. Low is broad and damped like a soft mallet, high is narrow and singing like a struck bell. Push it far and the resonance becomes the loudest thing in the sound.",fmRatio:"FM.RAT : the frequency of the modulator against the carrier. Whole-number ratios stay musical, ratios in between go metallic and bell-like · this is why FM is so good for cymbals and so awkward for basses.",fmAmt:"FM.AMT : how hard one oscillator modulates the other. A touch adds bite and edge, a lot turns the sound into clangorous metal. FM builds harmonics that filtering alone can never produce.",fmDecay:"FM.DEC : how fast the FM fades. Short means the metallic edge only appears in the attack and then clears · that is usually what you want, since it gives bite without making the whole sound harsh.",life:"LIFE : small random drift in pitch, level and timing on every hit. Real drummers never repeat exactly, and this is what stops a loop from sounding stamped out. A little goes a long way.",tone:"TONE : a filter over the whole voice · down is dark and behind the mix, up is bright and forward. Often the fastest way to make two sounds stop fighting: darken one, leave the other alone.",level:"LEVEL : the volume of this voice in the mix. Set it after the effects, so shaping the sound and balancing it stay separate jobs.",gain:"GAIN : how hard the signal is driven into the stage after it. Not the same as LEVEL · gain changes how the sound behaves in the effects, level only how loud it comes out.",pan:"PAN : the position in the stereo field. Keep kick and bass in the centre where the energy belongs, and spread hats and percussion out for width. Double-click to recentre.",flt:"FILTER : one knob for both directions · left takes the highs away, right takes the lows away. The fastest way to make room for something else without touching its level.",redux:"REDUX : bit and rate reduction. Cutting resolution adds a gritty digital noise that is nothing like analogue distortion · harsh, cheap, and very useful when a sound is too polished.",cutoff:"CUTOFF : where the filter starts working. Everything past this point is reduced · sweep it while the loop runs and you have the classic filter build.",feedback:"FEEDBACK : how much output goes back into the input. Low gives a couple of repeats, high stacks them until it self-oscillates. Watch the level as you push it.",start:"START : where playback begins in the sample. Move it in to skip a soft attack and land straight on the transient · often the difference between a limp sample and a tight one.",end:"END : where playback stops. Pull it in to cut the tail and keep the sample out of the way of the next hit.",eratio:"E.RATIO : where the envelope peaks. Early is a percussive hit, late is a swell that arrives after the attack · the second one turns any sample into a pad.",eslope:"E.SLOPE : the curve of the envelope. Soft slopes swell in gently, sharp slopes snap · the same length can feel completely different depending on this shape.",hp:"HP : cuts the lows. Almost every sound except the kick and bass wants a little of this · removing rumble you cannot hear frees up a surprising amount of room.",lp:"LP : cuts the highs. Use it to push something back behind the rest, or to take the harshness off a sound that is too bright.",hpq:"HP.Q : resonance at the highpass corner. A little emphasises the frequency where the cut starts, which can add a hollow character.",lpq:"LP.Q : resonance at the lowpass corner. Push it and the filter starts to whistle at its cutoff · that whistle is the classic acid sound.",ring:"RING : ring modulation, multiplying the sound against another frequency. The result is inharmonic and bell-like · great for metallic percussion, wrong for anything that needs to stay in key.",freq:"FREQ : the working frequency of this module. Everything else in the module is measured against this point.",eqlow:"EQ LOW : the bottom band. Cut it on everything that is not kick or bass and the low end suddenly has space · subtraction usually beats addition down here.",eqmid:"EQ MID : the middle band, where most instruments live and fight. Cutting a little here often does more for clarity than boosting the top.",eqhigh:"EQ HIGH : the top band · air and definition. Boosting adds presence, but too much makes a mix tiring after a few minutes.",eqmidf:"EQ MID F : which frequency the mid band works on. Sweep it while boosting to find the spot that annoys, then cut there instead." },
   fx:{ "drive":"DRIVE : pushes the signal until it clips. Clipping cuts the peaks off, which makes the sound denser and louder without raising the level · that is why a driven kick cuts through where a clean one disappears.","saturate":"SATURATE : soft clipping, the analogue kind. Instead of cutting the peaks it rounds them, adding warm harmonics. Gentler than DRIVE and much harder to make sound wrong.","sat":"SAT : soft saturation. Rounds the peaks rather than cutting them, which thickens the sound and adds warmth. A little on everything is a classic trick for glue.","crush":"CRUSH : throws away bits of resolution. The result is a gritty digital noise that follows the signal · nothing like analogue distortion, and exactly right when something sounds too clean.","fold":"FOLD : wavefolding. Instead of cutting a peak, it folds it back on itself, so the harder you push the more harmonics appear. Metallic and unpredictable, closer to FM than to distortion.","punch":"PUNCH : lifts the first few milliseconds and ducks what follows. That contrast is what the ear reads as impact · the hit does not get louder, it gets sharper against its own tail.","body":"BODY : emphasises the lower midrange, where the weight of a drum sits. Adds the sense of a physical shell without adding sub, so it stays audible on small speakers." },
-  ctrl:{ "STEP":"STEP : tap once for a hit, again for an accent (louder), again to clear it. Mouse-wheel a step for ratchets · one step firing several times in a row. Ctrl-drag copies a step somewhere else. For per-step parameter locks, tap a knob without turning it: the grid switches to that parameter and you can drag each step to its own value.","PATTERN":"PATTERN : eight patterns per kit. While the loop runs a change waits for the next bar, so you can line up a switch in advance · click again to cancel it. Ctrl+C and Ctrl+V copy a whole pattern onto another slot.","BARS":"BARS : how many bars the pattern spans, one to four. Longer patterns let a part develop instead of repeating every sixteen steps.","PAGE":"PAGE : which bar of a long pattern you are editing. The loop keeps playing all of them, you are only moving the window.","CLEAR":"CLEAR : wipes the steps of the current pattern. The sounds stay as they are · only the notes go.","AUTOCLR":"AUTO CLR : clears the recorded automation of this pattern, leaving the steps intact.","KIT":"KIT : six kits, each with its own synthesis engine. The steps stay where they are when you switch, so the same rhythm can be heard through a completely different instrument · a fast way to find something unexpected.","REC":"REC : arm it, then turn any knob while the loop plays and the movement is recorded. That is automation · the machine repeats your hand. Right-click a knob to clear what it recorded.","BPM":"BPM : beats per minute, the speed of the whole machine. House sits around 120 to 128, techno 130 to 140, but the same pattern can feel like a different genre twenty BPM away.","SWING":"SWING : delays every second step slightly. Straight sixteenths feel mechanical; a bit of swing makes them lean and breathe. Small amounts do more than large ones.","SOUNDSET":"SOUND / SET : SOUND edits the picked voice on its own. SET moves the same knob on all nine voices at once, keeping their differences intact · the fastest way to darken or tighten a whole kit.","RNDZ":"RNDZ : deals a new tuning across all nine voices. With TONAL on it stays inside your key, so it is a melody generator rather than a random one · press it until something catches, then edit from there.","BG":"BG : the background animation, driven by what you are playing. Purely visual, it changes nothing in the sound.","COLOR":"FX : the colour of the visuals. Cosmetic only.","SKIN":"SKIN : the look of the chassis. Cosmetic only.","TEXT":"TEXT : shows or hides the explainer panels on both sides.","UPLINK":"UPLINK : signs you in to Audiotool. Everything here runs in the browser on its own, but with the link open the machine can hand its work straight over to a project there instead of going through files. Connect once, then EXPORT has somewhere to send to.","EXPORT":"EXPORT · MACHINISTE : sends the kit into Audiotool as a playable device, not as a finished recording. Each voice is rendered as its own one-shot, loaded into a Machiniste, and the steps are written into its pattern · so on the other side you get nine separate channels you can still mix, effect and rearrange. Use this when the loop is a starting point rather than the finished thing.","LANG":"LANGUAGE : switches every explanation between English, German and French.","SNAD":"SNAD INDUSTRIES : the other instruments in the rack.","FILTERHEAD":"FILTER : pick the filter type first, then the cutoff and resonance below it start working. With the type off, those two do nothing · that catches everyone once.","EXPORTWAV":"EXPORT WAV : renders what you hear into an audio file. The loop bounces as one stereo file, or as stems · one file per voice, all the same length, so they line up when you drop them into any DAW. Stems keep your options open, the stereo file is the quick way to share an idea.","LOOPEXP":"EXPORT LOOP : bounces the current loop as one audio file, exactly as it sounds now, effects and all." },
+  ctrl:{ "STEP":"STEP : tap once for a hit, again for an accent (louder), again to clear it. Mouse-wheel a step for ratchets · one step firing several times in a row. Ctrl-drag copies a step somewhere else. For per-step parameter locks, tap a knob without turning it: the grid switches to that parameter and you can drag each step to its own value.","PATTERN":"PATTERN : eight patterns per kit. While the loop runs a change waits for the next bar, so you can line up a switch in advance · click again to cancel it. Ctrl+C and Ctrl+V copy a whole pattern onto another slot.","BARS":"BARS : how many bars the pattern spans, one to four. Longer patterns let a part develop instead of repeating every sixteen steps.","PAGE":"PAGE : which bar of a long pattern you are editing. The loop keeps playing all of them, you are only moving the window.","CLEAR":"CLEAR : wipes the steps of the current pattern. The sounds stay as they are · only the notes go.","AUTOCLR":"AUTO CLR : clears the recorded automation of this pattern, leaving the steps intact.","KIT":"KIT : six kits, each with its own synthesis engine. The steps stay where they are when you switch, so the same rhythm can be heard through a completely different instrument · a fast way to find something unexpected.","REC":"REC : arm it, then turn any knob while the loop plays and the movement is recorded. That is automation · the machine repeats your hand. Right-click a knob to clear what it recorded.","BPM":"BPM : beats per minute, the speed of the whole machine. House sits around 120 to 128, techno 130 to 140, but the same pattern can feel like a different genre twenty BPM away.","SWING":"SWING : delays every second step slightly. Straight sixteenths feel mechanical; a bit of swing makes them lean and breathe. Small amounts do more than large ones.","SOUNDSET":"SOUND / SET : SOUND edits the picked voice on its own. SET moves the same knob on all nine voices at once, keeping their differences intact · the fastest way to darken or tighten a whole kit.","RNDZ":"RNDZ : deals a new tuning across all nine voices. With TONAL on it stays inside your key, so it is a melody generator rather than a random one · press it until something catches, then edit from there.","BG":"BG : the background animation, driven by what you are playing. Purely visual, it changes nothing in the sound.","COLOR":"FX : the colour of the visuals. Cosmetic only.","SKIN":"SKIN : the look of the chassis. Cosmetic only.","TEXT":"TEXT : shows or hides the explainer panels on both sides.","UPLINK":"UPLINK : signs you in to Audiotool. Everything here runs in the browser on its own, but with the link open the machine can hand its work straight over to a project there instead of going through files. Connect once, then EXPORT has somewhere to send to.","EXPORT":"EXPORT · MACHINISTE : sends the kit into Audiotool as a playable device, not as a finished recording. Each voice is rendered as its own one-shot, loaded into a Machiniste, and the steps are written into its pattern · so on the other side you get nine separate channels you can still mix, effect and rearrange. Use this when the loop is a starting point rather than the finished thing.","LANG":"LANGUAGE : switches every explanation between English, German and French.","SNAD":"SNAD INDUSTRIES : the other instruments in the rack.","FILTERHEAD":"FILTER : pick the filter type first, then the cutoff and resonance below it start working. With the type off, those two do nothing · that catches everyone once.","EXPORTWAV":"EXPORT WAV : renders what you hear into an audio file. The loop bounces as one stereo file, or as stems · one file per voice, all the same length, so they line up when you drop them into any DAW. Stems keep your options open, the stereo file is the quick way to share an idea.","LOOPEXP":"EXPORT LOOP : bounces the current loop as one audio file, exactly as it sounds now, effects and all.","SMPWARN":"This kit carries $N loaded sample(s). They travel inside the file. Only pass it on if the licence of that audio allows it \u00b7 synth sounds are always fine, recordings from a pack usually are not." },
   kit:{ raw:"RAW : the bare bones of synthesis. Every voice is one oscillator plus filtered noise, shaped by two envelopes · one for pitch, one for volume. That is all a drum really is: a pitch that drops fast makes a kick, noise that dies fast makes a hat. Nothing is sampled here, so you can build sounds that no machine ever had. Start with PITCH and DECAY, then add NOISE until it bites.",pckrt:"PCKRT : a classic analogue drum kit, nine fixed voices · kick, snare, hats, toms, wood. Each one is its own little synth, tuned to the sound of a hardware drum machine. Use this when you want a familiar kit fast: the voices already sit together, so a beat works after a few taps. Shape them from there rather than starting from zero.",subs:"SUBS : the low end, and it is tuned. Sub-basses, toms and tonal percussion built for weight and pitch. Switch TONAL on and the nine slots become notes in a key · KEY and MAJ/MIN pick the scale, RNDZ deals a new melody across them, and right-clicking PITCH opens a keyboard. That turns a drum kit into a bassline.",samples:"SAMPLES : your own audio in any of the nine slots. Drop a file in, then trim it with START and END, tune it, put it under an envelope and filter it · it runs through the same chain as the synth voices, so it sits in the same mix. Good for one-shots you recorded yourself, or for a loop you want to chop.",resonant:"RESONANT : bodies that ring. A short impulse strikes a resonator and what you hear is the object answering · bells, metal, tight skins. TUNE sets the pitch, RESO how long and how sharp it rings, LIFE keeps it from repeating exactly. Like SUBS it can be played in a key with TONAL, so it doubles as a melodic layer.",rimlab:"RIMSHOT LAB : a rimshot is stick on rim and skin at once · metal, wood and membrane in one short crack. Rebuilt here after the TR-909: three tuned resonators struck by an impulse, plus a burst of noise for the snap. Two versions sit side by side, RIM B is the closer one. TUNE moves the body, DECAY the ring · short keeps the classic tock, open it up and it becomes a woodblock. TONE runs dull to bright, NOISE sets the attack, FM.AMT and FM.RAT bend it towards metal. Each rim has its own sequencer track · write a part, then right-click PATTERN to take sound and steps over to VOID.",kicklab:"KICK LAB : two kick engines to pull apart. A kick is a pitch falling fast into a low tone · here you get that fall in stages, so you can hear what each part does. CLICK.F is the very top of the sweep (the attack you hear on small speakers), PUNCH.F the middle, TUNE where it lands. P.ENV decides how far it falls, DECAY how long the tone holds. Build one, write a part on its own track, then carry it to VOID with a right-click on PATTERN.",void:"VOID : the assembly room, and the point of the whole machine. The kits are sound sources · VOID is where you keep what you actually want. Pull single sounds in from the list, or right-click PATTERN in any kit to bring a whole pattern across with its sounds. Fifteen slots, filled from anywhere. Select slots with shift and press CTRL+G to make a group: a group carries its own patterns and its own effect chain, so drums and bass can each be treated on their own. That is where a loop turns into a track." },
   mod:{ "dist":"DIST : saturation across the whole mix. It thickens everything at once and glues the parts together · push it gently, since every element pays for it.","filter":"FILTER : lowpass and highpass over the sum. Closing it and opening it again over a few bars is the oldest build in dance music, and it still works.","eq":"EQ : tonal correction on the sum. Cutting a band usually beats boosting one · taking something away leaves room, adding something takes room from everyone else.","delay":"DELAY : echoes locked to the tempo. Because the repeats land on the grid they thicken the groove instead of blurring it. As a send it adds depth without softening the attack.","reverb":"REVERB : the room around the sound. SIZE sets how big it is, PRE how long before the first reflection arrives · a longer pre-delay keeps the attack dry and the tail wet, which is how you get space without mud.","resonator":"RESONATOR : a tuned comb filter that makes the signal sing on notes you choose. Light, it adds a metallic halo; heavy, it turns a drum loop into a drone in key.","glitch":"GLITCH : cuts repeats, reversals and pitch jumps out of the running loop. Use it where a pattern gets too predictable · one bar of it says more than four bars of extra notes.","rumble":"RUMBLE : low rumble under the signal, like a room answering the kick. Adds size at the bottom without touching the attack · a staple of dub techno." },
   fin:{ "glue":"GLUE : gentle compression across the whole mix. It pulls the loud and quiet parts closer together, so the elements breathe as one instead of fighting · the classic bus-compression trick.","punch":"PUNCH : sharpens the transients on the sum. The attacks step forward and the loop hits harder without getting louder.","loud":"LOUD : pushes the overall level up against the limiter. Louder, but past a point everything flattens · use it to reach a level, not as an effect.","air":"AIR : opens the very top of the spectrum. Adds clarity and breath · in small amounts it makes a mix feel expensive, in large amounts it makes it tiring.","warm":"WARM : tape-style saturation on the sum. Rounds the sharp edges and thickens the low mids, the way analogue gear does.","wide":"WIDE : widens the stereo image. The centre stays put and the sides spread · useful, but check it in mono, because too much can make parts of the sound disappear.","wdist":"W.DIST : broadband distortion on the sum. A strong character effect · it changes everything at once, so a little is usually enough.","boombox":"BOOMBOX : the colour of a cheap portable speaker. Mids forward, extremes gone · a useful reference, since it shows whether the groove still works without sub and air.","lofi":"LOFI : cuts resolution and bandwidth. Everything gets grainier and narrower, closer to an old sampler than to a modern mix." },
@@ -5357,7 +6397,7 @@ const LANGPACK={
   voice:{ "KICK 1":"KICK 1 : die Haupt-Kick · gestimmter Körper plus Tonhöhensturz am Anschlag. Dein Fundament.","KICK 2":"KICK 2 : zweite Kick · unter KICK 1 legen für Gewicht, oder allein nutzen.","SNARE":"SNARE : Ton plus Rauschen. Der Ton gibt den Körper, das Rauschen den Snap und das Schnarren.","CLAP":"CLAP : gestapelte Rausch-Bursts kurz hintereinander · die Streuung sind viele Hände, die nicht ganz gleichzeitig treffen.","CL HAT":"CLOSED HAT : kurzer, tighter metallischer Tick. Der Offbeat-Puls der meisten Grooves.","OP HAT":"OPEN HAT : längere Rauschfahne · das Decay hält sie offen. Choke sie gegen die Closed Hat.","TOM 1":"TOM 1 : gestimmte Trommel · TUNE legt die Note fest, die sie im Fallen singt.","TOM 2":"TOM 2 : zweite Tom · versetzt zu TOM 1 stimmen für Fills.","WOOD":"WOOD : trockener Rim/Holz-Klick. Schneidet durch einen vollen Mix, ohne Gewicht dazuzugeben.","PING 1":"PING : angeschlagener Resonator · ein gestimmter Körper, angeschlagen und am Ausklingen.","PING 2":"PING : angeschlagener Resonator · ein gestimmter Körper, angeschlagen und am Ausklingen.","PING 3":"PING : angeschlagener Resonator · ein gestimmter Körper, angeschlagen und am Ausklingen.","PING 4":"PING : angeschlagener Resonator · ein gestimmter Körper, angeschlagen und am Ausklingen.","PING 5":"PING : angeschlagener Resonator · ein gestimmter Körper, angeschlagen und am Ausklingen.","PING 6":"PING : angeschlagener Resonator · ein gestimmter Körper, angeschlagen und am Ausklingen.","PING 7":"PING : angeschlagener Resonator · ein gestimmter Körper, angeschlagen und am Ausklingen.","PING 8":"PING : angeschlagener Resonator · ein gestimmter Körper, angeschlagen und am Ausklingen.","PING 9":"PING : angeschlagener Resonator · ein gestimmter Körper, angeschlagen und am Ausklingen." },
   param:{ pitch:"PITCH : der Grundton der Stimme. Diese eine Zahl entscheidet, ob etwas als Kick, Tom oder Blip gehört wird · dieselbe Hüllkurve ergibt bei 50 Hz eine Kick, bei 200 Hz ein Tom, bei 800 Hz einen Zap. Nichts anderes ändert sich, nur die Lage.",tune:"TUNE : die Mittenstimmung der Stimme. Nach oben wird sie dünner, nach unten fett und schwer. In gestimmten Kits ist das die Note selbst · Rechtsklick öffnet eine Klaviatur, statt nach Gehör zu raten.",penv:"P.ENV : wie weit die Tonhöhe am Anfang abstürzt. Der wichtigste Regler einer Kick · der schnelle Fall von hoch nach tief ist das, was dein Ohr als Anschlag liest. Bei null bleibt ein flacher Ton, weit aufgedreht wird ein Peitschenhieb daraus.",pdec:"P.DEC : wie schnell dieser Absturz zur Ruhe kommt. Sehr kurz ist ein Klick aus Tonhöhe, fast ein Ticken. Länger hört man die Note nach unten biegen, das ist der 808-Klang. Zwischen knackig und gummiartig entscheidet dieser Regler.",wave:"WAVE : formt den Oszillator von einem reinen Sinus zu härteren, reicheren Formen. Ein Sinus hat gar keine Obertöne · nur den Grundton, deshalb wirkt er rund und tief. Obertöne dazu, und der Klang setzt sich im Mix durch, verliert aber an Gewicht.",oscDecay:"DECAY : wie lange der Ton nach dem Schlag nachklingt. Kurz ist ein trockener Knock, lang lässt ihn aufblühen und stehen. Genau das trennt eine Techno-Kick (kurz, macht Platz) von einer 808-Kick (lang, wird selbst zum Bass).",decay:"DECAY : wie lange der Klang nach dem Schlag anhält. Kurz heißt, er ist vor dem nächsten Step wieder weg; lang heißt, er blutet in das Folgende hinein. In schnellen Pattern halten kurze Decays den Groove lesbar.",oscLevel:"OSC.LVL : wie viel vom gestimmten Oszillator zu hören ist. Ganz herunter, und nur der Rauschanteil bleibt · allein das macht aus einer Snare eine Hihat. Das Verhältnis von Ton zu Rauschen bestimmt, was eine Trommel ist.",noise:"NOISE : der ungestimmte Anteil des Klangs. Jede echte Trommel hat ihn · Stock auf Fell, Draht auf Kessel. Reiner Ton klingt synthetisch, reines Rauschen wie eine Hihat. Überzeugende Drums sind meist beides.",noiseLevel:"NOISE : wie viel ungestimmtes Rauschen über dem Ton liegt. Das ist der Schnalzer, die Luft, der auftreffende Stock. Zu wenig klingt synthetisch, zu viel lässt die Tonhöhe verschwinden.",noiseColor:"N.COL : die Farbe des Rauschens · tief ein dumpfes Grollen, hoch ein dünnes Zischen. Dieser Filter entscheidet, ob Rauschen als Wumms einer Kick, als Schnarren einer Snare oder als Sirren einer Hihat gehört wird. Dasselbe Rauschen, anderes Fenster.",noiseDecay:"N.DEC : wie schnell das Rauschen verstummt. Sehr kurz ist nur ein Klick im Anschlag, länger wird ein stehendes Zischen. Bei einer Snare liegt hier der Unterschied zwischen knappem Knall und langer Fahne.",reso:"RESO : wie scharf die Resonanz klingt. Niedrig ist breit und gedämpft wie ein weicher Schlägel, hoch ist eng und singend wie eine angeschlagene Glocke. Weit aufgedreht wird die Resonanz zum lautesten Teil des Klangs.",fmRatio:"FM.RAT : das Frequenzverhältnis von Modulator zu Träger. Ganzzahlige Verhältnisse bleiben musikalisch, alles dazwischen wird metallisch und glockenartig · deshalb eignet sich FM so gut für Becken und so schlecht für Bässe.",fmAmt:"FM.AMT : wie stark ein Oszillator den anderen moduliert. Ein Hauch gibt Biss und Kante, viel macht klirrendes Metall daraus. FM erzeugt Obertöne, die kein Filter je herausholen könnte.",fmDecay:"FM.DEC : wie schnell die FM abklingt. Kurz heißt, die metallische Kante erscheint nur im Anschlag und verschwindet dann · meist genau richtig, weil es Biss gibt, ohne den ganzen Klang hart zu machen.",life:"LIFE : kleine zufällige Abweichungen in Tonhöhe, Pegel und Timing bei jedem Schlag. Echte Schlagzeuger wiederholen nie exakt, und genau das verhindert, dass ein Loop gestanzt klingt. Wenig reicht weit.",tone:"TONE : ein Filter über der ganzen Stimme · herunter wird sie dunkel und tritt zurück, hoch wird sie hell und drängt nach vorn. Oft der schnellste Weg, damit zwei Klänge sich nicht mehr in die Quere kommen: einen abdunkeln, den anderen lassen.",level:"LEVEL : die Lautstärke dieser Stimme im Mix. Sitzt hinter den Effekten, damit Klangformen und Pegeln zwei getrennte Arbeitsschritte bleiben.",gain:"GAIN : wie stark das Signal in die nächste Stufe getrieben wird. Nicht dasselbe wie LEVEL · Gain verändert, wie sich der Klang in den Effekten verhält, Level nur, wie laut er herauskommt.",pan:"PAN : die Position im Stereobild. Kick und Bass gehören in die Mitte, wo die Energie sitzt; Hats und Percussion darf man für Breite nach außen legen. Doppelklick stellt zurück.",flt:"FILTER : ein Regler für beide Richtungen · links nimmt die Höhen weg, rechts die Tiefen. Der schnellste Weg, Platz für etwas anderes zu schaffen, ohne am Pegel zu drehen.",redux:"REDUX : Bit- und Ratenreduktion. Weniger Auflösung erzeugt ein körniges digitales Rauschen, das nichts mit analoger Verzerrung zu tun hat · hart, billig, und sehr nützlich, wenn ein Klang zu glatt ist.",cutoff:"CUTOFF : wo der Filter zu arbeiten beginnt. Alles jenseits dieses Punktes wird abgesenkt · im laufenden Loop gefahren ergibt das den klassischen Filter-Aufbau.",feedback:"FEEDBACK : wie viel vom Ausgang zurück in den Eingang geht. Wenig gibt ein paar Wiederholungen, viel stapelt sie bis zur Selbstschwingung. Beim Aufdrehen den Pegel im Auge behalten.",start:"START : wo die Wiedergabe im Sample beginnt. Nach innen geschoben überspringst du einen weichen Anfang und landest direkt auf dem Transienten · oft der Unterschied zwischen schlaffem und knackigem Sample.",end:"END : wo die Wiedergabe endet. Nach innen gezogen schneidest du die Fahne ab und hältst das Sample aus dem Weg des nächsten Schlags.",eratio:"E.RATIO : wo die Hüllkurve ihren Höhepunkt hat. Früh ist ein perkussiver Schlag, spät ein Anschwellen nach dem Anschlag · letzteres macht aus jedem Sample eine Fläche.",eslope:"E.SLOPE : die Kurvenform der Hüllkurve. Weiche Verläufe schwellen sanft an, steile schnappen zu · dieselbe Länge fühlt sich je nach Form völlig anders an.",hp:"HP : schneidet die Tiefen weg. Fast jeder Klang außer Kick und Bass verträgt etwas davon · Grollen zu entfernen, das man ohnehin nicht hört, schafft erstaunlich viel Platz.",lp:"LP : schneidet die Höhen weg. Damit schiebst du etwas hinter den Rest oder nimmst einem zu hellen Klang die Härte.",hpq:"HP.Q : Resonanz an der Hochpass-Grenze. Etwas davon betont die Frequenz, an der der Schnitt ansetzt, und gibt einen hohlen Charakter.",lpq:"LP.Q : Resonanz an der Tiefpass-Grenze. Aufgedreht beginnt der Filter an seiner Grenzfrequenz zu pfeifen · dieses Pfeifen ist der klassische Acid-Sound.",ring:"RING : Ringmodulation, der Klang wird mit einer anderen Frequenz multipliziert. Das Ergebnis ist unharmonisch und glockig · großartig für metallische Percussion, falsch für alles, was in der Tonart bleiben soll.",freq:"FREQ : die Arbeitsfrequenz dieses Moduls. Alles andere im Modul bezieht sich auf diesen Punkt.",eqlow:"EQ LOW : das untere Band. Bei allem außer Kick und Bass abgesenkt, bekommt der Bassbereich plötzlich Luft · hier unten schlägt Wegnehmen fast immer das Hinzufügen.",eqmid:"EQ MID : das Mittenband, wo die meisten Instrumente sitzen und sich streiten. Ein wenig herauszunehmen bringt oft mehr Klarheit als oben etwas anzuheben.",eqhigh:"EQ HIGH : das obere Band · Luft und Definition. Anheben gibt Präsenz, zu viel macht einen Mix nach wenigen Minuten anstrengend.",eqmidf:"EQ MID F : auf welcher Frequenz das Mittenband arbeitet. Beim Anheben durchfahren, bis es unangenehm wird, und dann genau dort absenken." },
   fx:{ "drive":"DRIVE : treibt das Signal, bis es clippt. Beim Clippen werden die Spitzen abgeschnitten, der Klang wird dichter und lauter, ohne dass der Pegel steigt · deshalb setzt sich eine angezerrte Kick durch, wo eine saubere verschwindet.","saturate":"SATURATE : weiches Clipping, die analoge Art. Statt die Spitzen abzuschneiden, rundet es sie und fügt warme Obertöne hinzu. Sanfter als DRIVE und deutlich schwerer falsch zu machen.","sat":"SAT : sanfte Sättigung. Rundet die Spitzen, statt sie zu kappen, was den Klang verdickt und wärmt. Ein wenig davon auf allem ist ein klassischer Trick, damit ein Mix zusammenwirkt.","crush":"CRUSH : wirft Auflösung weg. Es entsteht ein körniges digitales Rauschen, das dem Signal folgt · nichts wie analoge Verzerrung, und genau richtig, wenn etwas zu sauber klingt.","fold":"FOLD : Wellenfaltung. Statt eine Spitze abzuschneiden, klappt sie sie in sich zurück · je stärker du treibst, desto mehr Obertöne. Metallisch und unvorhersehbar, näher an FM als an Verzerrung.","punch":"PUNCH : hebt die ersten Millisekunden an und senkt, was folgt. Dieser Kontrast ist das, was das Ohr als Wucht liest · der Schlag wird nicht lauter, sondern schärfer gegen seine eigene Fahne.","body":"BODY : betont die unteren Mitten, wo das Gewicht einer Trommel sitzt. Gibt das Gefühl eines physischen Kessels, ohne Sub hinzuzufügen · bleibt also auf kleinen Boxen hörbar." },
-  ctrl:{ "STEP":"STEP : einmal tippen für einen Schlag, nochmal für einen Akzent (lauter), nochmal zum Löschen. Mausrad auf einem Step gibt Wiederholungen · ein Step feuert mehrfach hintereinander. Strg-Ziehen kopiert einen Step woandershin. Für Parameter pro Step tippst du einen Regler an, ohne ihn zu drehen: das Raster schaltet auf diesen Parameter um und du ziehst jeden Step auf seinen eigenen Wert.","PATTERN":"PATTERN : acht Pattern pro Kit. Während der Loop läuft, wartet ein Wechsel auf den nächsten Takt · du kannst ihn also vorbereiten, nochmal klicken bricht ab. Strg+C und Strg+V kopieren ein ganzes Pattern auf einen anderen Platz.","BARS":"BARS : über wie viele Takte das Pattern läuft, eins bis vier. Längere Pattern lassen eine Figur sich entwickeln, statt alle sechzehn Steps zu wiederholen.","PAGE":"PAGE : welchen Takt eines langen Patterns du gerade bearbeitest. Der Loop spielt weiterhin alle, du verschiebst nur das Fenster.","CLEAR":"CLEAR : löscht die Steps des aktuellen Patterns. Die Sounds bleiben, wie sie sind · nur die Noten gehen.","AUTOCLR":"AUTO CLR : löscht die aufgezeichnete Automation dieses Patterns, die Steps bleiben.","KIT":"KIT : sechs Kits, jedes mit eigener Synthese. Beim Umschalten bleiben die Steps stehen, dieselbe Rhythmusfigur ist also durch ein völlig anderes Instrument zu hören · ein schneller Weg zu etwas Unerwartetem.","REC":"REC : scharfschalten, dann während des Loops an einem Regler drehen · die Bewegung wird aufgezeichnet. Das ist Automation, die Maschine wiederholt deine Hand. Rechtsklick auf einen Regler löscht seine Aufzeichnung.","BPM":"BPM : Schläge pro Minute, das Tempo der ganzen Maschine. House liegt bei 120 bis 128, Techno bei 130 bis 140 · dasselbe Pattern kann zwanzig BPM weiter wie ein anderes Genre wirken.","SWING":"SWING : verzögert jeden zweiten Step ein wenig. Gerade Sechzehntel wirken mechanisch; etwas Swing lässt sie atmen. Kleine Werte bewirken mehr als große.","SOUNDSET":"SOUND / SET : SOUND bearbeitet nur die gewählte Stimme. SET bewegt denselben Regler auf allen neun gleichzeitig und behält ihre Unterschiede bei · der schnellste Weg, ein ganzes Kit abzudunkeln oder zu straffen.","RNDZ":"RNDZ : verteilt eine neue Stimmung über alle neun Stimmen. Mit TONAL bleibt sie in deiner Tonart, das ist also ein Melodie-Generator und kein Zufallsgenerator · drücken, bis etwas hängenbleibt, und von dort weiterarbeiten.","BG":"BG : die Hintergrundanimation, angetrieben von dem, was du spielst. Rein visuell, am Klang ändert sie nichts.","COLOR":"FX : die Farbe der Visuals. Nur Optik.","SKIN":"SKIN : das Aussehen des Gehäuses. Nur Optik.","TEXT":"TEXT : blendet die Erklärungen auf beiden Seiten ein oder aus.","UPLINK":"UPLINK : meldet dich bei Audiotool an. Alles hier läuft für sich im Browser, aber mit offener Verbindung kann die Maschine ihre Arbeit direkt in ein Projekt dort übergeben, statt den Umweg über Dateien zu nehmen. Einmal verbinden, dann hat EXPORT ein Ziel.","EXPORT":"EXPORT · MACHINISTE : schickt das Kit als spielbares Gerät nach Audiotool, nicht als fertige Aufnahme. Jede Stimme wird als eigener One-Shot gerendert, in einen Machiniste geladen, und die Steps werden in dessen Pattern geschrieben · drüben bekommst du also neun getrennte Kanäle, die du weiter mischen, mit Effekten versehen und umbauen kannst. Nimm das, wenn der Loop ein Ausgangspunkt ist und nicht das Endergebnis.","LANG":"SPRACHE : schaltet alle Erklärungen zwischen Englisch, Deutsch und Französisch um.","SNAD":"SNAD INDUSTRIES : die anderen Geräte im Rack.","FILTERHEAD":"FILTER : erst den Filtertyp wählen, dann arbeiten Cutoff und Resonanz darunter. Steht der Typ auf aus, tun die beiden nichts · darauf fällt jeder einmal herein.","EXPORTWAV":"EXPORT WAV : rendert das, was du hörst, in eine Audiodatei. Der Loop lässt sich als eine Stereodatei ausgeben oder als Stems · eine Datei pro Stimme, alle gleich lang, damit sie in jeder DAW sofort bündig liegen. Stems halten dir alle Wege offen, die Stereodatei ist der schnelle Weg, eine Idee zu zeigen.","LOOPEXP":"EXPORT LOOP : rendert den aktuellen Loop als eine Audiodatei, genau so wie er jetzt klingt, mit allen Effekten." },
+  ctrl:{ "STEP":"STEP : einmal tippen für einen Schlag, nochmal für einen Akzent (lauter), nochmal zum Löschen. Mausrad auf einem Step gibt Wiederholungen · ein Step feuert mehrfach hintereinander. Strg-Ziehen kopiert einen Step woandershin. Für Parameter pro Step tippst du einen Regler an, ohne ihn zu drehen: das Raster schaltet auf diesen Parameter um und du ziehst jeden Step auf seinen eigenen Wert.","PATTERN":"PATTERN : acht Pattern pro Kit. Während der Loop läuft, wartet ein Wechsel auf den nächsten Takt · du kannst ihn also vorbereiten, nochmal klicken bricht ab. Strg+C und Strg+V kopieren ein ganzes Pattern auf einen anderen Platz.","BARS":"BARS : über wie viele Takte das Pattern läuft, eins bis vier. Längere Pattern lassen eine Figur sich entwickeln, statt alle sechzehn Steps zu wiederholen.","PAGE":"PAGE : welchen Takt eines langen Patterns du gerade bearbeitest. Der Loop spielt weiterhin alle, du verschiebst nur das Fenster.","CLEAR":"CLEAR : löscht die Steps des aktuellen Patterns. Die Sounds bleiben, wie sie sind · nur die Noten gehen.","AUTOCLR":"AUTO CLR : löscht die aufgezeichnete Automation dieses Patterns, die Steps bleiben.","KIT":"KIT : sechs Kits, jedes mit eigener Synthese. Beim Umschalten bleiben die Steps stehen, dieselbe Rhythmusfigur ist also durch ein völlig anderes Instrument zu hören · ein schneller Weg zu etwas Unerwartetem.","REC":"REC : scharfschalten, dann während des Loops an einem Regler drehen · die Bewegung wird aufgezeichnet. Das ist Automation, die Maschine wiederholt deine Hand. Rechtsklick auf einen Regler löscht seine Aufzeichnung.","BPM":"BPM : Schläge pro Minute, das Tempo der ganzen Maschine. House liegt bei 120 bis 128, Techno bei 130 bis 140 · dasselbe Pattern kann zwanzig BPM weiter wie ein anderes Genre wirken.","SWING":"SWING : verzögert jeden zweiten Step ein wenig. Gerade Sechzehntel wirken mechanisch; etwas Swing lässt sie atmen. Kleine Werte bewirken mehr als große.","SOUNDSET":"SOUND / SET : SOUND bearbeitet nur die gewählte Stimme. SET bewegt denselben Regler auf allen neun gleichzeitig und behält ihre Unterschiede bei · der schnellste Weg, ein ganzes Kit abzudunkeln oder zu straffen.","RNDZ":"RNDZ : verteilt eine neue Stimmung über alle neun Stimmen. Mit TONAL bleibt sie in deiner Tonart, das ist also ein Melodie-Generator und kein Zufallsgenerator · drücken, bis etwas hängenbleibt, und von dort weiterarbeiten.","BG":"BG : die Hintergrundanimation, angetrieben von dem, was du spielst. Rein visuell, am Klang ändert sie nichts.","COLOR":"FX : die Farbe der Visuals. Nur Optik.","SKIN":"SKIN : das Aussehen des Gehäuses. Nur Optik.","TEXT":"TEXT : blendet die Erklärungen auf beiden Seiten ein oder aus.","UPLINK":"UPLINK : meldet dich bei Audiotool an. Alles hier läuft für sich im Browser, aber mit offener Verbindung kann die Maschine ihre Arbeit direkt in ein Projekt dort übergeben, statt den Umweg über Dateien zu nehmen. Einmal verbinden, dann hat EXPORT ein Ziel.","EXPORT":"EXPORT · MACHINISTE : schickt das Kit als spielbares Gerät nach Audiotool, nicht als fertige Aufnahme. Jede Stimme wird als eigener One-Shot gerendert, in einen Machiniste geladen, und die Steps werden in dessen Pattern geschrieben · drüben bekommst du also neun getrennte Kanäle, die du weiter mischen, mit Effekten versehen und umbauen kannst. Nimm das, wenn der Loop ein Ausgangspunkt ist und nicht das Endergebnis.","LANG":"SPRACHE : schaltet alle Erklärungen zwischen Englisch, Deutsch und Französisch um.","SNAD":"SNAD INDUSTRIES : die anderen Geräte im Rack.","FILTERHEAD":"FILTER : erst den Filtertyp wählen, dann arbeiten Cutoff und Resonanz darunter. Steht der Typ auf aus, tun die beiden nichts · darauf fällt jeder einmal herein.","EXPORTWAV":"EXPORT WAV : rendert das, was du hörst, in eine Audiodatei. Der Loop lässt sich als eine Stereodatei ausgeben oder als Stems · eine Datei pro Stimme, alle gleich lang, damit sie in jeder DAW sofort bündig liegen. Stems halten dir alle Wege offen, die Stereodatei ist der schnelle Weg, eine Idee zu zeigen.","LOOPEXP":"EXPORT LOOP : rendert den aktuellen Loop als eine Audiodatei, genau so wie er jetzt klingt, mit allen Effekten.","SMPWARN":"Dieses Kit enth\u00e4lt $N geladene Sample(s). Sie wandern mit in die Datei. Gib sie nur weiter, wenn die Lizenz dieses Audios das erlaubt \u00b7 synthetische Kl\u00e4nge sind immer unbedenklich, Aufnahmen aus einem Pack meist nicht." },
   kit:{ raw:"RAW : Synthese auf das Nötigste reduziert. Jede Stimme ist ein Oszillator plus gefiltertes Rauschen, geformt von zwei Hüllkurven · eine für die Tonhöhe, eine für die Lautstärke. Mehr ist eine Trommel im Kern nicht: eine Tonhöhe, die schnell fällt, ergibt eine Kick; Rauschen, das schnell verstummt, eine Hihat. Hier ist nichts gesampelt, du kannst also Klänge bauen, die es nie gab. Fang mit PITCH und DECAY an, dann NOISE dazu, bis es beißt.",pckrt:"PCKRT : ein klassisches Analog-Set aus neun festen Stimmen · Kick, Snare, Hats, Toms, Wood. Jede ist ein eigener kleiner Synth, dem Klang einer Hardware-Drummachine nachempfunden. Nimm das, wenn es schnell gehen soll: die Stimmen passen schon zusammen, ein Beat steht nach ein paar Taps. Von da aus formst du weiter, statt bei null anzufangen.",subs:"SUBS : das Fundament, und es ist gestimmt. Sub-Bässe, Toms und tonale Percussion, gebaut für Gewicht und Tonhöhe. Schalte TONAL ein, und die neun Plätze werden zu Noten einer Tonart · KEY und MAJ/MIN wählen die Skala, RNDZ verteilt eine neue Melodie darauf, und ein Rechtsklick auf PITCH öffnet eine Klaviatur. So wird aus einem Drumkit eine Basslinie.",samples:"SAMPLES : dein eigenes Audio auf jedem der neun Plätze. Datei hineinziehen, mit START und END beschneiden, stimmen, unter eine Hüllkurve legen und filtern · es läuft durch dieselbe Kette wie die synthetischen Stimmen und sitzt damit im selben Mix. Gut für selbst aufgenommene One-Shots oder einen Loop, den du zerschneiden willst.",resonant:"RESONANT : Körper, die klingen. Ein kurzer Impuls schlägt einen Resonator an, und was du hörst, ist die Antwort des Objekts · Glocken, Metall, straffe Felle. TUNE setzt die Tonhöhe, RESO wie lang und scharf es klingt, LIFE verhindert, dass sich Anschläge exakt wiederholen. Wie SUBS lässt es sich mit TONAL in einer Tonart spielen und dient so auch als melodische Ebene.",rimlab:"RIMSHOT LAB : ein Rimshot ist Stock auf Reifen und Fell zugleich · Metall, Holz und Membran in einem kurzen Knack. Hier nachgebaut nach dem Vorbild der TR-909: drei gestimmte Resonatoren, angeschlagen von einem Impuls, dazu ein Rauschstoß für den Schnalzer. Zwei Varianten stehen nebeneinander, RIM B ist die genauere. TUNE verschiebt den Körper, DECAY die Ausklingzeit · kurz bleibt es das klassische Tock, weit aufgedreht wird ein Woodblock daraus. TONE geht von dumpf nach hell, NOISE setzt den Anschlag, FM.AMT und FM.RAT biegen den Klang Richtung Metall. Jede Rim hat ihre eigene Sequencer-Spur · schreib eine Figur, und per Rechtsklick auf PATTERN holst du Sound und Steps zusammen nach VOID.",kicklab:"KICK LAB : zwei Kick-Maschinen zum Auseinandernehmen. Eine Kick ist eine Tonhöhe, die schnell in einen tiefen Ton fällt · hier bekommst du diesen Fall in Stufen und hörst, was jeder Teil beiträgt. CLICK.F ist die Spitze des Sweeps (der Anschlag, den man auf kleinen Boxen hört), PUNCH.F die Mitte, TUNE wo er landet. P.ENV bestimmt, wie weit er fällt, DECAY wie lange der Ton steht. Bau eine, schreib eine Figur auf ihrer eigenen Spur, und hol sie per Rechtsklick auf PATTERN nach VOID.",void:"VOID : der Montageraum, und der eigentliche Sinn der Maschine. Die Kits sind Klangquellen · in VOID sammelst du, was du wirklich brauchst. Hol einzelne Sounds über die Liste herein, oder kopiere per Rechtsklick auf PATTERN ein ganzes Pattern samt Sounds hinüber. Fünfzehn Plätze, frei belegbar. Wähle Plätze mit Shift und drücke STRG+G für eine Gruppe: jede Gruppe hat eigene Pattern und eine eigene Effektkette, Drums und Bass lassen sich also getrennt behandeln. Hier wird aus einem Loop ein Stück." },
   mod:{ "dist":"DIST : Sättigung über den ganzen Mix. Sie verdickt alles auf einmal und klebt die Teile zusammen · sanft dosieren, denn jedes Element bezahlt dafür.","filter":"FILTER : Tief- und Hochpass über der Summe. Zumachen und über ein paar Takte wieder öffnen ist der älteste Aufbau der Tanzmusik, und er wirkt immer noch.","eq":"EQ : tonale Korrektur auf der Summe. Ein Band abzusenken schlägt meist das Anheben · Wegnehmen schafft Platz, Hinzufügen nimmt ihn allen anderen.","delay":"DELAY : Echos im Tempo verankert. Weil die Wiederholungen auf dem Raster landen, verdicken sie den Groove, statt ihn zu verwischen. Als Send bringt es Tiefe, ohne den Anschlag weich zu machen.","reverb":"REVERB : der Raum um den Klang. SIZE bestimmt seine Größe, PRE wie lange es bis zur ersten Reflexion dauert · ein längeres Pre-Delay hält den Anschlag trocken und die Fahne nass, so bekommst du Raum ohne Matsch.","resonator":"RESONATOR : ein gestimmter Kammfilter, der das Signal auf gewählten Noten singen lässt. Leicht dosiert ein metallischer Schimmer, stark aufgedreht wird aus einem Drumloop ein Drone in der Tonart.","glitch":"GLITCH : schneidet Wiederholungen, Rückwärtsläufe und Tonhöhenspünge aus dem laufenden Loop. Einsetzen, wo ein Pattern zu berechenbar wird · ein Takt davon sagt mehr als vier Takte zusätzlicher Noten.","rumble":"RUMBLE : tiefes Grollen unter dem Signal, wie ein Raum, der auf die Kick antwortet. Bringt Größe im Bass, ohne den Anschlag anzutasten · ein Grundpfeiler des Dub-Techno." },
   fin:{ "glue":"GLUE : sanfte Kompression über den ganzen Mix. Sie zieht laute und leise Stellen zusammen, damit die Elemente gemeinsam atmen statt sich zu streiten · der klassische Bus-Kompressor-Trick.","punch":"PUNCH : schärft die Transienten auf der Summe. Die Anschläge treten nach vorn, der Loop trifft härter, ohne lauter zu werden.","loud":"LOUD : drückt den Gesamtpegel gegen den Limiter. Lauter, aber ab einem Punkt wird alles flach · als Mittel zum Pegel gedacht, nicht als Effekt.","air":"AIR : öffnet das oberste Ende des Spektrums. Bringt Klarheit und Luft · in kleinen Mengen wirkt ein Mix damit teuer, in großen anstrengend.","warm":"WARM : bandartige Sättigung auf der Summe. Rundet scharfe Kanten und verdickt die unteren Mitten, so wie analoges Gerät es tut.","wide":"WIDE : verbreitert das Stereobild. Die Mitte bleibt stehen, die Seiten gehen auseinander · nützlich, aber in Mono gegenhören, denn zu viel lässt Teile des Klangs verschwinden.","wdist":"W.DIST : breitbandige Verzerrung auf der Summe. Ein starker Charaktereffekt · er verändert alles auf einmal, wenig genügt meist.","boombox":"BOOMBOX : die Färbung eines billigen Kofferradios. Mitten nach vorn, die Extreme weg · als Referenz brauchbar, weil man hört, ob der Groove auch ohne Sub und Luft trägt.","lofi":"LOFI : senkt Auflösung und Bandbreite. Alles wird körniger und enger, näher an einem alten Sampler als an einem modernen Mix." },
@@ -5367,7 +6407,7 @@ const LANGPACK={
   voice:{ "KICK 1":"KICK 1 : kick principal, corps + chute de hauteur","KICK 2":"KICK 2 : deuxième kick, superposer ou seul","SNARE":"SNARE : bruit + ton, claquant depuis les potards","CLAP":"CLAP : salves de bruit empilées","CL HAT":"CLOSED HAT : tic métallique court","OP HAT":"OPEN HAT : nappe de bruit plus longue","TOM 1":"TOM 1 : fût accordé","TOM 2":"TOM 2 : deuxième tom","WOOD":"WOOD : clic sec de rim","PING 1":"PING : résonateur pincé","PING 2":"PING : résonateur pincé","PING 3":"PING : résonateur pincé","PING 4":"PING : résonateur pincé","PING 5":"PING : résonateur pincé","PING 6":"PING : résonateur pincé","PING 7":"PING : résonateur pincé","PING 8":"PING : résonateur pincé","PING 9":"PING : résonateur pincé" },
   param:{ pitch:"PITCH : la note de base de la voix. Ce seul chiffre décide si l'on entend un kick, un tom ou un blip · la même enveloppe à 50 Hz donne un kick, à 200 Hz un tom, à 800 Hz un zap. Rien d'autre ne change, seulement la hauteur.",tune:"TUNE : la hauteur centrale de la voix. Vers le haut elle s'amincit, vers le bas elle devient grasse et lourde. Dans les kits accordés c'est la note elle-même · clic droit pour choisir sur un clavier plutôt qu'à l'oreille.",penv:"P.ENV : l'ampleur de la chute de hauteur au tout début. Le réglage le plus important d'un kick · cette chute rapide du haut vers le bas, c'est ce que l'oreille lit comme une attaque. À zéro il reste un son plat, au maximum c'est un coup de fouet.",pdec:"P.DEC : la vitesse à laquelle cette chute se stabilise. Très court, c'est un clic de hauteur, presque un tic. Plus long, on entend la note plier vers le bas : c'est le son 808. Entre percutant et caoutchouteux, tout se joue ici.",wave:"WAVE : transforme l'oscillateur d'une sinusoïde pure vers des formes plus dures et plus riches. Une sinusoïde n'a aucun harmonique · seulement la fondamentale, d'où sa rondeur et sa profondeur. Ajouter des harmoniques la fait passer dans le mix, au prix du poids.",oscDecay:"DECAY : la durée de résonance du son après la frappe. Court, c'est un coup sec ; long, le son s'épanouit et tient. C'est ce qui sépare un kick techno (court, il laisse la place) d'un kick 808 (long, il devient la basse).",decay:"DECAY : la durée du son après la frappe. Court, il disparaît avant le pas suivant ; long, il déborde sur la suite. Dans les motifs rapides, des decays courts gardent le groove lisible.",oscLevel:"OSC.LVL : la quantité d'oscillateur accordé que l'on entend. Au minimum il ne reste que le bruit · cela seul transforme une caisse claire en charley. L'équilibre entre le ton et le bruit définit ce qu'est une percussion.",noise:"NOISE : la part non accordée du son. Toute vraie percussion en a · la baguette sur la peau, le timbre sur le fût. Un ton pur sonne synthétique, un bruit pur sonne comme un charley. Les percussions convaincantes mêlent les deux.",noiseLevel:"NOISE : la quantité de bruit non accordé posée sur le ton. C'est le claquant, l'air, la baguette qui frappe. Trop peu et c'est synthétique, trop et la hauteur disparaît.",noiseColor:"N.COL : la couleur du bruit · grave, un grondement sourd ; aigu, un souffle fin. Ce filtre décide si le bruit s'entend comme le choc d'un kick, le râpe d'une caisse claire ou le sifflement d'un charley. Même bruit, autre fenêtre.",noiseDecay:"N.DEC : la vitesse d'extinction du bruit. Très court, ce n'est qu'un clic à l'attaque ; plus long, cela devient un souffle tenu. Sur une caisse claire, c'est la différence entre un claquement net et une longue traîne.",reso:"RESO : la finesse de la résonance. Basse, elle est large et amortie comme une mailloche douce ; haute, étroite et chantante comme une cloche frappée. Poussée loin, la résonance devient l'élément le plus fort du son.",fmRatio:"FM.RAT : le rapport de fréquence entre modulateur et porteuse. Les rapports entiers restent musicaux, ceux entre deux deviennent métalliques · c'est pourquoi la FM excelle sur les cymbales et convient mal aux basses.",fmAmt:"FM.AMT : la force avec laquelle un oscillateur module l'autre. Un soupçon ajoute du mordant, beaucoup transforme le son en métal criard. La FM crée des harmoniques qu'aucun filtre ne pourrait faire apparaître.",life:"LIFE : de petites dérives aléatoires de hauteur, de niveau et de placement à chaque frappe. Un vrai batteur ne répète jamais à l'identique, et c'est ce qui empêche une boucle de sonner estampillée. Un peu suffit.",tone:"TONE : un filtre sur toute la voix · vers le bas elle s'assombrit et recule, vers le haut elle s'éclaircit et avance. Souvent le moyen le plus rapide d'empêcher deux sons de se battre : assombris l'un, laisse l'autre.",level:"LEVEL : le volume de cette voix dans le mix. Placé après les effets, pour que sculpter et équilibrer restent deux gestes distincts.",gain:"GAIN : la force avec laquelle le signal attaque l'étage suivant. Ce n'est pas LEVEL · le gain change le comportement du son dans les effets, le niveau seulement son volume de sortie.",pan:"PAN : la position dans l'image stéréo. Kick et basse au centre, là où l'énergie doit être ; charleys et percussions peuvent s'écarter pour élargir. Double-clic pour recentrer.",flt:"FILTER : un seul réglage pour les deux sens · à gauche il retire les aigus, à droite les graves. Le moyen le plus rapide de faire de la place sans toucher au niveau.",redux:"REDUX : réduction de bits et de fréquence. Baisser la résolution ajoute un bruit numérique granuleux qui n'a rien d'analogique · dur, bon marché, et très utile quand un son est trop lisse.",cutoff:"CUTOFF : le point où le filtre commence à agir. Tout ce qui est au-delà est atténué · balaye-le pendant que la boucle tourne et tu obtiens la montée filtrée classique.",feedback:"FEEDBACK : la quantité de sortie renvoyée à l'entrée. Peu donne quelques répétitions, beaucoup les empile jusqu'à l'auto-oscillation. Surveille le niveau en poussant.",start:"START : le point de départ de la lecture dans le sample. Avance-le pour sauter une attaque molle et tomber sur le transitoire · souvent la différence entre un sample mou et un sample net.",end:"END : le point d'arrêt de la lecture. Recule-le pour couper la traîne et libérer la place avant la frappe suivante.",eratio:"E.RATIO : l'endroit où l'enveloppe culmine. Tôt, c'est une frappe percussive ; tard, c'est un gonflement qui arrive après l'attaque · ce dernier transforme n'importe quel sample en nappe.",eslope:"E.SLOPE : la courbe de l'enveloppe. Les pentes douces gonflent, les pentes raides claquent · la même durée se ressent tout autrement selon cette forme.",hp:"HP : coupe les graves. Presque tout sauf le kick et la basse en demande un peu · retirer un grondement qu'on n'entend pas libère étonnamment de place.",lp:"LP : coupe les aigus. Sert à repousser un élément derrière les autres, ou à adoucir un son trop brillant.",hpq:"HP.Q : résonance à la coupure du passe-haut. Un peu accentue la fréquence où la coupe commence, ce qui donne un caractère creux.",lpq:"LP.Q : résonance à la coupure du passe-bas. Poussée, le filtre se met à siffler à sa fréquence · ce sifflement, c'est le son acid classique.",ring:"RING : modulation en anneau, le son est multiplié par une autre fréquence. Le résultat est inharmonique et cloché · excellent pour les percussions métalliques, inadapté à ce qui doit rester dans la tonalité.",freq:"FREQ : la fréquence de travail de ce module. Tout le reste du module se mesure par rapport à ce point.",eqlow:"EQ LOW : la bande basse. Coupe-la sur tout ce qui n'est ni kick ni basse et le grave respire soudain · ici, retirer vaut presque toujours mieux qu'ajouter.",eqmid:"EQ MID : la bande médium, là où la plupart des instruments se bousculent. En retirer un peu apporte souvent plus de clarté qu'en ajouter dans les aigus.",eqhigh:"EQ HIGH : la bande haute · l'air et la définition. En ajouter donne de la présence, trop rend un mix fatigant au bout de quelques minutes.",eqmidf:"EQ MID F : la fréquence sur laquelle agit la bande médium. Balaye-la en amplifiant jusqu'à trouver le point désagréable, puis coupe là.",fmDecay:"FM.DEC : la vitesse à laquelle la FM s'efface. Court signifie que l'arête métallique n'apparaît qu'à l'attaque puis s'efface · c'est en général ce qu'on veut : du mordant sans dureté sur tout le son." },
   fx:{ "drive":"DRIVE : pousse le signal jusqu'à l'écrêtage. Écrêter coupe les crêtes : le son devient plus dense et plus fort sans que le niveau monte · c'est pourquoi un kick saturé passe là où un kick propre disparaît.","saturate":"SATURATE : écrêtage doux, à la manière analogique. Au lieu de couper les crêtes, il les arrondit et ajoute des harmoniques chaleureuses. Plus doux que DRIVE et bien plus difficile à rater.","sat":"SAT : saturation douce. Arrondit les crêtes au lieu de les couper, ce qui épaissit et réchauffe. Un peu sur tout est une astuce classique pour souder un mix.","crush":"CRUSH : jette de la résolution. Il en résulte un bruit numérique granuleux qui suit le signal · rien à voir avec la distorsion analogique, et exactement ce qu'il faut quand un son est trop propre.","redux":"REDUX : réduction du taux, crasse","fold":"FOLD : repliement d'onde. Au lieu de couper une crête, il la replie sur elle-même · plus tu pousses, plus il y a d'harmoniques. Métallique et imprévisible, plus proche de la FM que de la distorsion.","punch":"PUNCH : relève les premières millisecondes et abaisse ce qui suit. Ce contraste, c'est ce que l'oreille lit comme de l'impact · la frappe ne devient pas plus forte, elle devient plus nette face à sa propre traîne.","body":"BODY : accentue le bas médium, là où se trouve le poids d'une percussion. Donne la sensation d'un fût physique sans ajouter de sub, et reste donc audible sur de petites enceintes.","flt":"FILTER : par voix, LP gauche / HP droite / centre off" },
-  ctrl:{ "STEP":"STEP : tape une fois pour une frappe, encore pour un accent (plus fort), encore pour effacer. La molette sur un pas donne des répétitions · un pas se déclenche plusieurs fois de suite. Ctrl-glisser copie un pas ailleurs. Pour des valeurs par pas, tape un réglage sans le tourner : la grille passe sur ce paramètre et tu tires chaque pas à sa propre valeur.","PATTERN":"PATTERN : huit motifs par kit. Pendant la lecture, un changement attend la mesure suivante · tu peux donc le préparer, un second clic annule. Ctrl+C et Ctrl+V copient un motif entier vers un autre emplacement.","BARS":"BARS : sur combien de mesures s'étend le motif, de une à quatre. Des motifs plus longs laissent une figure se développer au lieu de se répéter tous les seize pas.","PAGE":"PAGE : quelle mesure d'un long motif tu édites. La boucle les joue toutes, tu ne déplaces que la fenêtre.","CLEAR":"CLEAR : efface les pas du motif courant. Les sons restent tels quels · seules les notes partent.","AUTOCLR":"AUTO CLR : efface l'automation enregistrée de ce motif, les pas restent.","KIT":"KIT : six kits, chacun son moteur de synthèse. Les pas restent en place quand tu changes, la même figure rythmique s'entend donc à travers un instrument tout autre · un moyen rapide de trouver l'inattendu.","PLAY":"PLAY : lance la boucle, encore = stop","REC":"REC : arme-le, puis tourne un réglage pendant que la boucle tourne : le mouvement est enregistré. C'est l'automation, la machine rejoue ta main. Clic droit sur un réglage pour effacer son enregistrement.","BPM":"BPM : battements par minute, le tempo de toute la machine. La house tourne autour de 120 à 128, la techno de 130 à 140 · le même motif peut sembler d'un autre genre vingt BPM plus loin.","SWING":"SWING : retarde légèrement un pas sur deux. Des doubles-croches droites sonnent mécaniques ; un peu de swing les fait respirer. Les petites valeurs font plus d'effet que les grandes.","SOUNDSET":"SOUND / SET : SOUND édite la voix sélectionnée seule. SET bouge le même réglage sur les neuf voix à la fois en gardant leurs écarts · le moyen le plus rapide d'assombrir ou de resserrer tout un kit.","RNDZ":"RNDZ : distribue un nouvel accordage sur les neuf voix. Avec TONAL actif il reste dans ta tonalité : c'est donc un générateur de mélodie, pas de hasard · appuie jusqu'à ce que quelque chose accroche, puis retravaille.","BG":"BG : l'animation de fond, pilotée par ce que tu joues. Purement visuel, cela ne change rien au son.","COLOR":"FX : la couleur des visuels. Esthétique uniquement.","SKIN":"SKIN : l'apparence du châssis. Esthétique uniquement.","TEXT":"TEXT : affiche ou masque les panneaux d'explication des deux côtés.","UPLINK":"UPLINK : te connecte à Audiotool. Tout fonctionne ici de façon autonome dans le navigateur, mais avec la liaison ouverte la machine peut transmettre son travail directement dans un projet là-bas, sans passer par des fichiers. Connecte-toi une fois, et EXPORT a une destination.","EXPORT":"EXPORT · MACHINISTE : envoie le kit dans Audiotool comme un appareil jouable, pas comme un enregistrement fini. Chaque voix est rendue en one-shot, chargée dans un Machiniste, et les pas sont écrits dans son motif · de l'autre côté tu obtiens donc neuf canaux séparés, encore mixables, traîtables et réarrangeables. À utiliser quand la boucle est un point de départ et non le résultat final.","LANG":"LANGUE : bascule toutes les explications entre anglais, allemand et français.","SNAD":"SNAD INDUSTRIES : les autres appareils du rack.","FILTERHEAD":"FILTER : choisis d'abord le type de filtre, ensuite la coupure et la résonance en dessous agissent. Si le type est sur off, ces deux-là ne font rien · tout le monde tombe dedans une fois.","EXPORTWAV":"EXPORT WAV : rend ce que tu entends dans un fichier audio. La boucle sort en un fichier stéréo, ou en stems · un fichier par voix, tous de même longueur, alignés d'emblée dans n'importe quel DAW. Les stems gardent toutes les portes ouvertes, le stéréo est le moyen rapide de partager une idée.","LOOPEXP":"EXPORT LOOP : rend la boucle actuelle en un fichier audio, exactement telle qu'elle sonne, effets compris." },
+  ctrl:{ "STEP":"STEP : tape une fois pour une frappe, encore pour un accent (plus fort), encore pour effacer. La molette sur un pas donne des répétitions · un pas se déclenche plusieurs fois de suite. Ctrl-glisser copie un pas ailleurs. Pour des valeurs par pas, tape un réglage sans le tourner : la grille passe sur ce paramètre et tu tires chaque pas à sa propre valeur.","PATTERN":"PATTERN : huit motifs par kit. Pendant la lecture, un changement attend la mesure suivante · tu peux donc le préparer, un second clic annule. Ctrl+C et Ctrl+V copient un motif entier vers un autre emplacement.","BARS":"BARS : sur combien de mesures s'étend le motif, de une à quatre. Des motifs plus longs laissent une figure se développer au lieu de se répéter tous les seize pas.","PAGE":"PAGE : quelle mesure d'un long motif tu édites. La boucle les joue toutes, tu ne déplaces que la fenêtre.","CLEAR":"CLEAR : efface les pas du motif courant. Les sons restent tels quels · seules les notes partent.","AUTOCLR":"AUTO CLR : efface l'automation enregistrée de ce motif, les pas restent.","KIT":"KIT : six kits, chacun son moteur de synthèse. Les pas restent en place quand tu changes, la même figure rythmique s'entend donc à travers un instrument tout autre · un moyen rapide de trouver l'inattendu.","PLAY":"PLAY : lance la boucle, encore = stop","REC":"REC : arme-le, puis tourne un réglage pendant que la boucle tourne : le mouvement est enregistré. C'est l'automation, la machine rejoue ta main. Clic droit sur un réglage pour effacer son enregistrement.","BPM":"BPM : battements par minute, le tempo de toute la machine. La house tourne autour de 120 à 128, la techno de 130 à 140 · le même motif peut sembler d'un autre genre vingt BPM plus loin.","SWING":"SWING : retarde légèrement un pas sur deux. Des doubles-croches droites sonnent mécaniques ; un peu de swing les fait respirer. Les petites valeurs font plus d'effet que les grandes.","SOUNDSET":"SOUND / SET : SOUND édite la voix sélectionnée seule. SET bouge le même réglage sur les neuf voix à la fois en gardant leurs écarts · le moyen le plus rapide d'assombrir ou de resserrer tout un kit.","RNDZ":"RNDZ : distribue un nouvel accordage sur les neuf voix. Avec TONAL actif il reste dans ta tonalité : c'est donc un générateur de mélodie, pas de hasard · appuie jusqu'à ce que quelque chose accroche, puis retravaille.","BG":"BG : l'animation de fond, pilotée par ce que tu joues. Purement visuel, cela ne change rien au son.","COLOR":"FX : la couleur des visuels. Esthétique uniquement.","SKIN":"SKIN : l'apparence du châssis. Esthétique uniquement.","TEXT":"TEXT : affiche ou masque les panneaux d'explication des deux côtés.","UPLINK":"UPLINK : te connecte à Audiotool. Tout fonctionne ici de façon autonome dans le navigateur, mais avec la liaison ouverte la machine peut transmettre son travail directement dans un projet là-bas, sans passer par des fichiers. Connecte-toi une fois, et EXPORT a une destination.","EXPORT":"EXPORT · MACHINISTE : envoie le kit dans Audiotool comme un appareil jouable, pas comme un enregistrement fini. Chaque voix est rendue en one-shot, chargée dans un Machiniste, et les pas sont écrits dans son motif · de l'autre côté tu obtiens donc neuf canaux séparés, encore mixables, traîtables et réarrangeables. À utiliser quand la boucle est un point de départ et non le résultat final.","LANG":"LANGUE : bascule toutes les explications entre anglais, allemand et français.","SNAD":"SNAD INDUSTRIES : les autres appareils du rack.","FILTERHEAD":"FILTER : choisis d'abord le type de filtre, ensuite la coupure et la résonance en dessous agissent. Si le type est sur off, ces deux-là ne font rien · tout le monde tombe dedans une fois.","EXPORTWAV":"EXPORT WAV : rend ce que tu entends dans un fichier audio. La boucle sort en un fichier stéréo, ou en stems · un fichier par voix, tous de même longueur, alignés d'emblée dans n'importe quel DAW. Les stems gardent toutes les portes ouvertes, le stéréo est le moyen rapide de partager une idée.","LOOPEXP":"EXPORT LOOP : rend la boucle actuelle en un fichier audio, exactement telle qu'elle sonne, effets compris.","SMPWARN":"Ce kit contient $N sample(s) charg\u00e9(s). Ils voyagent dans le fichier. Ne le transmets que si la licence de cet audio l'autorise \u00b7 les sons synth\u00e9tiques ne posent jamais probl\u00e8me, les enregistrements d'un pack g\u00e9n\u00e9ralement si." },
   info:[ [["p","> "],["k","BRACHINSKI"],["t"," // boîte à rythmes procédurale"]],[["p","$ "],["t","neuf voix par kit, cinq kits, chacun son moteur"]],[["p","$ "],["t","choisis une voix dans la grille, façonne-la dans l'éditeur"]],[["p","$ "],["k","PARAMS"],["t"," construisent le corps, "],["k","FX"],["t"," le salissent"]],[["p","$ "],["t","écris la grille : tap = on, tap = accent, tap = off"]],[["p","$ "],["v","REC"],["t"," + tourner un potard pendant la lecture = automation"]],[["p","$ "],["t","ctrl-glisser une voix sur une autre = copier son son"]],[["p","$ "],["v","PLAY"],["t"," lance la boucle, "],["v","BPM"],["t"," + "],["v","SWING"],["t"," donnent le feeling"]],[["c","// survole n'importe quel réglage. la machine répond."]] ],
   kit:{ raw:"RAW : la synthèse réduite à l'essentiel. Chaque voix est un oscillateur plus du bruit filtré, sculpté par deux enveloppes · une pour la hauteur, une pour le volume. Une percussion n'est rien d'autre : une hauteur qui chute vite donne un kick, un bruit qui s'éteint vite donne un charley. Rien n'est échantillonné ici, tu peux donc construire des sons qui n'ont jamais existé. Commence par PITCH et DECAY, puis ajoute NOISE jusqu'à ce que ça morde.",pckrt:"PCKRT : un kit analogique classique, neuf voix fixes · kick, caisse claire, charleys, toms, wood. Chacune est son propre petit synthé, taillée d'après le son d'une boîte à rythmes matérielle. À prendre quand tu veux aller vite : les voix tiennent déjà ensemble, un beat existe après quelques taps. Tu sculptes à partir de là plutôt que de partir de zéro.",subs:"SUBS : le grave, et il est accordé. Sub-basses, toms et percussions tonales conçus pour le poids et la hauteur. Active TONAL et les neuf emplacements deviennent des notes dans une tonalité · KEY et MAJ/MIN choisissent la gamme, RNDZ y distribue une nouvelle mélodie, et un clic droit sur PITCH ouvre un clavier. Un kit de batterie devient ainsi une ligne de basse.",samples:"SAMPLES : ton propre audio dans chacun des neuf emplacements. Dépose un fichier, recoupe-le avec START et END, accorde-le, mets-le sous enveloppe et filtre-le · il passe par la même chaîne que les voix synthétisées et se place donc dans le même mix. Parfait pour des one-shots que tu as enregistrés, ou une boucle à découper.",resonant:"RESONANT : des corps qui résonnent. Une impulsion brève frappe un résonateur et ce que tu entends, c'est l'objet qui répond · cloches, métaux, peaux tendues. TUNE fixe la hauteur, RESO la durée et la finesse de la résonance, LIFE empêche que deux frappes soient identiques. Comme SUBS, il se joue dans une tonalité avec TONAL et sert donc aussi de couche mélodique.",rimlab:"RIMSHOT LAB : un rimshot, c'est la baguette sur le cercle et la peau en même temps · métal, bois et membrane dans un claquement bref. Reconstruit ici d'après la TR-909 : trois résonateurs accordés frappés par une impulsion, plus une bouffée de bruit pour le claquant. Deux versions côte à côte, RIM B est la plus fidèle. TUNE déplace le corps, DECAY la résonance · court, c'est le tock classique ; ouvert, cela devient un woodblock. TONE va de mat à brillant, NOISE donne l'attaque, FM.AMT et FM.RAT le poussent vers le métal. Chaque rim a sa propre piste · écris une figure, puis clic droit sur PATTERN pour emmener son et pas dans VOID.",kicklab:"KICK LAB : deux moteurs de kick à démonter. Un kick, c'est une hauteur qui chute vite vers un son grave · ici tu as cette chute par étages et tu entends ce que chaque partie apporte. CLICK.F est le sommet du balayage (l'attaque qu'on entend sur les petites enceintes), PUNCH.F le milieu, TUNE l'arrivée. P.ENV décide de l'ampleur de la chute, DECAY de la tenue du son. Construis-en un, écris une figure sur sa piste, puis emmène-le dans VOID par un clic droit sur PATTERN.",void:"VOID : la salle de montage, et tout l'intérêt de la machine. Les kits sont des sources · VOID garde ce que tu veux vraiment. Fais venir des sons un par un depuis la liste, ou clic droit sur PATTERN dans un kit pour amener un motif entier avec ses sons. Quinze emplacements, remplis d'où tu veux. Sélectionne avec Maj et presse CTRL+G pour créer un groupe : chaque groupe garde ses propres motifs et sa propre chaîne d'effets, batterie et basse se traitent donc séparément. C'est là qu'une boucle devient un morceau." },
   mod:{ "dist":"DIST : saturation sur tout le mix. Elle épaissit tout d'un coup et soude les éléments · à doser doucement, car chaque élément le paie.","filter":"FILTER : passe-bas et passe-haut sur la somme. Fermer puis rouvrir sur quelques mesures est la plus vieille montée de la musique de danse, et elle marche encore.","eq":"EQ : correction tonale sur la somme. Couper une bande vaut généralement mieux qu'en amplifier une · retirer fait de la place, ajouter en prend à tous les autres.","delay":"DELAY : échos calés sur le tempo. Comme les répétitions tombent sur la grille, elles épaississent le groove au lieu de le brouiller. En send, cela donne de la profondeur sans ramollir l'attaque.","reverb":"REVERB : l'espace autour du son. SIZE fixe sa taille, PRE le délai avant la première réflexion · un pre-delay plus long garde l'attaque sèche et la traîne humide : de l'espace sans bouillie.","resonator":"RESONATOR : un filtre en peigne accordé qui fait chanter le signal sur des notes choisies. Léger, il ajoute un halo métallique ; poussé, il transforme une boucle de batterie en drone dans la tonalité.","glitch":"GLITCH : découpe répétitions, inversions et sauts de hauteur dans la boucle en cours. À utiliser quand un motif devient trop prévisible · une mesure de ça dit plus que quatre mesures de notes en plus.","rumble":"RUMBLE : grondement grave sous le signal, comme une salle qui répond au kick. Ajoute de l'ampleur dans le bas sans toucher à l'attaque · un pilier du dub techno." },
