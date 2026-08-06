@@ -762,7 +762,7 @@ html.black .lv-pad.filled{background:#26262c;border-color:#8e8e98;color:rgba(255
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 704</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 705</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -1856,7 +1856,7 @@ registerProcessor("crush-fx", CrushFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="704";
+const REV="705";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -3214,6 +3214,14 @@ function applyLoopPitch(ti,si,semis){
   buildLiveScreen(); if(typeof commit==="function")commit();
   setStatus("PITCH "+(semis>0?"+":"")+(+semis).toFixed(1)+" \u00b7 tempo unchanged");
 }
+function copyLoopTo(ft,fs,tt,ts){   // drop target may already hold something :: replacing is the point of the gesture
+  const src=loopTrack(ft).slots[fs]; if(!src)return;
+  const dst=loopTrack(tt);
+  if(dst.cur===ts)loopStop(tt);
+  dst.slots[ts]=Object.assign({},src);
+  buildLiveScreen(); if(typeof commit==="function")commit();
+  setStatus("LOOP "+rowTag(voidGroups().length+ft)+(fs+1)+" \u2192 "+rowTag(voidGroups().length+tt)+(ts+1));
+}
 function copyLoopSlot(ti,si){   // duplicate this loop onto the next free pad
   const tr=loopTrack(ti), sl=tr.slots[si]; if(!sl)return;
   const free=tr.slots.findIndex(x=>!x);
@@ -3377,6 +3385,22 @@ function buildLiveLoops(){
       b.title=sl?(sl.name+(sl.bpm?(" \u00b7 "+sl.bpm+" BPM"):"")+(sl.oneshot?" \u00b7 one-shot":"")+" \u00b7 click to play, right-click to edit"):"empty \u00b7 click to load a loop";
       b.onclick=(e)=>{ e.stopPropagation(); if(!sl){ openLoopSourcePicker(ti,si); return; } loopQueue(ti,(tr.cur===si)?null:si); };
       b.oncontextmenu=(e)=>{ e.preventDefault(); e.stopPropagation(); if(sl)openLoopEditor(ti,si); };
+      b.dataset.lt=ti; b.dataset.ls=si;
+      b.addEventListener("pointerdown",(e)=>{   // ctrl-drag a loop onto another pad to copy it, same gesture as the group patterns
+        if(!(e.ctrlKey||e.metaKey)||!sl)return;
+        e.preventDefault(); e.stopPropagation();
+        const from={t:ti,s:si}; b.classList.add("dragsrc");
+        const move=(ev)=>{ const el=document.elementFromPoint(ev.clientX,ev.clientY);
+          document.querySelectorAll(".lv-pad.dragtgt").forEach(x=>x.classList.remove("dragtgt"));
+          if(el&&el.classList.contains("lv-pad")&&el.dataset.lt!=null)el.classList.add("dragtgt"); };
+        const up=(ev)=>{ document.removeEventListener("pointermove",move,true); document.removeEventListener("pointerup",up,true);
+          b.classList.remove("dragsrc"); document.querySelectorAll(".lv-pad.dragtgt").forEach(x=>x.classList.remove("dragtgt"));
+          const el=document.elementFromPoint(ev.clientX,ev.clientY);
+          if(el&&el.classList.contains("lv-pad")&&el.dataset.lt!=null){
+            const tt=+el.dataset.lt, ts=+el.dataset.ls;
+            if(!(tt===from.t&&ts===from.s))copyLoopTo(from.t,from.s,tt,ts); } };
+        document.addEventListener("pointermove",move,true); document.addEventListener("pointerup",up,true);
+      });
       pads.appendChild(b);
     }
     row.appendChild(pads);
@@ -3479,7 +3503,7 @@ function openLivePatternEditor(gid,pi){
   const bank=groupBank(gid)+pi, pat=state.patterns[bank]; if(!pat)return;
   const slots=groupVoiceIdx(gid);
   const ov=document.createElement("div"); ov.className="kbd-overlay"; ov.id="livePatEd";
-  const pop=document.createElement("div"); pop.className="kbd-pop mfx-pop"; pop.style.maxWidth="1080px"; pop.style.setProperty("--amber",g.color);
+  const pop=document.createElement("div"); pop.className="kbd-pop mfx-pop"; pop.style.maxWidth="1080px"; pop.style.setProperty("--amber",skinCol(g.color));
   const title=document.createElement("div"); title.className="kbd-title";
   const tl=document.createElement("span"); tl.textContent="// "+g.name+" \u00b7 PATTERN "+(PATLETTER[pi]||(pi+1));
   const bar=document.createElement("span"); bar.style.marginLeft="auto"; bar.style.display="flex"; bar.style.gap="6px";
@@ -3637,7 +3661,7 @@ function buildLiveSide(){ const side=document.getElementById("lvSide"); if(!side
   if(ltr){   // loop tracks get the same panel as a group
     const sf=document.createElement("div"); sf.className="lv-sec"; sf.textContent="LOOP FX"; side.appendChild(sf);
     const fc=document.createElement("div"); fc.className="lv-knobs"; side.appendChild(fc);
-    const mkl=(key,def,label)=>{ const w=document.createElement("div"); w.style.setProperty("--amber","#8ab4ff"); w.style.setProperty("--amber-glow","#8ab4ff66");
+    const mkl=(key,def,label)=>{ const w=document.createElement("div"); w.style.setProperty("--amber",skinCol("#8ab4ff")); w.style.setProperty("--amber-glow",skinCol("#8ab4ff66"));
       w.appendChild(makeKnob(Object.assign({key:"__l"+key,label:label},def),()=>(ltr[key]!=null?ltr[key]:def.def),(v)=>{ ltr[key]=v; loopApply(lti); },null,false)); fc.appendChild(w); };
     mkl("filt",{min:-1,max:1,def:0,detent:0},"FILTER");
     mkl("drive",{min:0,max:1,def:0},"DRIVE");
@@ -3682,7 +3706,7 @@ function buildLiveSide(){ const side=document.getElementById("lvSide"); if(!side
     const kc=document.createElement("div"); kc.className="lv-knobs"; side.appendChild(kc);
     const keys=(liveMacros()[g.id]||[]), defs=groupParamDefs(g.id);
     keys.forEach(k=>{ const dd=defs.get(k); if(!dd)return; const gsx=groupKnobGS(dd,g.id);
-      const w=document.createElement("div"); w.className="live-mk"; w.style.setProperty("--amber",g.color); w.style.setProperty("--amber-glow",g.color+"66");
+      const w=document.createElement("div"); w.className="live-mk"; w.style.setProperty("--amber",skinCol(g.color)); w.style.setProperty("--amber-glow",skinCol(g.colo)+"66");
       w.appendChild(makeKnob(dd,gsx.get,gsx.set,null,false));
       const x=document.createElement("button"); x.className="mkx"; x.textContent="\u00d7"; x.title="remove macro";
       x.onclick=()=>{ const L=liveMacros(); L[g.id]=(L[g.id]||[]).filter(y=>y!==k); buildLiveSide(); commit(); };
@@ -3694,7 +3718,7 @@ function buildLiveSide(){ const side=document.getElementById("lvSide"); if(!side
     const sf=document.createElement("div"); sf.className="lv-sec"; sf.textContent="GROUP FX"; side.appendChild(sf);
     const fc=document.createElement("div"); fc.className="lv-knobs"; side.appendChild(fc);
     const P=groupFXParams(g.id);
-    const mkf=(key,def,label)=>{ const w=document.createElement("div"); w.style.setProperty("--amber",g.color); w.style.setProperty("--amber-glow",g.color+"66");
+    const mkf=(key,def,label)=>{ const w=document.createElement("div"); w.style.setProperty("--amber",skinCol(g.color)); w.style.setProperty("--amber-glow",skinCol(g.colo)+"66");
       w.appendChild(makeKnob(Object.assign({key:"__g"+key,label:label},def),()=>P[key],(v)=>{ P[key]=v; applyGroupFX(g.id); },null,false)); fc.appendChild(w); };
     mkf("filt",{min:-1,max:1,def:0,detent:0},"FILTER");
     mkf("drive",{min:0,max:1,def:0},"DRIVE");
@@ -3766,7 +3790,7 @@ function newGroupFromSlot(vi){
 }
 function openGroupFXEditor(gid){ const g=groupById(gid); if(!g)return;
   const ov=document.createElement("div"); ov.className="kbd-overlay"; ov.id="gfxEditor";
-  const pop=document.createElement("div"); pop.className="kbd-pop mfx-pop"; pop.style.setProperty("--amber",g.color); pop.style.setProperty("--amber-glow",g.color+"66");
+  const pop=document.createElement("div"); pop.className="kbd-pop mfx-pop"; pop.style.setProperty("--amber",skinCol(g.color)); pop.style.setProperty("--amber-glow",skinCol(g.colo)+"66");
   const title=document.createElement("div"); title.className="kbd-title";
   const tl=document.createElement("span"); tl.textContent="// GROUP FX \u00b7 "+g.name;
   const close=document.createElement("button"); close.className="mfx-b"; close.textContent="\u2715 CLOSE"; close.onclick=()=>ov.remove();
@@ -4051,7 +4075,7 @@ function buildLivePanel(){ const host=document.getElementById("liveBody"); if(!h
   const gs=voidGroups();
   if(!gs.length){ const e=document.createElement("div"); e.className="live-empty"; e.textContent="// no groups yet \u00b7 select slots and press CTRL+G"; host.appendChild(e); return; }
   gs.forEach(g=>{ const row=document.createElement("div"); row.className="live-grp";
-    row.style.setProperty("--amber",g.color); row.style.setProperty("--amber-glow",g.color+"66");
+    row.style.setProperty("--amber",skinCol(g.color)); row.style.setProperty("--amber-glow",skinCol(g.colo)+"66");
     const nm=document.createElement("div"); nm.className="live-name"; nm.textContent=g.name; nm.style.background=g.color; row.appendChild(nm);
     const kc=document.createElement("div"); kc.className="live-knobs"; row.appendChild(kc);
     const keys=(liveMacros()[g.id]||[]); const defs=groupParamDefs(g.id);
@@ -6251,7 +6275,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=704","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=705","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
