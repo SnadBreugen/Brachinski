@@ -575,6 +575,8 @@ html.black .lv-pad.filled{background:#26262c;border-color:#8e8e98;color:rgba(255
 .lv-fxlist{display:flex;flex-direction:column;gap:8px}
 .lv-fxbtn{width:100%;padding:11px 0;border-radius:9px;border:1px solid var(--gc,var(--line));background:transparent;color:var(--gc,var(--amber));font-family:inherit;font-size:11px;letter-spacing:2px;cursor:pointer}
 .lv-fxbtn.add{border-style:dashed;color:var(--dim);border-color:var(--line)}
+.lv-purl{width:100%;box-sizing:border-box;padding:9px 10px;border-radius:9px;border:1px solid var(--line);background:#100b1c;color:var(--ink);font-family:inherit;font-size:10px;letter-spacing:1px;outline:none}
+.lv-purl:focus{border-color:var(--amber)}
 .lv-fxbtn:hover{background:rgba(255,255,255,.06)}
 .fx-window{position:fixed;right:436px;top:180px;z-index:9500;max-width:min(760px,58vw);max-height:76vh;overflow:auto;background:#100c1a;border:1px solid var(--gc,var(--line));border-radius:12px;box-shadow:0 20px 70px rgba(0,0,0,.7);padding:14px 16px 18px}
 .fxw-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
@@ -604,6 +606,7 @@ html.black .lv-pad.filled{background:#26262c;border-color:#8e8e98;color:rgba(255
 .lv-flab{font-family:var(--mono);font-size:8px;letter-spacing:1.5px;color:var(--dim)}
 .lv-frange{width:70px;accent-color:var(--gc,var(--amber))}
 .lv-fval{font-family:var(--mono);font-size:9px;color:var(--ink);height:1.1em;line-height:1.1em;overflow:hidden}
+.lv-msg{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--amber);min-height:1.4em;line-height:1.4em;padding:4px 14px 0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .lv-scenes{display:flex;align-items:center;gap:6px;padding:8px 14px;border-bottom:1px solid var(--line)}
 .lv-sclab{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--dim);margin-right:6px}
 .lv-scene{width:34px;height:26px;border-radius:4px;border:1px solid var(--line-hi);background:rgba(0,0,0,.35);color:var(--dim);font-family:var(--mono);font-size:11px;cursor:pointer;transition:.12s}
@@ -714,6 +717,7 @@ html.black .lv-pad.filled{background:#26262c;border-color:#8e8e98;color:rgba(255
       <div class="lv-ctrl" id="lvCtrl"></div>
     </div>
     <div class="lv-scenes" id="lvScenes"></div>
+    <div class="lv-msg" id="lvMsg"></div>
     <div class="lv-body">
       <div class="lv-groups" id="lvGroups"></div>
       <div class="lv-side" id="lvSide"><span class="screw tl"></span><span class="screw bl"></span><span class="screw br"></span></div>
@@ -758,7 +762,7 @@ html.black .lv-pad.filled{background:#26262c;border-color:#8e8e98;color:rgba(255
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 703</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 704</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -1852,7 +1856,7 @@ registerProcessor("crush-fx", CrushFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="703";
+const REV="704";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -2474,7 +2478,8 @@ function paint(){
   autoPlay();
   requestAnimationFrame(paint);
 }
-function setStatus(t){document.getElementById("statustxt").textContent=t;}
+function setStatus(t){document.getElementById("statustxt").textContent=t;
+  const lm=document.getElementById("lvMsg"); if(lm)lm.textContent=t;}   // the studio status bar is hidden in live :: mirror it, or every error there is silent
 
 // ---- knob ----
 function nrm(def,val){let n=def.log?Math.log(val/def.min)/Math.log(def.max/def.min):(val-def.min)/(def.max-def.min);if(def.curve)n=Math.pow(n,1/def.curve);return def.rev?1-n:n;}
@@ -3078,6 +3083,19 @@ async function openTimelinePicker(ti,si){
     document.addEventListener("pointerdown",away,true); document.addEventListener("keydown",key,true); },0);
   setStatus("TIMELINE // pick a region");
 }
+function openLoopSourcePicker(ti,si){   // empty pad :: ask where the loop comes from instead of assuming a file
+  closeSoundPicker(); const ov=document.createElement("div"); ov.id="soundPicker"; ov.className="sound-picker";
+  const hd=document.createElement("div"); hd.className="lv-sec"; hd.textContent="LOAD INTO "+rowTag(voidGroups().length+ti)+(si+1); ov.appendChild(hd);
+  const mk=(txt,fn)=>{ const b=document.createElement("button"); b.className="lv-fxbtn"; b.textContent=txt;
+    b.onclick=()=>{ ov.remove(); fn(); }; ov.appendChild(b); };
+  mk("FROM FILE",()=>loopPickFile(ti,si));
+  mk("FROM AUDIOTOOL TIMELINE",()=>openTimelinePicker(ti,si));
+  document.body.appendChild(ov);
+  setTimeout(()=>{ const away=(e)=>{ if(!ov.contains(e.target))shut(); };
+    const key=(e)=>{ if(e.key==="Escape")shut(); };
+    function shut(){ document.removeEventListener("pointerdown",away,true); document.removeEventListener("keydown",key,true); ov.remove(); }
+    document.addEventListener("pointerdown",away,true); document.addEventListener("keydown",key,true); },0);
+}
 function loopPickFile(ti,si){
   const inp=document.createElement("input"); inp.type="file"; inp.accept="audio/*";
   inp.onchange=()=>{ if(inp.files&&inp.files[0])loopLoadFile(inp.files[0],ti,si); };
@@ -3357,7 +3375,7 @@ function buildLiveLoops(){
       b.className="lv-pad"+(tr.cur===si?" on":"")+((state.playing&&tr.pending===si&&tr.cur!==si)?" pend":"")+(sl?" filled":" hollow");   // blink only while a change is still waiting for the bar
       b.textContent=ltag+(si+1);
       b.title=sl?(sl.name+(sl.bpm?(" \u00b7 "+sl.bpm+" BPM"):"")+(sl.oneshot?" \u00b7 one-shot":"")+" \u00b7 click to play, right-click to edit"):"empty \u00b7 click to load a loop";
-      b.onclick=(e)=>{ e.stopPropagation(); if(!sl){ loopPickFile(ti,si); return; } loopQueue(ti,(tr.cur===si)?null:si); };
+      b.onclick=(e)=>{ e.stopPropagation(); if(!sl){ openLoopSourcePicker(ti,si); return; } loopQueue(ti,(tr.cur===si)?null:si); };
       b.oncontextmenu=(e)=>{ e.preventDefault(); e.stopPropagation(); if(sl)openLoopEditor(ti,si); };
       pads.appendChild(b);
     }
@@ -3639,6 +3657,12 @@ function buildLiveSide(){ const side=document.getElementById("lvSide"); if(!side
     tb.title="pull an audio region out of the connected audiotool project";
     tb.onclick=()=>{ const free=ltr.slots.findIndex(x=>!x); openTimelinePicker(lti,free<0?0:free); };
     list.appendChild(tb);
+    { const pu=document.createElement("input"); pu.className="lv-purl"; pu.placeholder="audiotool project url";
+      pu.autocomplete="off"; pu.spellcheck=false;
+      const st=document.getElementById("projurl"); pu.value=(st&&st.value)||"";
+      pu.oninput=()=>{ const s2=document.getElementById("projurl"); if(s2)s2.value=pu.value; };   // one value, two fields :: studio and live stay in step
+      pu.onpointerdown=(e)=>e.stopPropagation();
+      list.appendChild(pu); }
     const s3=document.createElement("div"); s3.className="lv-sec"; s3.textContent="FX RACK"; side.appendChild(s3);
     const fxl=document.createElement("div"); fxl.className="lv-fxlist"; side.appendChild(fxl);
     loopModules(lti).forEach((m,mi)=>{ const b=document.createElement("button"); b.className="lv-fxbtn";
@@ -6227,7 +6251,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=703","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=704","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
