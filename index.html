@@ -320,7 +320,7 @@ body{
 .cell-btn.has{color:var(--amber);border-color:var(--amber-deep)}
 
 /* SEQUENCER */
-.col-head{display:grid;grid-template-columns:152px 1fr;gap:10px;margin-bottom:5px}
+.col-head{display:grid;grid-template-columns:184px 1fr;gap:10px;margin-bottom:5px}
 .col-nums{display:grid;grid-template-columns:repeat(16,1fr);gap:5px}
 .col-nums span{text-align:center;font-size:8px;color:var(--dimmer);letter-spacing:1px}
 .col-nums span:nth-child(4n+1){color:var(--amber);opacity:.7}
@@ -523,13 +523,13 @@ html.live-on body>*:not(#liveScreen):not(#soundPicker):not(#slotmenu):not(#fxWin
 .lv-val{font-size:13px;color:var(--amber);min-width:34px}
 .lv-pos{font-size:13px;color:var(--amber);min-width:52px;letter-spacing:1px}
 .lv-body{display:flex;gap:18px;padding-top:16px;flex:1;min-height:0;align-items:stretch}
-.lv-groups{flex:1;display:flex;flex-direction:column;gap:12px;min-width:0;align-content:flex-start}   /* every row keeps its own height :: spare space stays at the bottom */
-.lv-grow{height:78px;min-height:78px;max-height:78px;box-sizing:border-box;display:flex;align-items:stretch;gap:16px;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1.5px solid #050208;border-left:6px solid var(--gc,var(--amber));border-radius:7px;padding:10px 16px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),inset 0 0 0 1px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.5)}   /* fixed :: rows must never resize with their content */
+.lv-groups{flex:1;display:flex;flex-direction:column;gap:var(--rowgap,12px);min-width:0;align-content:flex-start}   /* every row keeps its own height :: spare space stays at the bottom */
+.lv-grow{height:var(--rowh,78px);min-height:var(--rowh,78px);max-height:var(--rowh,78px);box-sizing:border-box;display:flex;align-items:stretch;gap:16px;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1.5px solid #050208;border-left:6px solid var(--gc,var(--amber));border-radius:7px;padding:var(--rowpad,10px) 16px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),inset 0 0 0 1px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.5)}   /* fixed :: rows must never resize with their content */
 .lv-grow.sel{border-color:var(--gc,var(--amber));box-shadow:inset 0 0 0 1px var(--gc,var(--amber)),inset 0 1px 0 rgba(255,255,255,.05),0 6px 18px rgba(0,0,0,.5)}
-.lv-gname{width:150px;min-width:150px;max-width:150px;overflow:hidden;flex:0 0 auto;display:flex;flex-direction:column;justify-content:center;font-size:17px;line-height:1.15;letter-spacing:2px;font-weight:700;color:var(--gc,#fff)}
+.lv-gname{width:150px;min-width:150px;max-width:150px;overflow:hidden;flex:0 0 auto;display:flex;flex-direction:column;justify-content:center;font-size:calc(var(--rowh,78px) * 0.218);line-height:1.15;letter-spacing:2px;font-weight:700;color:var(--gc,#fff)}
 .lv-gsub{font-size:10px;line-height:1.2;letter-spacing:1px;color:var(--dim);display:block;font-weight:400;margin-top:3px}
 .lv-pads{flex:1;display:flex;gap:10px;min-width:0}
-.lv-pad{flex:1;min-width:0;height:auto;border-radius:3px;letter-spacing:1px;border:1px solid #4a3a6c;background:#100b1c;box-shadow:inset 0 2px 4px rgba(0,0,0,.7);color:var(--dim);font-family:inherit;font-size:20px;cursor:pointer;transition:.08s}
+.lv-pad{flex:1;min-width:0;height:auto;border-radius:3px;letter-spacing:1px;font-size:calc(var(--rowh,78px) * 0.256);border:1px solid #4a3a6c;background:#100b1c;box-shadow:inset 0 2px 4px rgba(0,0,0,.7);color:var(--dim);font-family:inherit;font-size:20px;cursor:pointer;transition:.08s}
 .lv-pad:hover{border-color:var(--gc,var(--amber))}
 .lv-pad.on{background:var(--gc,#ffc869);color:#0b0b0f;border-color:var(--gc,#ffd98a);box-shadow:0 0 14px var(--gc2,var(--amber-glow))}
 .lv-pad.pend{animation:lvblink .45s steps(2,end) infinite;border-color:var(--gc,var(--amber))}
@@ -569,7 +569,7 @@ html.black .lv-pad.filled{background:#26262c;border-color:#8e8e98;color:rgba(255
 .lv-gmute{flex:0 0 auto;align-self:stretch;background:transparent;border:1px solid var(--line);color:var(--dim);border-radius:7px;padding:0 18px;font-family:inherit;font-size:11px;letter-spacing:1px;cursor:pointer}
 .lv-gmute.on{background:#c0392b;color:#fff;border-color:#e35b4b}
 .lv-gmute.pend{animation:lvblink .45s steps(2,end) infinite;border-color:#e35b4b;color:#ffb3a8}
-.lv-side{position:relative;width:400px;flex:0 0 auto;align-self:stretch;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1.5px solid #050208;border-radius:7px;padding:18px 16px 16px;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),inset 0 0 0 1px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.5)}
+.lv-side{position:relative;width:400px;flex:0 0 auto;align-self:stretch;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1.5px solid #050208;border-radius:7px;padding:18px 16px 16px;overflow-y:auto;overflow-x:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),inset 0 0 0 1px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.5)}
 .lv-side .screw{position:absolute;width:8px;height:8px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#4a3a66,#0c0814 70%);box-shadow:inset 0 -1px 1px rgba(0,0,0,.6),0 1px 1px rgba(0,0,0,.45)}
 .lv-side .screw.tl{top:8px;left:8px}.lv-side .screw.bl{bottom:8px;left:8px}.lv-side .screw.br{bottom:8px;right:8px}
 .lv-fxlist{display:flex;flex-direction:column;gap:8px}
@@ -762,7 +762,7 @@ html.black .lv-pad.filled{background:#26262c;border-color:#8e8e98;color:rgba(255
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 707</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 728</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -1131,6 +1131,8 @@ class KickLabVoice {   // Sumad's Kick Lab :: 3-stage pitch (click -> punch -> t
   _updEQ(){ this.fHp.set("highpass",this.eqHp,0.7); this.fEq.set("peaking",this.eqFreq,1.0,this.eqGain); this.fLp.set("lowpass",this.eqLp,0.7); }
   trigger(vel){ this.active=true; this.vel=vel; this.t=0; this.phase=0; this.wEnv=1; this.fmPh=0; this.fmEnvV=1; this.transT=0; this.fHp.reset(); this.fEq.reset(); this.fLp.reset(); this.dPreLo.reset(); this.dPreHi.reset(); this.dPreF.reset(); this.dTone.reset(); this.dDc.reset(); }
   tick(){ if(!this.active)return 0;
+    if(this._cv==null){ this._cv=this.curve; this._kd=this.kdec; }
+    this._cv+=(this.curve-this._cv)*0.0015; this._kd+=(this.kdec-this._kd)*0.0015;   // glide them :: read raw, the envelope steps and you hear a click on every turn
     const t=this.t; let f;
     if(t<this.clickD){ const x=t/this.clickD; f=this.clickF*Math.pow(this.punchF/this.clickF,x); }
     else { const x=Math.min(1,(t-this.clickD)/this.punchD); f=this.punchF*Math.pow(this.basef/this.punchF,x); }
@@ -1149,7 +1151,7 @@ class KickLabVoice {   // Sumad's Kick Lab :: 3-stage pitch (click -> punch -> t
     let o=osc; if(w>0.001){ const wa=w*Math.min(1,1500/Math.max(1,f)); const shp=Math.tanh(osc*7)/0.9999983; o=osc*(1-wa)+shp*wa; }   // WAVE :: linear blend sine->shaped, shaping band-limited at high freq (kills onset aliasing/click)
     let a;
     if(t<this.khold){ a=1; }
-    else { const td=(t-this.khold)/this.kdec; a=Math.pow(Math.exp(-4*td), Math.exp(-this.curve*1.5)); }   // curve: <0 concave/dry, 0 exp, >0 convex/boomy :: rings out (no hard cutoff)
+    else { const td=(t-this.khold)/this._kd; a=Math.pow(Math.exp(-4*td), Math.exp(-this._cv*1.5)); }   // curve: <0 concave/dry, 0 exp, >0 convex/boomy :: rings out (no hard cutoff)
     if(t<0.0015)a*=t/0.0015;                                       // onset attack ramp :: kills the click
     if(t>this.khold && a<0.0009){ this.active=false; return 0; }   // deactivate only when truly silent
     this.t+=1/sampleRate;
@@ -1409,6 +1411,7 @@ class SampleVoice {                                                           //
   region(){ const n=this.buf.length, s=Math.min(this.start,this.end), e=Math.max(this.start,this.end); return [Math.max(0,Math.floor(s*(n-1))), Math.min(n-1,Math.ceil(e*(n-1)))]; }
   readSample(p){ const pi=p|0, pf=p-pi, s1=this.buf[pi]||0, s2=this.buf[pi+1]!==undefined?this.buf[pi+1]:s1; return s1+pf*(s2-s1); }
   trigger(vel){ if(!this.buf)return; const r=this.region(), sF=r[0], eF=r[1]; if(eF-sF<8)return;
+    for(const k in this._t)this[k]=this._t[k];   // snap on the hit :: a one-shot is over before the glide arrives, so pan and level never moved
     this.sF=sF; this.eF=eF; this.vel=vel; this.rv=this.start>this.end;         // start>end => reverse (machiniste behaviour)
     this.pp=this.rv?eF:sF; this.rphase=0; this.lpf.reset(); this.hpf.reset(); this._rxC=0; this._rxH=0; this.active=true; }
   tick(){ if(!this.buf||!this.active)return 0;
@@ -1445,7 +1448,7 @@ class BrachinisteEngine extends AudioWorkletProcessor {
       if(typeof po.kit==="number") this.kit=Math.max(0,Math.min(7,po.kit));   // was clamped to 4 :: DRUM LAB (5) and VOID (6) silently exported as RESONANT
       if(typeof po.sumDist==="number") this.dist=po.sumDist;
       if(Array.isArray(po.voidMap)){ const B=[makeKit1,makeKit2,makeKit3,makeKit4,makeKitPerc,makeKitLab,null,makeKitRim];
-        for(const a of po.voidMap){ if(a&&B[a.srcKit]&&a.srcVoice!=null) this.kits[6][a.slot|0]=B[a.srcKit]()[a.srcVoice|0]; } }   // VOID :: rebuild assigned slots for offline export
+        for(const a of po.voidMap){ if(a&&B[a.srcKit]&&a.srcVoice!=null){ const nv=B[a.srcKit]()[a.srcVoice|0]; if(nv)nv._srcKit=a.srcKit; this.kits[6][a.slot|0]=nv; } } }   // VOID :: rebuild assigned slots for offline export
       if(typeof po.renderVoice==="number"){
         const v=this.voices()[po.renderVoice];
         if(v){
@@ -1473,7 +1476,7 @@ class BrachinisteEngine extends AudioWorkletProcessor {
     else if(m.type==="sum"){ if(m.key==="dist")this.dist=m.value; }
     else if(m.type==="kit"){ this.kit=Math.max(0,Math.min(7,m.index|0)); for(const v of this.voices())v.active=false; this.queue.length=0; }
     else if(m.type==="voidSlots"){ const n=Math.max(1,Math.min(15,m.n|0)); const a=this.kits[6]; while(a.length<n)a.push(new VoidVoice()); if(a.length>n)a.length=n; }   // VOID :: grow/shrink the slot count at runtime
-    else if(m.type==="assign"){ const B=[makeKit1,makeKit2,makeKit3,makeKit4,makeKitPerc,makeKitLab,null,makeKitRim]; const sk=m.srcKit|0, sl=m.slot|0; if(B[sk]&&m.srcVoice!=null&&sl>=0&&sl<this.kits[6].length){ this.kits[6][sl]=B[sk]()[m.srcVoice|0]; } }   // VOID :: rebuild the picked source voice into the slot (any class, correct preset)
+    else if(m.type==="assign"){ const B=[makeKit1,makeKit2,makeKit3,makeKit4,makeKitPerc,makeKitLab,null,makeKitRim]; const sk=m.srcKit|0, sl=m.slot|0; if(B[sk]&&m.srcVoice!=null&&sl>=0&&sl<this.kits[6].length){ const nv=B[sk]()[m.srcVoice|0]; if(nv)nv._srcKit=sk; this.kits[6][sl]=nv; } }   // VOID :: rebuild the picked source voice into the slot (any class, correct preset)
     else if(m.type==="sample"){ const kk=(m.kit!=null?m.kit|0:3); const kt=this.kits[kk]; const v=kt&&kt[m.voice|0]; if(v&&v.setSample)v.setSample(m.data,m.sr); }   // kit defaults to SAMPLES, VOID passes its own index
     else if(m.type==="bus"){ this.bus[m.voice|0]=Math.max(0,Math.min(7,m.value|0)); }   // 0 master, 1 dry, 3..7 group buses
     else if(m.type==="reset"){ for(const v of this.voices())v.active=false; this.queue.length=0; }
@@ -1493,7 +1496,7 @@ class BrachinisteEngine extends AudioWorkletProcessor {
       const NB=outputs.length; if(!this._accL||this._accL.length<NB){this._accL=new Float32Array(NB);this._accR=new Float32Array(NB);}
       const accL=this._accL, accR=this._accR; accL.fill(0); accR.fill(0);
       let l0=0,r0=0,l1=0,r1=0,l2=0,r2=0;
-      for(let v=0;v<vs.length;v++){ const vo=vs[v]; if(!vo||!vo.active)continue; const k23=(this.kit===1||this.kit===3); if(k23)kit2Smooth(vo); let s=vo.tick(); if(vo._gCoef!==undefined&&vo._gCoef<1){ s*=(vo._gEnv||0); vo._gEnv*=vo._gCoef; } s=bipFilt(vo,s); if(this.kit===1){s=kit2Filt(vo,s);s=kit2FX(vo,s);} if(vo.olvl!==undefined){ vo._olvl=(vo._olvl===undefined?vo.olvl:vo._olvl+(vo.olvl-vo._olvl)*0.01); s*=vo._olvl; }
+      for(let v=0;v<vs.length;v++){ const vo=vs[v]; if(!vo||!vo.active)continue; const ok=(vo._srcKit!=null?vo._srcKit:this.kit); const k23=(ok===1||ok===3); if(k23)kit2Smooth(vo); let s=vo.tick(); if(vo._gCoef!==undefined&&vo._gCoef<1){ s*=(vo._gEnv||0); vo._gEnv*=vo._gCoef; } s=bipFilt(vo,s); if(ok===1){s=kit2Filt(vo,s);s=kit2FX(vo,s);} if(vo.olvl!==undefined){ vo._olvl=(vo._olvl===undefined?vo.olvl:vo._olvl+(vo.olvl-vo._olvl)*0.01); s*=vo._olvl; }
         let pan=vo.pan||0;
         if(vo.smoothPan){ if(vo._panS===undefined)vo._panS=pan; vo._panS+=(pan-vo._panS)*0.002; pan=vo._panS; }   // live pan needs a glide, otherwise dragging zippers
         const pl=s*Math.cos((pan+1)*0.25*Math.PI), pr=s*Math.sin((pan+1)*0.25*Math.PI);
@@ -1533,9 +1536,15 @@ registerProcessor("loop-recorder", LoopRecorder);
 // ported 1:1 from Snad's "Dub Resonator" :: fractional-delay comb, LP in feedback = dark + stable
 // ═══════════════════════════════════════════════════════════════
 class CombVoice {
-  constructor(){ this.buf=new Float32Array(8192); this.size=8192; this.pos=0; this.delay=400; this.lpZ=0; }
-  setFreq(freq){ this.delay=Math.min(sampleRate/Math.max(freq,10), this.size-2); }
+  constructor(){ this.buf=new Float32Array(8192); this.size=8192; this.pos=0; this.delay=400; this.lpZ=0; this.off=0; this.dec=0; }
+  setFreq(freq,mul){ this.base=sampleRate/Math.max(freq,10)*(mul||1); this.delay=Math.min(this.base, this.size-2); }
+  jolt(depth,ms){   // a short kick off the length :: the loop tears open, then snaps back so the tuning stays put
+    if(!(depth>0.001)){ this.off=0; return; }
+    this.off=(Math.random()<0.5?-1:1)*(0.45+Math.random()*0.55)*depth*0.45;   // random size and direction, but never so small that a step goes unheard
+    this.dec=Math.exp(-1/(Math.max(0.002,ms)*sampleRate)); }   // how fast it returns
   tick(input,fbGain,lpA){
+    if(this.off!==0){ this.off*=this.dec; if(this.off<0.0002&&this.off>-0.0002)this.off=0; }
+    this.delay=Math.min(Math.max(2,this.base*(1+this.off)), this.size-2);
     const d=this.delay-1, di=d|0, df=d-di;
     const p0=(this.pos-di+this.size)%this.size;
     const p1=(this.pos-di-1+this.size)%this.size;
@@ -1549,32 +1558,60 @@ class CombVoice {
 class ResoComb extends AudioWorkletProcessor {
   constructor(){
     super();
-    this.combs=[]; this.decay=0.6; this.tone=0.5;
+    this.combs=[]; this.decay=0.6; this.tone=0.5; this.spread=0.35; this.rate=0; this.depth=0.5; this.freqs=[]; this.bpm=120; this.ph=0;
     this.port.onmessage=(e)=>{
       const m=e.data;
-      if(m.type==="notes"){ this.combs=(m.freqs||[]).map(fr=>{const v=new CombVoice();v.setFreq(fr);return v;}); }
+      if(m.type==="notes"){ this.freqs=(m.freqs||[]).slice(); this.rebuild(); }
       else if(m.type==="decay"){ this.decay=m.value; }
       else if(m.type==="tone"){ this.tone=m.value; }
+      else if(m.type==="spread"){ this.spread=Math.max(0,Math.min(1,m.value)); this.retune(); }   // retune, not rebuild :: rebuilding throws away every delay line and the sound cuts out on every turn
+      else if(m.type==="rate"){ this.rate=Math.max(0,Math.min(1,m.value)); }
+      else if(m.type==="depth"){ this.depth=Math.max(0,Math.min(1,m.value)); }
+      else if(m.type==="bpm"){ this.bpm=Math.max(20,m.value||120); }
     };
   }
+  rebuild(){   // two banks :: left and right run at slightly different lengths, so the two sides beat against each other
+    const f=this.freqs, sp=this.spread*0.008;   // up to 0.8% :: audible beating, still one note and not two out-of-tune ones
+    const mk=(mul)=>{ const a=[];
+      for(let i=0;i<f.length;i++){ const v=new CombVoice(); v.setFreq(f[i],mul); a.push(v);
+        const sub=new CombVoice(); sub.setFreq(f[i]*0.5,mul); a.push(sub); }   // sub octave under every note :: the foundation
+      return a; };
+    this.L=mk(1-sp); this.R=mk(1+sp);
+    this.combs=this.L;   // kept for the empty check
+  }
+  retune(){   // move the existing lines to the new length :: the buffers keep their content, so it glides instead of cutting
+    if(!this.L)return this.rebuild();
+    const f=this.freqs, sp=this.spread*0.008;
+    const put=(bank,mul)=>{ let i=0;
+      for(let q=0;q<f.length;q++){ if(bank[i])bank[i].setFreq(f[q],mul); i++; if(bank[i])bank[i].setFreq(f[q]*0.5,mul); i++; } };
+    put(this.L,1-sp); put(this.R,1+sp); }
   process(inputs,outputs){
     const inp=inputs[0], out=outputs[0], L=out[0], R=out[1], n=L.length;
-    const combs=this.combs, nc=combs.length;
-    if(nc===0){ for(let i=0;i<n;i++){ L[i]=0; if(R)R[i]=0; } return true; }
+    const bl=this.L, br=this.R, nc=bl?bl.length:0;
+    if(!nc){ for(let i=0;i<n;i++){ L[i]=0; if(R)R[i]=0; } return true; }
     const inL=(inp&&inp[0])?inp[0]:null, inR=(inp&&inp[1])?inp[1]:(inp&&inp[0]?inp[0]:null);
     const fbGain=Math.min(0.995,0.9+Math.max(0,Math.min(1,this.decay))*0.095);   // ring length, always < 1 = stable
     const lpA=0.12+Math.max(0,Math.min(1,this.tone))*0.5;                         // tone : dark .. bright
-    const norm=1/Math.pow(nc,0.4);
+    const norm=1.35/Math.pow(nc,0.16);
+    const RDIV=[0,2,1.5,1,0.75,0.5,0.375,0.25,0.1875,0.125];              // off, 1/2, dotted 1/4, 1/4, dotted 1/8, 1/8, dotted 1/16, 1/16, dotted 1/32, 1/32
+    const step=RDIV[Math.round(this.rate*9)]||0;
+    const inc=step>0?(this.bpm/60)/(sampleRate*step):0;                   // how far the phase moves per sample   // barely falls off :: more notes now means fuller, not thinner
     for(let i=0;i<n;i++){
       const mono=((inL?inL[i]:0)+(inR?inR[i]:0))*0.5;
       let sl=0, sr=0;
+      if(inc>0){ this.ph+=inc;
+        if(this.ph>=1){ this.ph-=1;                                       // on the beat :: knock every line off its length, the loop tears open
+          const gap=step*60/this.bpm;                                   // seconds between two steps
+          const ms=Math.min(0.012+this.depth*0.055, gap*0.06);          // five time constants must fit in the gap, or the pitch never settles and it wobbles
+          for(let k=0;k<nc;k++){ bl[k].jolt(this.depth,ms); br[k].jolt(this.depth,ms); } } }
       for(let k=0;k<nc;k++){
-        const o=combs[k].tick(mono,fbGain,lpA);
-        const pan=nc>1?(k/(nc-1)):0.5;
-        sl+=o*(0.5+(0.5-pan)*0.5); sr+=o*(0.5+(pan-0.5)*0.5);
+        const w=(k&1)?0.45:1;            // odd index is the sub octave, mixed in under the note
+        sl+=bl[k].tick(mono,fbGain,lpA)*w;
+        sr+=br[k].tick(mono,fbGain,lpA)*w;
       }
-      sl*=norm*1.5; sr*=norm*1.5;
-      L[i]=sl<-1?-1:sl>1?1:sl; if(R)R[i]=sr<-1?-1:sr>1?1:sr;
+      sl*=norm; sr*=norm;
+      L[i]=sl<-3?-1:sl>3?1:sl*(27+sl*sl)/(27+9*sl*sl);   // same cubic soft clip as the sum :: pushes into saturation, never into a hard edge
+      if(R)R[i]=sr<-3?-1:sr>3?1:sr*(27+sr*sr)/(27+9*sr*sr);
     }
     return true;
   }
@@ -1856,7 +1893,7 @@ registerProcessor("crush-fx", CrushFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="707";
+const REV="728";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -2158,8 +2195,8 @@ function restore(snap){
   state.master.limit=(snap.masterLimit!=null?snap.masterLimit:true);{const lb=document.getElementById("limitBtn");if(lb)lb.classList.toggle("on",state.master.limit!==false);}
   state.master.roll=(snap.masterRoll!=null?snap.masterRoll:0);{const rr=document.getElementById("roll");if(rr){rr.value=state.master.roll;var sN=rollSub(state.master.roll);const rv=document.getElementById("rollval");if(rv)rv.textContent=sN>1?"1/"+(16*sN):"OFF";}}
   state.fin.preset=(snap.finPreset!=null?snap.finPreset:"off");state.fin.amount=(snap.finAmt!=null?snap.finAmt:1);if(typeof buildFinbar==="function")buildFinbar();if(fin)applyFinalizer();
-  if(typeof wireMaster==="function")wireMaster(); if(typeof rewireBusTargets==="function")rewireBusTargets();   // undo can move the finalizer too
-  if(ac){ initMasterNodes(); wireMaster(); syncAll(); resendVoidAssigns(); }
+  // wiring waits until the nodes exist :: doing it here would skip every module and strand the side paths
+  if(ac){ initMasterNodes(); wireMaster(); if(typeof rewireBusTargets==="function")rewireBusTargets(); syncAll(); resendVoidAssigns(); }
   buildKit(); buildEditor(); buildMaster(); buildStrip(); buildSeq();
   const pg=Math.min(snap.page,numPages()-1); state.page=pg<0?0:pg; setPage(state.page); refreshStrip();
   restoring=false;
@@ -2487,7 +2524,7 @@ function dnm(def,n){n=Math.min(1,Math.max(0,n));if(def.rev)n=1-n;if(def.curve)n=
 function noteName(hz){ const m=Math.round(69+12*Math.log2(hz/440)); const nm=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]; return nm[((m%12)+12)%12]+(Math.floor(m/12)-1); }
 function snapNote(hz,lo,hi){ const m=Math.round(69+12*Math.log2(hz/440)); const f=440*Math.pow(2,(m-69)/12); return Math.max(lo,Math.min(hi,f)); }
 function fmtv(def,val){
-  if((def.key==="tune"||def.key==="pitch")&&(state.kit===6||((state.kit===2||state.kit===4)&&state.tonal&&state.tonal[state.kit]&&state.tonal[state.kit].on)))return noteName(val);
+  if((def.key==="tune"||def.key==="pitch")&&def.min>0&&(state.kit===6||((state.kit===2||state.kit===4)&&state.tonal&&state.tonal[state.kit]&&state.tonal[state.kit].on)))return noteName(val);
   if(def.note)return noteName(val);
   if(def.key==="fmRate")return val.toFixed(2)+"x";
   if(def.key==="eqGain")return (val>0?"+":"")+Math.round(val)+"dB";
@@ -3651,7 +3688,16 @@ function buildLiveScreen(){ if(!state.liveOpen)return; buildLiveScenes();
     row.appendChild(stx);
     host.appendChild(row); });
   buildLiveLoops();   // loop tracks sit in the same list, below the groups
+  lvFitRows();
   buildLiveSide(); }
+function lvFitRows(){   // six rows fit at full height :: past that they share what is there instead of running off the bottom
+  const host=document.getElementById("lvGroups"); if(!host)return;
+  const n=voidGroups().length+loopState.shown;
+  const h=(n<=6)?78:Math.max(52,Math.round(78*6/n));
+  host.style.setProperty("--rowh",h+"px");
+  host.style.setProperty("--rowgap",(n<=6?12:Math.max(6,Math.round(12*h/78)))+"px");
+  host.style.setProperty("--rowpad",(n<=6?10:Math.max(5,Math.round(10*h/78)))+"px");   // the fader stack needs about 37px :: full padding would push it out of a short row
+}
 function buildLiveSide(){ const side=document.getElementById("lvSide"); if(!side)return; side.innerHTML="";
   const g=groupById(state.liveSel);
   const lti=(typeof state.liveSel==="string"&&state.liveSel.indexOf("loop")===0)?(+state.liveSel.slice(4)):-1;
@@ -3873,7 +3919,9 @@ function buildLiveFxBar(){ const host=document.getElementById("lvFxBar"); if(!ho
     svg.addEventListener("pointermove",(e)=>{ if(!drag)return;
       const step=(e.shiftKey?0.0016:0.005);                       // shift for fine work, same feel as the knobs
       liveFxSet(sl.id,drag.v+(drag.y-e.clientY)*step,null); });
-    const end=()=>{ if(drag){ drag=null; if(typeof commit==="function")commit(); } };
+    const end=()=>{ if(drag){ drag=null;
+      if(sl.momentary)liveFxSet(sl.id,0,null);   // held, not latched :: let go and the sequencer runs on
+      if(typeof commit==="function")commit(); } };
     svg.addEventListener("pointerup",end); svg.addEventListener("pointercancel",end);
     svg.addEventListener("dblclick",(e)=>{ e.preventDefault(); liveFxSet(sl.id,(sl.detent!=null?sl.detent:0),null); });
     lvMidiBind(svg,"lvx:"+sl.id+":amt",{min:0,max:1,reset:(sl.detent!=null?sl.detent:0)},
@@ -3908,7 +3956,7 @@ const LVFX_SLOTS=[
                m.bypass=false;
                m.cutoff=20*Math.pow(180,a);          // 20 Hz up to about 3.6 kHz, nothing below
                m.reso=0.3+a*0.5; }},
-  {id:"repeat", kind:null, bus:"repeat", label:"REPEAT", hue:"#7dff5a", hint:"beat repeat on the sequencer \u00b7 the same steps again, nothing is cut"},
+  {id:"repeat", kind:null, bus:"repeat", momentary:true, label:"REPEAT", hue:"#7dff5a", hint:"beat repeat on the sequencer \u00b7 hold it, let go and it drops out"},
 
 ];
 function liveFx(){ const L=(state.liveFx=state.liveFx||{}); if(!L.slots)L.slots={};
@@ -4027,8 +4075,12 @@ function chainModules(mods,cursor,sendTarget){   // same wiring rules as the mas
     if(m.kind==="glitch"&&n.glitch)n.glitch.port.postMessage({type:"wetonly",value:m.mode==="send"});
     const mix=(m.mix!=null?m.mix:0.25);
     if(m.bypass){cursor.connect(n.input);n.input.connect(n.output);cursor=n.output;return;}
-    if(m.kind==="rumble"){cursor.connect(n.input);n.input.connect(n.fxIn);n.fxOut.connect(n.output);cursor=n.output;return;}
-    if(m.mode==="send"){ cursor.connect(n.input); n.wet.gain.value=mix; n.input.connect(n.wet); n.wet.connect(n.fxIn); n.fxOut.connect(sendTarget); }
+    if(m.kind==="rumble"||m.kind==="trans"||m.kind==="dist"){cursor.connect(n.input);n.input.connect(n.fxIn);n.fxOut.connect(n.output);cursor=n.output;return;}   // these blend internally :: same rule as the master rack
+    if(m.mode==="send"){   // positional send, exactly as the master rack does it :: the wet comes back into the chain, so later modules treat it too
+      cursor.connect(n.input);
+      n.input.connect(n.output);                                    // dry passes untouched
+      n.wet.gain.value=mix; n.input.connect(n.wet); n.wet.connect(n.fxIn); n.fxOut.connect(n.output);
+      cursor=n.output; }
     else { n.dry.gain.value=1-mix; n.wet.gain.value=mix; n.input.connect(n.dry); n.dry.connect(n.output); n.input.connect(n.wet); n.wet.connect(n.fxIn); n.fxOut.connect(n.output); cursor.connect(n.input); cursor=n.output; }
   });
   return cursor; }
@@ -4118,7 +4170,7 @@ function copyPatternToVoid(){
   const srcVals=used.map(i=>Object.assign({},state.voices[i]?state.voices[i].vals:{}));
   used.forEach((i,j)=>{ const dst=first+j; assignVoidSlot(dst,src,i); const vo=state.kits[6][dst]; if(vo&&srcVals[j]){ Object.assign(vo.vals,srcVals[j]); const ev=effVals(vo); for(const k in ev)sendParam(dst,k,ev[k]); } });
   state.kit=6; state.selected=0;
-  const g=newVoidGroup((KITS[src].name||"KIT")+" IMPORT");
+  const g=newVoidGroup();   // plain GROUP n :: import names ran out of the name column, and you rename it anyway
   const gb=g?groupBank(g.id):0;
   for(let j=0;j<used.length;j++){ const dst=first+j; const vo=state.kits[6][dst]; if(vo&&g)vo.group=g.id;
     const b=state.patterns[gb]; const sv=saved[j];
@@ -4127,6 +4179,11 @@ function copyPatternToVoid(){
   if(g){ const gm=groupModules(g.id);
     (state.master.modules||[]).forEach(mm=>{ if(!mm||mm.kind==="empty"||mm.kind==="dist"||mm.bypass)return;   // dist stays on the master sum; bypassed modules are not carried either
       const clone=JSON.parse(JSON.stringify(mm,(k,v)=>k==="_nodes"?undefined:v)); delete clone._nodes; gm.push(clone); }); }
+  { const va2=state.kits[6];                       // VOID starts with nine slots :: drop the ones nobody filled, or they show the source bank as ghost steps
+    let last=va2.length; while(last>need&&va2[last-1]&&va2[last-1].srcKit==null)last--;
+    if(last<va2.length&&last>=1){ va2.length=last; if(typeof KITVOIDV!=="undefined")KITVOIDV.length=last;
+      if(state.selected>=last)state.selected=last-1;
+      if(engineNode)engineNode.port.postMessage({type:"voidSlots",n:last}); } }
   if(g){ state.selSlots=new Set(); state.selected=first; }
   switchKit(6,true);
   if(g){ syncPatternBank(); refreshGroupRouting(); buildSeq(); buildEditor(); }
@@ -4278,7 +4335,7 @@ function buildEditor(){
   if(K4&&filterDefs)racks.appendChild(mk("// FILTER",filterDefs,"params",filterDefs.length));
   // FX rack is a KIT-level decision, never a per-voice one :: constant inside a kit (empty VOID slot looks like a filled one),
   // and kits without any fx params (DRUM LAB) keep the full width so nothing gets clipped
-  const kitHasFx = K4 ? true : (state.kit===6 ? true : (KITS[state.kit].voices||[]).some(v=>(v.defs||[]).some(df=>FX_KEYS[df.key])));
+  const kitHasFx = K4 ? true : (state.kit===6 ? (vo.defs||[]).some(df=>FX_KEYS[df.key]) : (KITS[state.kit].voices||[]).some(v=>(v.defs||[]).some(df=>FX_KEYS[df.key])));   // VOID holds voices from every kit :: an empty fx rack still stole 372px and pushed the last knobs out of reach
   if(kitHasFx)racks.appendChild(mk("// FX",fx,"fx",mf));
   racks.style.gridTemplateColumns="minmax(0,1fr)"+(K4&&filterDefs?(" "+rackW(filterDefs.length)):"")+(kitHasFx?(" "+rackW(mf)):"");
   ed.appendChild(racks);
@@ -4304,7 +4361,11 @@ function resoToneHz(t){return 180*Math.pow(67,Math.max(0,Math.min(1,t)));}
 function sizeToFb(s){return 0.6+s*0.35;}
 function delaySeconds(m){if(m.sync){const f=DIVS[Math.max(0,Math.min(DIVS.length-1,m.divIdx|0))].f;return (60/state.bpm)*f;}return (m.timeMs||300)/1000;}
 function setDelayTimes(m){if(!m._nodes||!m._nodes.dlys)return;const t=delaySeconds(m),sp=(m.stereo!=null?m.stereo:0);m._nodes.dlys.forEach((d,i)=>d.delayTime.value=i===1?t*(1+sp*0.14):t);}
-function updateDelayTimes(){state.master.modules.forEach(m=>{if(m.kind==="delay"&&m._nodes&&m._nodes.dlys&&m.sync)setDelayTimes(m);});}
+function updateDelayTimes(){state.master.modules.forEach(m=>{if(m.kind==="delay"&&m._nodes&&m._nodes.dlys&&m.sync)setDelayTimes(m);});
+  const push=(list)=>{ (list||[]).forEach(m=>{ if(m&&m.kind==="resonator"&&m._nodes&&m._nodes.svf)m._nodes.svf.port.postMessage({type:"bpm",value:state.bpm}); }); };
+  push(state.master.modules);                                   // the resonator rate is locked to the tempo, so it has to hear about changes
+  if(state.groupModules)for(const g in state.groupModules)push(state.groupModules[g]);
+  if(typeof loopState!=="undefined")loopState.tracks.forEach(t=>push(t&&t.fx));}
 // convolver reverb: procedural stereo impulse response, dark + warm
 function revSizeSec(s){return 0.25+s*5.75;}            // 0.25s .. 6s
 function makeReverbIR(sizeSec,tone){
@@ -4403,7 +4464,8 @@ function revLpHz(v){return 200*Math.pow(100,Math.max(0,Math.min(1,v)));}    // 2
 function revResQ(v){return 0.7+Math.max(0,Math.min(1,v))*11.3;}            // 0.7 .. 12
 function revPresets(){return {room:{size:0.30,tone:0.42,pre:0.010,hp:0.10,lp:0.82,width:1.0,rstereo:0},hall:{size:0.62,tone:0.34,pre:0.025,hp:0.06,lp:0.72,width:1.3,rstereo:0},bigroom:{size:0.80,tone:0.30,pre:0.040,hp:0.04,lp:0.66,width:1.5,rstereo:0},arena:{size:0.94,tone:0.22,pre:0.080,hp:0.03,lp:0.55,width:1.8,rstereo:0}};}
 function revApplyPreset(m,name){const p=revPresets()[name];if(!p)return;Object.assign(m,p);if(m._nodes){const N=m._nodes;N.pre.delayTime.value=Math.max(0,m.pre);N.hpf.frequency.value=revHpHz(m.hp);N.lpf.frequency.value=revLpHz(m.lp);N.sideW.gain.value=m.width;}applyReverbIR(m);}
-function revCombLevel(dec){return 0.72;}                                    // comb send level when on :: was 0.42, too shy to sing
+function revCombLevel(dec){return 0.45;}                                    // base send :: the comb core grew ~1.45x with the sub octaves, this takes it back
+function revCombGain(lev){ const v=(lev!=null?lev:1); return v*v/1.5; }     // square law :: quiet settings get fine control, full travel still reaches beyond the old maximum
 function combSend(m){
   if(!m._nodes||!m._nodes.comb)return;
   const freqs=(m.cnotes||[]).map(midiToHz);
@@ -4422,6 +4484,10 @@ function resoSend(m){
   m._nodes.svf.port.postMessage({type:"notes",freqs});
   m._nodes.svf.port.postMessage({type:"decay",value:m.decay});
   m._nodes.svf.port.postMessage({type:"tone",value:m.tone});
+  m._nodes.svf.port.postMessage({type:"spread",value:(m.spread!=null?m.spread:0.35)});
+  m._nodes.svf.port.postMessage({type:"rate",value:(m.rate!=null?m.rate:0)});
+  m._nodes.svf.port.postMessage({type:"depth",value:(m.depth!=null?m.depth:0.5)});
+  m._nodes.svf.port.postMessage({type:"bpm",value:state.bpm});
 }
 function glitchSend(m){
   if(!m._nodes||!m._nodes.glitch)return;const g=m._nodes.glitch.port;
@@ -4539,7 +4605,7 @@ function buildModuleNodes(m){
     const hpf=ac.createBiquadFilter();hpf.type="highpass";hpf.frequency.value=revHpHz(m.hp!=null?m.hp:0);hpf.Q.value=revResQ(m.res!=null?m.res:0);
     const lpf=ac.createBiquadFilter();lpf.type="lowpass";lpf.frequency.value=revLpHz(m.lp!=null?m.lp:1);lpf.Q.value=revResQ(m.res!=null?m.res:0);
     const comb=new AudioWorkletNode(ac,"reso-svf",{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[2]});
-    const combGain=ac.createGain();combGain.gain.value=(m.comb?revCombLevel(m.cdecay)*(m.clevel!=null?m.clevel:1):0);
+    const combGain=ac.createGain();combGain.gain.value=(m.comb?revCombLevel(m.cdecay)*revCombGain(m.clevel):0);
     const sumG=ac.createGain();
     const split=ac.createChannelSplitter(2),merge=ac.createChannelMerger(2);
     const midG=ac.createGain();midG.gain.value=0.5;
@@ -4691,7 +4757,7 @@ function newModule(kind){
   if(kind==="reverb")return {kind:"reverb",bypass:false,mode:"send",rstereo:0,move:0.4,mtype:"chorus",mrate:0.35,modon:false,clevel:1,freeze:false,size:0.6,tone:0.3,pre:0.03,hp:0,lp:1,res:0,comb:false,cnotes:[50,53,57],cdecay:0.6,ctone:0.5,width:1,mix:0.18};
   if(kind==="rumble")return {kind:"rumble",bypass:false,mode:"insert",decay:0.72,drive:0.4,tone:0.4,duck:0.7,flt:0,mix:0.5};
   if(kind==="trans")return {kind:"trans",bypass:false,mode:"insert",attack:0.35,sustain:-0.15};
-  if(kind==="resonator")return {kind:"resonator",bypass:false,mode:"send",notes:[50,53,57],decay:0.6,tone:0.5,flt:0,mix:0.18};
+  if(kind==="resonator")return {kind:"resonator",bypass:false,mode:"send",notes:[50,53,57],decay:0.6,tone:0.5,spread:0.35,rate:0,depth:0.5,flt:0,mix:0.18};
   if(kind==="glitch")return {kind:"glitch",bypass:false,mode:"insert",gmode:"stutter",gsharpness:1,shape:0.5,sizeIdx:2,pitch:0,reverse:0,flt:0,mix:1,gblocks:[]};
   if(kind==="shaper")return {kind:"shaper",bypass:false,mode:"insert",stype:"snad",sdrive:0.4,spref:1000,spostf:20000,mix:0.5};
   if(kind==="filter")return {kind:"filter",bypass:false,mode:"insert",cutoff:18000,reso:0.3,ftype:"lp",mix:1};
@@ -4913,7 +4979,7 @@ function moduleModeButtons(m,hd){
   if(m.kind==="reverb"){
     hd.appendChild(hbtn("ROOMS","space presets : room / hall / big room / arena",false,(ev)=>openModelMenu(ev,[{v:"room",label:"ROOM"},{v:"hall",label:"HALL"},{v:"bigroom",label:"BIG ROOM"},{v:"arena",label:"ARENA"}],null,(v)=>{revApplyPreset(m,v);buildMaster();if(typeof commit==="function")commit();RP();})));
     hd.appendChild(hbtn(({chorus:"MOD:CHORUS",flanger:"MOD:FLANGER",phaser:"MOD:PHASER"})[m.mtype||"chorus"],"modulation : click to enable and pick chorus / flanger / phaser",!!m.modon,(ev)=>openModelMenu(ev,[{v:"off",label:"OFF"},{v:"chorus",label:"CHORUS"},{v:"flanger",label:"FLANGER"},{v:"phaser",label:"PHASER"}],m.modon?(m.mtype||"chorus"):"off",(v)=>{ if(v==="off"){m.modon=false;} else {m.modon=true;m.mtype=v;} applyReverbMove(m);buildMaster();if(typeof commit==="function")commit();RP();})));
-    hd.appendChild(hbtn("COMB","comb resonance on the hall : on/off",!!m.comb,()=>{m.comb=!m.comb;if(m._nodes&&m._nodes.combGain)m._nodes.combGain.gain.value=m.comb?revCombLevel(m.cdecay):0;buildMaster();if(typeof commit==="function")commit();RP();}));
+    hd.appendChild(hbtn("COMB","comb resonance on the hall : on/off",!!m.comb,()=>{m.comb=!m.comb;if(m._nodes&&m._nodes.combGain)m._nodes.combGain.gain.value=m.comb?revCombLevel(m.cdecay)*revCombGain(m.clevel):0;buildMaster();if(typeof commit==="function")commit();RP();}));
     hd.appendChild(hbtn("KEYS","comb keyboard : pick the notes the hall resonance is tuned to",false,()=>openCombKeyboard(m)));
   }
   if(m.kind==="glitch"){
@@ -5014,7 +5080,7 @@ function appendModuleKnobs(m,kc){
     {const row=document.createElement("div");row.className="mfx-row"+(m.comb?"":" mfx-dim");combCol.appendChild(row);
      K(d("rvcdec",0,1,0.6,0,"C.DECAY"),()=>(m.cdecay!=null?m.cdecay:0.6),(v)=>{m.cdecay=v;if(m._nodes&&m._nodes.comb)m._nodes.comb.port.postMessage({type:"decay",value:v});},row);
      K(d("rvcton",0,1,0.5,0,"C.TONE"),()=>(m.ctone!=null?m.ctone:0.5),(v)=>{m.ctone=v;if(m._nodes&&m._nodes.comb)m._nodes.comb.port.postMessage({type:"tone",value:v});},row);
-     K(d("rvclev",0,1,1,0,"LEVEL"),()=>(m.clevel!=null?m.clevel:1),(v)=>{m.clevel=v;if(m._nodes&&m._nodes.combGain&&m.comb)m._nodes.combGain.gain.value=revCombLevel(m.cdecay)*v;},row);}
+     K(d("rvclev",0,1.5,1,0,"LEVEL"),()=>(m.clevel!=null?m.clevel:1),(v)=>{m.clevel=v;if(m._nodes&&m._nodes.combGain&&m.comb)m._nodes.combGain.gain.value=revCombLevel(m.cdecay)*revCombGain(v);},row);}
     {const vs=document.createElement("div");vs.className="mfx-vsep";secRow.appendChild(vs);}
     // MOD column
     const modCol=document.createElement("div");modCol.className="mfx-gcol";secRow.appendChild(modCol);
@@ -5032,6 +5098,16 @@ function appendModuleKnobs(m,kc){
   }else if(m.kind==="resonator"){
     K(d("decay",0,1,0.6,0,"DECAY"),()=>m.decay,(v)=>{m.decay=v;if(m._nodes&&m._nodes.svf)m._nodes.svf.port.postMessage({type:"decay",value:v});});
     K(d("tone",0,1,0.5,0,"TONE"),()=>m.tone,(v)=>{m.tone=v;if(m._nodes&&m._nodes.svf)m._nodes.svf.port.postMessage({type:"tone",value:v});});
+    K(d("rspread",0,1,0.35,0,"SPREAD"),()=>(m.spread!=null?m.spread:0.35),(v)=>{m.spread=v;if(m._nodes&&m._nodes.svf)m._nodes.svf.port.postMessage({type:"spread",value:v});});
+    {  // RATE and DEPTH belong together :: one column with a shared heading, so nobody turns DEPTH with RATE off and wonders
+      const col=document.createElement("div"); col.className="mfx-gcol";
+      const lab=document.createElement("div"); lab.className="mfx-grp"+(((m.rate||0)>0.05)?" on":""); lab.textContent="TEAR";
+      const row=document.createElement("div"); row.className="mfx-row"+(((m.rate||0)>0.05)?"":" mfx-dim");
+      col.append(lab,row); kc.appendChild(col);
+      K(d("rrate",0,1,0,0,"RATE"),()=>(m.rate!=null?m.rate:0),(v)=>{m.rate=v;if(m._nodes&&m._nodes.svf)m._nodes.svf.port.postMessage({type:"rate",value:v});
+        lab.className="mfx-grp"+((v>0.05)?" on":""); row.className="mfx-row"+((v>0.05)?"":" mfx-dim");},col);
+      K(d("rdepth",0,1,0.5,0,"DEPTH"),()=>(m.depth!=null?m.depth:0.5),(v)=>{m.depth=v;if(m._nodes&&m._nodes.svf)m._nodes.svf.port.postMessage({type:"depth",value:v});},row);
+    }
     {const fd=d("flt",-1,1,0,0,"FILTER");fd.detent=0;K(fd,()=>(m.flt!=null?m.flt:0),(v)=>{m.flt=v;applyModFilter(m);});}
   }else if(m.kind==="glitch"){
     {const def=d("gshape",0,1,0.5,0,"SHAPE");def.detent=0.5;K(def,()=>(m.shape!=null?m.shape:0.5),(v)=>{m.shape=v;if(m._nodes&&m._nodes.glitch)m._nodes.glitch.port.postMessage({type:"shape",value:v});});}
@@ -6275,7 +6351,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=707","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=728","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
