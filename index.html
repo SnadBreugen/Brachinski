@@ -62,13 +62,16 @@ body{
   max-width:1140px;margin:0 auto;
   padding:16px;
   border-radius:9px;
-  background:linear-gradient(165deg,var(--chassis1),var(--chassis2));
+  background:linear-gradient(170deg,
+    color-mix(in srgb, var(--chassis1) 88%, transparent) 0%,
+    color-mix(in srgb, var(--chassis1) 88%, transparent) 38%,
+    color-mix(in srgb, var(--chassis2) 88%, transparent) 100%);   /* the same 88% the live case uses :: the animation shows through here too */
   border:1.5px solid var(--chassis-edge);
   box-shadow:
     0 0 0 1px #1a0c38,
     0 30px 80px rgba(0,0,0,.7),
-    inset 0 2px 0 rgba(255,255,255,.14),
-    inset 0 -4px 11px rgba(0,0,0,.52);
+    inset 0 1px 0 rgba(255,255,255,.10),
+    inset 0 -2px 7px rgba(0,0,0,.24);
 }
 /* chassis corner bolts */
 .chassis::before,.chassis::after{
@@ -83,8 +86,7 @@ body{
 .crt{
   position:absolute;inset:0;pointer-events:none;border-radius:9px;z-index:30;
   background:
-    radial-gradient(ellipse 80% 70% at center, transparent 55%, rgba(0,0,0,.45) 100%),
-    repeating-linear-gradient(0deg, rgba(0,0,0,.05) 0 1px, transparent 1px 3px);
+    radial-gradient(ellipse 80% 70% at center, transparent 55%, rgba(0,0,0,.45) 100%);
   animation:flicker 7s infinite steps(1);
   mix-blend-mode:multiply;
 }
@@ -304,7 +306,7 @@ body{
     repeating-conic-gradient(from 0deg, rgba(255,255,255,.05) 0deg 4deg, transparent 4deg 8deg),
     radial-gradient(circle at 50% 32%, #3a2f4e, #15101f 72%);
   border:1px solid #0a0712;
-  box-shadow:inset 0 2px 3px rgba(255,255,255,.12),inset 0 -3px 5px rgba(0,0,0,.6),0 2px 4px rgba(0,0,0,.5);
+  box-shadow:inset 0 1px 2px rgba(255,255,255,.09),inset 0 -2px 4px rgba(0,0,0,.30),0 1px 3px rgba(0,0,0,.32);
 }
 .cap::after{content:"";position:absolute;left:50%;top:4px;width:2px;height:11px;background:var(--amber);border-radius:2px;transform-origin:50% 15px;transform:translateX(-50%) rotate(var(--rot,0deg));box-shadow:0 0 6px var(--amber-glow)}
 .knob .kl{font-size:8px;letter-spacing:1px;color:var(--dim);text-align:center}
@@ -449,8 +451,8 @@ html.inv .chassis::before,html.inv .chassis::after,html.inv .lv-bolt{background:
 html.inv .lv-brand,html.inv .lv-lbl,html.inv .lv-val,html.inv .lv-pos,html.inv .lv-sclab{color:#2a1400}   /* these sit on the yellow chassis, not on a dark panel */
 html.inv .lv-brand span{color:rgba(34,16,0,.72)}
 html.inv .chassis::before{box-shadow:inset 0 -1px 2px rgba(0,0,0,.6),0 1px 1px rgba(0,0,0,.5),760px 0 0 0 #7a4400}
-html.inv .crt{background:radial-gradient(ellipse 88% 78% at center,transparent 74%,rgba(120,55,0,.12) 100%),repeating-linear-gradient(0deg,rgba(120,60,0,.025) 0 1px,transparent 1px 3px)}
-html.inv .chassis,html.inv .lv-case{box-shadow:0 0 0 1px rgba(150,80,0,.32),0 20px 50px rgba(0,0,0,.42),inset 0 2px 0 rgba(255,255,255,.38),inset 0 -2px 7px rgba(190,95,0,.16)}
+html.inv .crt{background:radial-gradient(ellipse 88% 78% at center,transparent 74%,rgba(120,55,0,.12) 100%)}
+html.inv .chassis,html.inv .lv-case{box-shadow:0 0 0 1px rgba(150,80,0,.32),0 20px 50px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.22),inset 0 -2px 5px rgba(190,95,0,.09)}
 html.ghost{--dim:#d5e8dd;--dimmer:#a9c4b6;--amber:#35D592;--amber-deep:#1c9c68;--amber-glow:rgba(53,213,146,.55)}
 html.ghost .btn.play.on{background:linear-gradient(180deg,#6ee7b7,#22a06b);color:#03231a;border-color:var(--amber)}
 html.ghost .step.on{background:linear-gradient(180deg,#6ee7b7,#22a06b);border-color:#9df3d0}
@@ -459,8 +461,126 @@ html.ghost .slider::-webkit-slider-thumb{background:linear-gradient(180deg,#6ee7
 html.ghost .cell-btn.on{color:#03231a}
 html.black{--chassis1:#1c1c1f;--chassis2:#121214;--chassis-edge:#000;--line:#3a3a40;--line-hi:#55555e;--dim:#c8c8cf;--dimmer:#83838c;
   --amber:#f2f4f8;--amber-deep:#9aa0ab;--amber-glow:rgba(255,255,255,.42);--amber-hi:#fff;--amber-lit:#fff;--ink:#eef1f6;--kitink:#e9ecf2;--signal:#ffffff;--signal-rgb:255,255,255}   /* neutral white text too, the default ink is warm */   /* monochrome device :: every accent goes white, group colours stay */
+html.paper{--bg:#e9e9ee;--chassis1:#f2f2f5;--chassis2:#dcdce2;--chassis-edge:#b8b8c0;
+  --panel:#fbfbfd;--panel2:#f2f2f6;--line:#9a9aa6;--line-hi:#6a6a78;--dim:#26262e;--dimmer:#54545e;
+  --amber:#14141a;--amber-deep:#5a5a66;--amber-glow:rgba(0,0,0,.28);--amber-hi:#000;--amber-lit:#000;
+  --ink:#101016;--kitink:#14141a;--signal:#000000;--signal-rgb:0,0,0}
+html.paper body{background:radial-gradient(1100px 600px at 50% -5%,#fdfdff 0%,transparent 60%),var(--bg)}
+html.paper .chassis{background:#f4f4f7}
+
+html.paper .chassis,html.paper .lv-case{box-shadow:0 0 0 1px #d2d2da,0 18px 44px rgba(0,0,0,.12)}
+html.paper .chassis::before,html.paper .chassis::after,html.paper .lv-bolt{background:radial-gradient(circle at 35% 30%,#fff,#a8a8b4 70%)}
+html.paper .crt{background:radial-gradient(ellipse 90% 80% at 42% 26%,rgba(255,255,255,.55) 0%,rgba(255,255,255,0) 62%);mix-blend-mode:normal;animation:none;opacity:1}
+html.paper .status,html.paper .readout,html.paper .kit-disp{background:#fff;border-color:#c8c8d0;box-shadow:inset 0 1px 3px rgba(0,0,0,.10)}
+html.paper .btn,html.paper .cell-btn,html.paper .mute,html.paper .lv-msb,html.paper .lv-tr{background:#fff;border-color:#9a9aa6;color:#14141a}
+html.paper .btn.play.on,html.paper .cell-btn.on,html.paper .lv-tr.on{background:#14141a;color:#f2f2f6;border-color:#14141a}
+html.paper .step{background:#fff;border-color:#9a9aa6;box-shadow:none}
+html.paper .step:nth-child(4n+1){border-color:#14141a}
+html.paper .step.on{background:linear-gradient(180deg,#3a3a44,#14141a);border-color:#000;box-shadow:none}
+html.paper .step.acc{background:#000;border-color:#000}
+html.paper .step.play{border-color:#000;box-shadow:inset 0 0 0 2px #000}
+html.paper .step.play::after{box-shadow:inset 0 0 0 2px #000}
+html.paper .step.on,html.paper .step.acc{box-shadow:none}
+html.paper .cell-btn.on,html.paper .btn.play.on,html.paper .lv-tr.on{box-shadow:none}
+html.paper .kit-field .cell-btn.on{box-shadow:inset 0 0 0 1px #000}
+html.paper .sel.active{box-shadow:inset 3px 0 0 #14141a}
+html.paper .mute.on{box-shadow:none}
+html.paper .step.plockon{box-shadow:inset 0 0 0 1px #000}
+html.paper .step.haslock::after{background:#000;opacity:.45}
+html.paper .lv-pad.on{box-shadow:none}
+html.paper .lv-scene.on{box-shadow:none}
+html.paper .status,html.paper .readout,html.paper .kit-disp-v,html.paper .knob .kv,html.paper .voice-name{text-shadow:none}
+html.paper .lv-fxn{text-shadow:none}
+html.paper .lv-fxk .val{filter:none}
+html.paper .cap{background:#fff;border:1px solid #14141a;box-shadow:none}
+html.paper .lv-pad{background:#fff;border-color:#c8c8d0}
+html.paper .lv-pad.filled{background:#dcdce2;border-color:#8a8a96;color:rgba(0,0,0,.8)}
+html.paper .lv-pad.hollow{border-color:rgba(0,0,0,.14);color:rgba(0,0,0,.22)}
+html.paper .lv-msb.m.on{background:#8a8a96;border-color:#5a5a66;color:#fff;box-shadow:none}
+html.paper .lv-msb.s.on{background:#14141a;border-color:#000;color:#fff;box-shadow:none}
+html.paper .cell-btn.has{color:#14141a;border-color:#9c9ca6}
+html.paper .sel{background:#fff;border-color:#9a9aa6;color:#26262e;box-shadow:none}
+html.paper .sel .n{color:#14141a}
+html.paper .sel.active{border-color:#14141a;box-shadow:0 0 0 1px #14141a}
+html.paper .sel.active .n{color:#14141a}
+html.paper .row{border-top-color:#c2c2ce}
+html.paper .col-nums span{color:#4a4a56}
+html.paper .col-nums span:nth-child(4n+1){color:#14141a;opacity:1}
+html.paper .hint,html.paper .field label,html.paper .grp .gl,html.paper .rack .rl,html.paper .knob .kl{color:#3a3a46}
+html.paper .knob .kv,html.paper .kit-disp-v,html.paper .voice-name,html.paper .readout{color:#14141a;text-shadow:none}
+html.paper .voice-idx{background:#14141a;color:#f2f2f6;box-shadow:none}
+html.paper .mute.on{color:#000;border-color:#000;box-shadow:0 0 0 1px #000}
+html.paper .wordmark{color:#14141a;text-shadow:0 1px 0 rgba(255,255,255,.8)}
+html.paper .subtitle,html.paper .eyebrow span,html.paper .foot,html.paper .meter .ml{color:rgba(20,20,26,.62)}
+html.paper .bars-ico i{background:#14141a}
+html.paper .meter .led{background:#e0e0e6;box-shadow:inset 0 1px 1px rgba(0,0,0,.12)}
+html.paper .meter .led.on{background:#14141a;box-shadow:none}
+html.paper .meter .led.hot.on{background:#000}
+html.paper .status .dot{background:#14141a;box-shadow:none}
+html.paper .lim-btn.on .lim-led{background:#14141a;box-shadow:none}
+html.paper .lim-led{background:#d6d6de;box-shadow:inset 0 0 2px rgba(0,0,0,.2)}
+html.paper .slider,html.paper .mvol{background:#d6d6de;box-shadow:inset 0 1px 2px rgba(0,0,0,.12)}
+html.paper .slider::-webkit-slider-thumb{background:linear-gradient(180deg,#3a3a44,#14141a);border-color:#000;box-shadow:none}
+html.paper .mvol::-webkit-slider-thumb{background:#14141a}
+html.paper .island{background:#fdfdfe;border:1px solid #b6b6c2;box-shadow:none}
+html.paper .rack,html.paper .mfx{background:transparent;border-color:#b6b6c2;box-shadow:none}
+html.paper .lv-fxs,html.paper .lv-grow,html.paper .lv-side{background:#fdfdfe;border:1px solid #dcdce2;box-shadow:none}
+html.paper .island .screw,html.paper .lv-side .screw,html.paper .chassis::before,html.paper .chassis::after,html.paper .lv-bolt{opacity:.35}
+html.paper .island .screw,html.paper .lv-side .screw{background:radial-gradient(circle at 35% 30%,#fff,#b4b4be 70%)}
+html.paper .island>.tag{background:#fff;border-color:#c8c8d0;color:#14141a;text-shadow:none}
+html.paper .kit-field{box-shadow:none;border:1px solid #14141a}
+html.paper .kit-field .cell-btn{background:#fff;border-color:#b0b0ba}
+html.paper .kit-field .cell-btn.on{background:#14141a;color:#f2f2f6;border-color:#000}
+html.paper .kit-disp::after{background:none}
+html.paper .cap::after{background:#14141a;box-shadow:none}
+html.paper .dial{box-shadow:none}
+html.paper .step.on{background:#14141a;border-color:#14141a}
+html.paper .step.acc{background:#000;border-color:#000}
+html.paper .lv-pad.on{background:#14141a;border-color:#14141a;color:#fff}
+html.paper .btn.play.on,html.paper .cell-btn.on,html.paper .lv-tr.on,html.paper .kit-field .cell-btn.on{background:#14141a;color:#fff;border-color:#14141a}
+html.paper .status,html.paper .readout,html.paper .kit-disp{background:#fff;border-color:#14141a;box-shadow:none}
+html.paper .slider,html.paper .mvol{background:#d8d8e0;box-shadow:none}
+html.paper .slider::-webkit-slider-thumb{background:#14141a;border-color:#14141a;box-shadow:none}
+html.paper .meter .led{background:#e4e4ea;box-shadow:none}
+html.paper .lim-led{background:#d8d8e0;box-shadow:none}
+html.paper .pg-btn{background:#fff;border-color:#14141a;color:#14141a}
+html.paper .pg-btn.lit,html.paper .pg-btn.on{background:#14141a;border-color:#14141a;color:#fff;text-shadow:none}
+html.paper .mfx-b{background:#fff;border-color:#8a8a98;color:#26262e}
+html.paper .chassis::before,html.paper .chassis::after,html.paper .lv-bolt{background:#c8c8d2;box-shadow:none}
+html.paper .island .screw,html.paper .lv-side .screw{background:#c8c8d2;box-shadow:none}
+html.paper .crt{background:none}
+html.paper .lv-fxs,html.paper .lv-grow,html.paper .lv-side{background:linear-gradient(180deg,#fbfbfd,#f2f2f6);border-color:#c8c8d0;box-shadow:inset 0 1px 0 #fff,0 4px 14px rgba(0,0,0,.07)}
+html.paper .lv-fxb{background:rgba(0,0,0,.06);border-color:#c8c8d0}
+html.paper .lv-fxk .trk{stroke:rgba(0,0,0,.10)}
+html.paper .lv-fxk .ndl{stroke:#14141a}
+html.paper .lv-fxk .det{stroke:rgba(0,0,0,.30)}
+html.paper .mfx,html.paper .rack,html.paper .pg-pop{background:rgba(0,0,0,.03);border-color:#c8c8d0}
+html.paper .mfx-b{background:#fff;border-color:#c8c8d0;color:#3a3a44}
+html.paper .mfx-b.snd{background:#14141a;border-color:#000;color:#fff;box-shadow:none}
+html.paper .mfx-byp.active{background:#14141a;border-color:#000;box-shadow:none}
+html.paper .pg-btn{background:linear-gradient(180deg,#fff,#e6e6ec);border-color:#b0b0ba;color:#3a3a44}
+html.paper .pg-btn.lit,html.paper .pg-btn.on{background:linear-gradient(180deg,#3a3a44,#14141a);border-color:#000;color:#f2f2f6;text-shadow:none}
+html.paper .kbd-pop,html.paper .slotmenu,html.paper .sound-picker,html.paper .fx-window{background:#fbfbfd;border-color:#9c9ca6;color:#14141a}
+html.paper .slotmenu button{color:#14141a}
+html.paper .slotmenu button:hover,html.paper .sound-picker .sp-item:hover{background:#14141a;color:#fff}
+html.paper .kbd-w{background:#fff;border-color:#9c9ca6}
+html.paper .kbd-w.on{background:#14141a}
+html.paper .kbd-b{background:#3a3a44;border-color:#000}
+html.paper .kbd-b.on{background:#000}
+html.paper #ctrlbar button,html.paper #ctrlbarL button,html.paper #hidebar button{background:rgba(255,255,255,.85);border-color:#c8c8d0;color:#3a3a44}
+html.paper .feat-line{background:#f2f2f6}
+html.paper .feat-hover{background:#14141a;border-color:#000;box-shadow:none}
+html.paper .feat-hover .f-p,html.paper .feat-hover .fh-txt{color:#f2f2f6}
+html.paper .feat-cur{background:#14141a;box-shadow:none}
+html.paper .wip-card{border-color:#c8c8d0;background:linear-gradient(180deg,rgba(0,0,0,.02),transparent)}
+html.paper .wip-fb-btn{background:#14141a;color:#f2f2f6}
+html.paper #snadlink,html.paper #langbar,html.paper #fbBtn{background:rgba(255,255,255,.8);border-color:#c8c8d0}
+html.paper #fbPanel{background:#fbfbfd;border-color:#9c9ca6}
+html.paper #fbPanel input,html.paper #fbPanel textarea{background:#fff;border-color:#c8c8d0;color:#14141a}
+html.paper .lv-msg,html.paper .lv-brand{color:#14141a}
+html.paper .cell-btn.pat.queued{border-color:#000}
 html.black .chassis::before,html.black .chassis::after,html.black .lv-bolt{background:radial-gradient(circle at 35% 30%,#9a9aa4,#232328 70%)}
-html.black .chassis,html.black .lv-case{box-shadow:0 0 0 1px #000,0 22px 60px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.09),inset 0 -3px 9px rgba(0,0,0,.6)}
+html.black .chassis,html.black .lv-case{box-shadow:0 0 0 1px #000,0 22px 60px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.06),inset 0 -2px 6px rgba(0,0,0,.28)}
 html.ghost .chassis,html.ghost .lv-case{background:transparent;border-color:rgba(176,112,255,.45);box-shadow:0 0 0 1px rgba(176,112,255,.3)}
 html.ghost .lv-case::before{opacity:0}   /* ghost keeps its open chassis :: that is where the movement is meant to show */
 html.ghost .chassis::before,html.ghost .chassis::after,html.ghost .lv-bolt{opacity:.45}
@@ -485,8 +605,9 @@ html.live-on body>*:not(#liveScreen):not(#soundPicker):not(#slotmenu):not(#fxWin
 #liveScreen[hidden]{display:none!important}   /* author display:flex would otherwise beat the hidden attribute */
 #liveScreen{position:fixed;inset:0;z-index:9000;background:radial-gradient(1100px 600px at 50% -5%,#1a0d2e 0%,transparent 60%),var(--bg);display:flex;flex-direction:column;padding:30px 34px 34px;overflow:auto;font-family:var(--mono,inherit)}
 #liveScreen>#bgfx{z-index:0}   /* window-sized canvas, stays fixed :: only the stacking order changes */
-.lv-case{position:relative;z-index:1;flex:1 0 auto;display:flex;flex-direction:column;padding:12px 14px 14px;border-radius:9px;background:transparent;border:1.5px solid var(--chassis-edge);box-shadow:0 0 0 1px #1a0c38,0 30px 80px rgba(0,0,0,.7),inset 0 2px 0 rgba(255,255,255,.14),inset 0 -4px 11px rgba(0,0,0,.52)}   /* same recipe as .chassis on the main page */
-.lv-case::before{content:"";position:absolute;inset:0;border-radius:9px;background:linear-gradient(165deg,var(--chassis1),var(--chassis2));opacity:.88;z-index:-1}   /* the case, with the background moving through it */
+.lv-case{position:relative;z-index:1;flex:1 0 auto;display:flex;flex-direction:column;padding:12px 14px 14px;border-radius:9px;background:transparent;border:1.5px solid var(--chassis-edge);box-shadow:0 0 0 1px #1a0c38,0 30px 80px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.10),inset 0 -2px 7px rgba(0,0,0,.24)}   /* same recipe as .chassis on the main page */
+.lv-case::before{content:"";position:absolute;inset:0;border-radius:9px;background:linear-gradient(170deg,var(--chassis1) 0%,var(--chassis1) 38%,var(--chassis2) 100%);opacity:.88;z-index:-1}
+html.paper .lv-case::before{background:#f4f4f7;opacity:1}   /* the case, with the background moving through it */
 .btn.livebtn{background:linear-gradient(180deg,var(--amber),var(--amber-deep));border-color:var(--amber);color:#180e00;font-weight:700;letter-spacing:3px;box-shadow:0 0 14px var(--amber-glow),inset 0 1px 0 rgba(255,255,255,.35)}
 .btn.livebtn:hover{filter:brightness(1.12)}
 .btn.livebtn[disabled]{background:linear-gradient(180deg,#241a35,#150e22);border-color:var(--line);color:var(--dimmer);font-weight:400;box-shadow:inset 0 1px 0 rgba(255,255,255,.06);cursor:not-allowed;opacity:.55}
@@ -657,6 +778,50 @@ html.black .lv-pad.filled{background:#26262c;border-color:#8e8e98;color:rgba(255
 .kit-disp-v{position:relative;font-family:var(--mono);font-weight:700;font-size:19px;letter-spacing:2px;color:var(--amber);text-shadow:0 0 10px var(--amber-glow),0 0 2px var(--amber);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .kitrow .gl{font-size:9px;letter-spacing:2px;color:var(--dim)}
 #sumfx{display:flex;gap:18px;flex-wrap:wrap}
+
+/* PAPER :: flat by decree. no gradients, no glow, no inner shadows. this block is last, so it wins. */
+html.paper body{background:#e9e9ee}
+html.paper .chassis{background:color-mix(in srgb,#f4f4f7 88%,transparent)}
+html.paper .lv-case::before{background:color-mix(in srgb,#f4f4f7 88%,transparent)}
+html.paper .chassis,html.paper .lv-case{box-shadow:0 0 0 1px #b6b6c2}
+html.paper .crt{background:none;animation:none}
+html.paper .island,html.paper .lv-fxs,html.paper .lv-grow,html.paper .lv-side{background:#fdfdfe;border:1px solid #b6b6c2;box-shadow:none}
+html.paper .rack,html.paper .mfx,html.paper .pg-pop,html.paper .wip-card{background:transparent;border-color:#b6b6c2;box-shadow:none}
+html.paper .chassis::before,html.paper .chassis::after,html.paper .lv-bolt,
+html.paper .island .screw,html.paper .lv-side .screw{background:#c8c8d2;box-shadow:none}
+html.paper .cap{background:#fff;border:1px solid #14141a;box-shadow:none}
+html.paper .cap::after{background:#14141a;box-shadow:none}
+html.paper .dial{box-shadow:none}
+html.paper .status,html.paper .readout,html.paper .kit-disp{background:#fff;border-color:#14141a;box-shadow:none}
+html.paper .btn,html.paper .cell-btn,html.paper .mute,html.paper .lv-msb,html.paper .lv-tr,
+html.paper .pg-btn,html.paper .mfx-b,html.paper .lv-fxbtn{background:#fff;border-color:#8a8a98;color:#14141a;box-shadow:none}
+html.paper .btn.play.on,html.paper .cell-btn.on,html.paper .lv-tr.on,html.paper .pg-btn.lit,
+html.paper .pg-btn.on,html.paper .kit-field .cell-btn.on,html.paper .mfx-b.snd,
+html.paper .lv-scene.on{background:#14141a;color:#fff;border-color:#14141a;box-shadow:none;text-shadow:none}
+html.paper .step{background:#fff;border-color:#9a9aa6;box-shadow:none}
+html.paper .step:nth-child(4n+1){border-color:#14141a}
+html.paper .step.on{background:#14141a;border-color:#14141a;box-shadow:none}
+html.paper .step.acc{background:#000;border-color:#000;box-shadow:none}
+html.paper .step.play::after{box-shadow:inset 0 0 0 2px #000}
+html.paper .lv-pad.on{background:#14141a;border-color:#14141a;color:#fff;box-shadow:none}
+html.paper .slider,html.paper .mvol{background:#d8d8e0;box-shadow:none}
+html.paper .slider::-webkit-slider-thumb{background:#14141a;border-color:#14141a;box-shadow:none}
+html.paper .mvol::-webkit-slider-thumb{background:#14141a}
+html.paper .meter .led{background:#e4e4ea;box-shadow:none}
+html.paper .meter .led.on,html.paper .meter .led.hot.on{background:#14141a;box-shadow:none}
+html.paper .lim-led{background:#d8d8e0;box-shadow:none}
+html.paper .lim-btn.on .lim-led{background:#14141a;box-shadow:none}
+html.paper .kit-field{background:#14141a;box-shadow:none;border:1px solid #14141a}
+html.paper .mute.on{color:#000;border-color:#000;box-shadow:none}
+html.paper .sel.active{border-color:#14141a;box-shadow:inset 3px 0 0 #14141a}
+/* nothing in paper casts a soft shadow. outlines only, and they are named below. */
+html.paper *,html.paper *::before,html.paper *::after{box-shadow:none;text-shadow:none;filter:none}
+html.paper .chassis,html.paper .lv-case{box-shadow:0 0 0 1px #b6b6c2}
+html.paper .step.play::after{box-shadow:inset 0 0 0 2px #000}
+html.paper .step.plockon{box-shadow:inset 0 0 0 1px #000}
+html.paper .sel.active{box-shadow:inset 3px 0 0 #14141a}
+html.paper .row.editg{box-shadow:inset 3px 0 0 #14141a}
+html.paper .row[data-g] .sel{box-shadow:inset 3px 0 0 #14141a}
 </style>
 </head>
 <body>
@@ -762,7 +927,7 @@ html.black .lv-pad.filled{background:#26262c;border-color:#8e8e98;color:rgba(255
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 728</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 747</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -1119,7 +1284,7 @@ class KickLabVoice {   // Sumad's Kick Lab :: 3-stage pitch (click -> punch -> t
     this.fHp=new Biquad(); this.fEq=new Biquad(); this.fLp=new Biquad();
     this.eqHp=p.eqHp!=null?p.eqHp:20; this.eqFreq=p.eqFreq!=null?p.eqFreq:1000; this.eqGain=p.eqGain!=null?p.eqGain:0; this.eqLp=p.eqLp!=null?p.eqLp:20000; this._updEQ(); this._updDist();
     this.active=false; this.phase=0; this.t=0; this.vel=1; this.wEnv=0; this.fmPh=0; this.fmEnvV=0; }
-  set(k,v){ if(k==="olvl"){this.level=v;return;} if(k in this)this[k]=v; if(k==="eqHp"||k==="eqFreq"||k==="eqGain"||k==="eqLp")this._updEQ(); if(k==="dtype"||k==="ddrive"||k==="dpre"||k==="dtone")this._updDist(); }
+  set(k,v){ if(k==="olvl"){this.level=v;return;} if(k in this)this[k]=v; if(k==="dtype"||k==="ddrive"||k==="dpre"||k==="dtone")this._updDist(); }   // eq is glided in tick :: setting coefficients mid-note steps the filter and clicks
   _updDist(){ const t=this.dtype|0, u=this.ddrive||0, md=labModel(t);
     this._dfn=labShaper(t,u); this._dlvl=labShaperLevel(t,u);
     const pre=((md.emph||0)+(this.dpre||0))*18;
@@ -1128,10 +1293,21 @@ class KickLabVoice {   // Sumad's Kick Lab :: 3-stage pitch (click -> punch -> t
     const pf=md.post?md.post.f:20000;
     this.dTone.set("lowpass",pf*Math.pow(2,(Math.max(0,Math.min(1,this.dtone))-1)*4),md.post?md.post.q:0.7);
     this.dDc.set("highpass",5,0.7); }
-  _updEQ(){ this.fHp.set("highpass",this.eqHp,0.7); this.fEq.set("peaking",this.eqFreq,1.0,this.eqGain); this.fLp.set("lowpass",this.eqLp,0.7); }
+  _updEQ(){ if(this._qh==null){ this._qh=this.eqHp; this._qf=this.eqFreq; this._qg=this.eqGain; this._ql=this.eqLp; }
+    this.fHp.set("highpass",this._qh,0.7); this.fEq.set("peaking",this._qf,1.0,this._qg); this.fLp.set("lowpass",this._ql,0.7); }
+  _glideEQ(){   // move towards the knob, refresh the filters only when it matters
+    if(this._qh==null){ this._updEQ(); return; }
+    const c=0.0016;
+    this._qh+=(this.eqHp-this._qh)*c; this._qf+=(this.eqFreq-this._qf)*c;
+    this._qg+=(this.eqGain-this._qg)*c; this._ql+=(this.eqLp-this._ql)*c;
+    if(Math.abs(this._qh-this._sh)>this._sh*0.01||Math.abs(this._qf-this._sf)>this._sf*0.01||
+       Math.abs(this._qg-this._sg)>0.15||Math.abs(this._ql-this._sl)>this._sl*0.01){
+      this._sh=this._qh; this._sf=this._qf; this._sg=this._qg; this._sl=this._ql;
+      this.fHp.set("highpass",this._qh,0.7); this.fEq.set("peaking",this._qf,1.0,this._qg); this.fLp.set("lowpass",this._ql,0.7); } }
   trigger(vel){ this.active=true; this.vel=vel; this.t=0; this.phase=0; this.wEnv=1; this.fmPh=0; this.fmEnvV=1; this.transT=0; this.fHp.reset(); this.fEq.reset(); this.fLp.reset(); this.dPreLo.reset(); this.dPreHi.reset(); this.dPreF.reset(); this.dTone.reset(); this.dDc.reset(); }
   tick(){ if(!this.active)return 0;
-    if(this._cv==null){ this._cv=this.curve; this._kd=this.kdec; }
+    if(this._cv==null){ this._cv=this.curve; this._kd=this.kdec; this._sh=this.eqHp; this._sf=this.eqFreq; this._sg=this.eqGain; this._sl=this.eqLp; }
+    this._glideEQ();
     this._cv+=(this.curve-this._cv)*0.0015; this._kd+=(this.kdec-this._kd)*0.0015;   // glide them :: read raw, the envelope steps and you hear a click on every turn
     const t=this.t; let f;
     if(t<this.clickD){ const x=t/this.clickD; f=this.clickF*Math.pow(this.punchF/this.clickF,x); }
@@ -1893,7 +2069,7 @@ registerProcessor("crush-fx", CrushFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="728";
+const REV="747";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -2057,10 +2233,21 @@ function clearSlot(slot){ userSamples[slot]=null; state.kits[3][slot].name="SLOT
 const PCKRT_TYPES=["kick","kick","snare","hat","hat","hat","tom","tom","wood"];   // PCKRT slot -> synth class (paste only within same type)
 let soundClip=null;                                                            // COPY SOUND :: knob values only, same-engine paste
 function voiceSig(vo){ return Object.keys(vo.vals).sort().join(","); }
-function copySound(vi){ const vo=state.voices[vi]; soundClip={kit:state.kit,vi:vi,vals:Object.assign({},vo.vals),fxMode:vo.fxMode}; setStatus("SOUND copied // "+vo.name); }
+function copySound(vi){ const vo=state.voices[vi];
+  soundClip={kit:state.kit,vi:vi,vals:Object.assign({},vo.vals),fxMode:vo.fxMode,name:vo.name};
+  if(state.kit===3&&userSamples[vi])soundClip.smp=userSamples[vi];                       // a sample without its audio is just settings, and nobody expects that
+  else if(state.kit===6&&typeof voidSamples!=="undefined"&&voidSamples[vi])soundClip.smp=voidSamples[vi];
+  else soundClip.smp=null;
+  setStatus("SOUND copied // "+vo.name+(soundClip.smp?" (with audio)":"")); }
 function soundPasteOk(vi){ if(!soundClip)return false; if(soundClip.kit!==state.kit)return false; if(state.kit!==1)return true; return PCKRT_TYPES[soundClip.vi]===PCKRT_TYPES[vi]; }   // same-engine kits always ok; PCKRT(1) only same voice type
 function pasteSound(vi){ if(!soundPasteOk(vi)){ setStatus(soundClip?"PASTE blocked // different voice type":"no sound copied"); return; }
   const vo=state.voices[vi]; for(const k in soundClip.vals){ if(k in vo.vals)vo.vals[k]=soundClip.vals[k]; } if(soundClip.fxMode!==undefined)vo.fxMode=soundClip.fxMode;
+  if(soundClip.smp&&soundClip.smp.data){                                 // carry the audio too :: settings alone on a different sample is not what anyone means by copy
+    const src=soundClip.smp, cp={data:new Float32Array(src.data),sr:src.sr,name:src.name};
+    if(state.kit===3){ userSamples[vi]=cp; vo.name=soundClip.name||src.name; sendSample(vi); saveSampleLocal(vi); }
+    else if(state.kit===6&&typeof voidSamples!=="undefined"){ voidSamples[vi]=cp; vo.name=soundClip.name||src.name;
+      if(engineNode){ const c2=new Float32Array(cp.data); engineNode.port.postMessage({type:"sample",kit:6,voice:vi,sr:cp.sr,data:c2},[c2.buffer]); } }
+    buildSeq(); }
   const ev=effVals(vo); for(const k in ev)sendParam(vi,k,ev[k]);
   if(state.selected===vi)buildEditor(); if(typeof commit==="function")commit(); setStatus("SOUND pasted // "+vo.name); }
 let _soundDragFrom=null;                                                       // ctrl+drag a voice name onto another -> copy sound
@@ -2385,6 +2572,12 @@ function lvMidiBind(el,id,def,get,set,render){   // live rows are rebuilt consta
     openKnobMenu(e.clientX,e.clientY,items);
   });
   paint(); }
+function lvRepDuck(on){   // the loop tracks step aside while REPEAT holds :: they have no steps to repeat, so half-following would only smear
+  if(!ac||typeof loopState==="undefined")return;
+  loopState.repDuck=!!on;
+  loopState.tracks.forEach((tr,ti)=>{ if(!tr||!tr.gainNode)return;
+    const want=on?0:(lvSilent(lvKeyL(ti))?0:(tr.gain!=null?tr.gain:1));
+    try{ tr.gainNode.gain.setTargetAtTime(want,ac.currentTime,0.008); }catch(e){ tr.gainNode.gain.value=want; } }); }
 function lvKeyG(gid){ return "g"+gid; }
 function lvKeyL(ti){ return "l"+ti; }
 function liveMix(){ const L=(state.liveMix=state.liveMix||{}); if(!L.mute)L.mute={}; if(!L.solo)L.solo={}; return L; }
@@ -2393,7 +2586,7 @@ function lvSilent(key){ const L=liveMix(); return lvSoloActive()? !L.solo[key] :
 function applyLiveMix(){ if(typeof voidGroups!=="function")return;
   voidGroups().forEach(g=>applyGroupMute(g.id,lvSilent(lvKeyG(g.id))));
   if(typeof loopState!=="undefined")loopState.tracks.forEach((tr,ti)=>{ if(!tr||!tr.gainNode||!ac)return;
-    const want=lvSilent(lvKeyL(ti))?0:(tr.gain!=null?tr.gain:1);
+    const want=loopState.repDuck?0:(lvSilent(lvKeyL(ti))?0:(tr.gain!=null?tr.gain:1));   // a running repeat outranks the mixer
     try{ tr.gainNode.gain.setTargetAtTime(want,ac.currentTime,0.012); }catch(e){ tr.gainNode.gain.value=want; } });
   if(state.liveOpen&&typeof buildLiveScreen==="function")buildLiveScreen(); }
 function lvToggleMute(key){ const L=liveMix(); L.mute[key]=!L.mute[key]; applyLiveMix(); if(typeof commit==="function")commit(); }
@@ -2486,7 +2679,7 @@ async function startSeq(){
 }
 function stopSeq(){
   state.playing=false;clearTimeout(timer);timer=null;playQ.length=0;
-  if(state.liveRep)state.liveRep.s=null;
+  if(state.liveRep){ state.liveRep.s=null; if(state.liveRep.on){ state.liveRep.on=false; if(typeof lvRepDuck==="function")lvRepDuck(false); if(typeof liveFx==="function"){const sl=liveFx().slots.repeat; if(sl){sl.amt=0;sl.on=false;}} if(typeof paintLiveFxBar==="function")paintLiveFxBar(); } }   // stop while repeat is held :: release it, or the loops stay muted
   if(typeof loopState!=="undefined"){   // loop tracks follow the transport, exactly like the patterns do
     loopState.tracks.forEach((tr,ti)=>{ tr.armed=(tr.cur>=0?tr.cur:null); tr.pending=null; loopStop(ti); });
     state.groupPatPending={}; state.groupMutePending={};   // groups drop their queue on STOP too, same as the loop tracks
@@ -2777,9 +2970,11 @@ function randomizeTuning(){
   setStatus("RNDZ // "+RND_NOTE_NAMES[root]+" "+sc.name);
 }
 const VOID_MAX=15;
-function skinCol(hex){   // black skin is monochrome :: one white for everything, rows are told apart by position and label
-  if(typeof skinState==="undefined"||skinState!=="black"||typeof hex!=="string"||hex[0]!=="#"||hex.length!==7)return hex;
-  return "#f4f4f8"; }
+function skinCol(hex){   // monochrome skins :: one ink for everything, rows are told apart by position and label
+  if(typeof skinState==="undefined"||typeof hex!=="string"||hex[0]!=="#"||hex.length!==7)return hex;
+  if(skinState==="black")return "#f4f4f8";
+  if(skinState==="paper")return "#14141a";   // the same idea upside down :: dark marks on a light machine
+  return hex; }
 function shade(hex,amt){ const n=parseInt(hex.slice(1),16); let r=(n>>16)+amt,g=((n>>8)&255)+amt,b=(n&255)+amt;
   r=Math.max(0,Math.min(255,r)); g=Math.max(0,Math.min(255,g)); b=Math.max(0,Math.min(255,b));
   return "#"+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1); }
@@ -2962,7 +3157,7 @@ function openLoopFXPicker(ti){
 }
 function loopApply(ti){
   const tr=loopTrack(ti); if(!tr.gainNode)return;
-  tr.gainNode.gain.value=tr.gain;
+  tr.gainNode.gain.value=(loopState.repDuck||lvSilent(lvKeyL(ti)))?0:tr.gain;   // do not undo a repeat duck or a mute by touching a fader
   if(tr.shNode)tr.shNode.curve=makeDriveCurve(tr.drive||0);
   const f=tr.filt||0;
   if(f>0.01){ tr.filtNode.type="highpass"; tr.filtNode.frequency.value=20*Math.pow(1200,f); }
@@ -3429,11 +3624,11 @@ function buildLiveLoops(){
         const from={t:ti,s:si}; b.classList.add("dragsrc");
         const move=(ev)=>{ const el=document.elementFromPoint(ev.clientX,ev.clientY);
           document.querySelectorAll(".lv-pad.dragtgt").forEach(x=>x.classList.remove("dragtgt"));
-          if(el&&el.classList.contains("lv-pad")&&el.dataset.lt!=null)el.classList.add("dragtgt"); };
+          if(el&&el.classList.contains("lv-pad")&&el.dataset.lt!==undefined)el.classList.add("dragtgt"); };
         const up=(ev)=>{ document.removeEventListener("pointermove",move,true); document.removeEventListener("pointerup",up,true);
           b.classList.remove("dragsrc"); document.querySelectorAll(".lv-pad.dragtgt").forEach(x=>x.classList.remove("dragtgt"));
           const el=document.elementFromPoint(ev.clientX,ev.clientY);
-          if(el&&el.classList.contains("lv-pad")&&el.dataset.lt!=null){
+          if(el&&el.classList.contains("lv-pad")&&el.dataset.lt!==undefined){
             const tt=+el.dataset.lt, ts=+el.dataset.ls;
             if(!(tt===from.t&&ts===from.s))copyLoopTo(from.t,from.s,tt,ts); } };
         document.addEventListener("pointermove",move,true); document.addEventListener("pointerup",up,true);
@@ -4059,6 +4254,7 @@ function liveFxSet(id,amt,on){ const s=liveFx().slots[id]; if(!s)return;
     const l=LVREP_LEN[lvRepIdx(s.amt)];
     if(!l){ R.on=false; R.s=null; }                              // left end is a real off, not a one step repeat
     else { if(R.len!==l||!R.on)R.s=null; R.len=l; R.on=true; }   // a new length re-anchors
+    lvRepDuck(R.on);                                             // loops cannot repeat a step :: hold them out while the repeat runs
     paintLiveFxBar(); return; }
   if(sl.bus==="echo"){ lvEchoPush(); paintLiveFxBar(); return; }
   if(!sl.kind){ paintLiveFxBar(); return; }
@@ -5460,7 +5656,7 @@ function _applySharedKit(d){
   if(d.look){   // look :: background animation, fx colour, chassis skin
     try{
       if(d.look.col!=null&&typeof BG!=="undefined"){ BG.fxColor=d.look.col;
-        const cb=document.getElementById("colBtn"); if(cb)cb.textContent="FX: "+String(d.look.col).toUpperCase(); }
+        if(typeof paintColBtn==="function")paintColBtn(); }
       if(d.look.skin!=null&&typeof skinState!=="undefined"){ skinState=d.look.skin; if(typeof skinApply==="function")skinApply(); }
       if(d.look.bg!=null&&typeof bgSet==="function")bgSet(d.look.bg);
     }catch(e){}
@@ -5870,6 +6066,7 @@ function bgInit(){BG.canvas=document.getElementById("bgfx");BG.c=BG.canvas.getCo
   bgResize();window.addEventListener("resize",bgResize);}
 const BGHUE=[14,38,196,168,224,268,70,96,140];
 function creditsPal(){
+  if(BG.fxColor==="black")return ["hsl(210,8%,12%)","hsl(210,6%,22%)","hsl(210,10%,6%)","hsl(210,5%,30%)","hsl(0,0%,0%)","hsl(210,12%,16%)"];
   if(BG.fxColor==="multi")return BGHUE.map(h=>"hsl("+h+","+bgSat(88)+"%,"+bgLit(58)+"%)");
   if(BG.fxColor==="green")return ["hsl(157,66%,52%)","hsl(150,70%,58%)","hsl(165,62%,46%)","hsl(140,60%,54%)","hsl(157,80%,68%)","hsl(172,58%,48%)"];
   if(BG.fxColor==="violet")return ["hsl(272,85%,62%)","hsl(285,80%,68%)","hsl(258,82%,58%)","hsl(300,68%,64%)","hsl(272,90%,76%)","hsl(248,72%,60%)"];
@@ -5880,10 +6077,16 @@ const LRANK=[0,1,6,5,7,8,2,3,4];                                            // p
 function hrand(n){ n=(n^0x9e3779b9)>>>0; n=Math.imul(n,0x85ebca6b)>>>0; n^=n>>>13; n=Math.imul(n,0xc2b2ae35)>>>0; n^=n>>>16; return (n>>>0)/4294967296; }                              // per voice :: low->high = warm->cool
 function hsl2rgb(hh,s,l){hh/=360;s/=100;l/=100;const a=s*Math.min(l,1-l),f=n=>{const k=(n+hh*12)%12;return Math.round((l-a*Math.max(-1,Math.min(k-3,9-k,1)))*255);};return [f(0),f(8),f(4)];}
 const BGCOLS=BGHUE.map(x=>hsl2rgb(x,88,62));
-function bgBaseHue(){ return BG.fxColor==="green"?157:(BG.fxColor==="violet"?272:(BG.fxColor==="white"?208:42)); }   // white leans on a cool hue :: the low saturation does the rest
-function bgBaseRGB(){ return BG.fxColor==="green"?[53,213,146]:(BG.fxColor==="violet"?[176,112,255]:(BG.fxColor==="white"?[236,240,248]:[255,188,58])); }
-function bgSat(n){ return BG.fxColor==="white"?Math.round(n*0.07):n; }   // white drains the colour out of every animation
-function bgLit(n){ return BG.fxColor==="white"?Math.min(100,n*1.35+16):n; }   // and lifts it towards white instead of grey
+function bgBaseHue(){ return BG.fxColor==="green"?157:(BG.fxColor==="violet"?272:((BG.fxColor==="white"||BG.fxColor==="black")?208:42)); }   // white leans on a cool hue :: the low saturation does the rest
+function bgBaseRGB(){ return BG.fxColor==="green"?[53,213,146]:(BG.fxColor==="violet"?[176,112,255]:(BG.fxColor==="white"?[236,240,248]:(BG.fxColor==="black"?[24,24,30]:[255,188,58]))); }
+function bgSat(n){ return (BG.fxColor==="white"||BG.fxColor==="black")?Math.round(n*0.07):n; }   // white drains the colour out of every animation
+function bgInk(){ return BG.fxColor==="black"; }   // dark shapes need a light ground :: modes that paint their own backdrop have to follow
+function bgGround(a){ return bgInk()?("rgba(250,250,253,"+a+")"):("rgba(4,3,9,"+a+")"); }
+function bgAdd(){ return bgInk()?"multiply":"lighter"; }   // additive glow only works on a dark ground :: on light, overlaps have to darken instead
+function bgLit(n){
+  if(BG.fxColor==="black")return Math.max(0,100-(n*1.35+16));   // the mirror of white :: dark shapes, whatever the skin
+  if(BG.fxColor!=="white")return n;
+  return Math.min(100,n*1.35+16); }   // and lifts it towards white instead of grey
 function bgHit(voice,vel,lead,sub,step){ if(BG.mode==="off")return;
   if(BG.fxColor==="multi")BG.tintRGB=BGCOLS[voice];
   if(BG.mode==="powder"){ const md=BGMODE[voice]||[3,2]; BG.modes.push({n:md[0],m:md[1],amp:vel,cnx:null}); if(BG.modes.length>7)BG.modes.shift(); return; }
@@ -5982,7 +6185,7 @@ function reflBlit(){
 function bgPaint(now){ if(!BG.run)return; const dt=Math.min(0.05,(now-BG.last)/1000); BG.last=now;
   reflBlit();
   const c=BG.c,W=BG.W,H=BG.H,bw=BG.bw,bh=BG.bh,PI=Math.PI;
-  let cr,cg,cb; if(BG.fxColor==="green"){cr=53;cg=213;cb=146;} else if(BG.fxColor==="violet"){cr=176;cg=112;cb=255;} else if(BG.fxColor==="white"){cr=236;cg=240;cb=248;} else if(BG.fxColor==="multi"){const t=BG.tintRGB||[255,188,58];cr=t[0];cg=t[1];cb=t[2];} else {cr=255;cg=188;cb=58;}
+  let cr,cg,cb; if(BG.fxColor==="green"){cr=53;cg=213;cb=146;} else if(BG.fxColor==="violet"){cr=176;cg=112;cb=255;} else if(BG.fxColor==="white"){cr=236;cg=240;cb=248;} else if(BG.fxColor==="black"){cr=24;cg=24;cb=30;} else if(BG.fxColor==="multi"){const t=BG.tintRGB||[255,188,58];cr=t[0];cg=t[1];cb=t[2];} else {cr=255;cg=188;cb=58;}
   if(BG.mode==="cube"){ bgCube(c,W,H,dt); BG.raf=requestAnimationFrame(bgPaint); return; }
   if(BG.mode==="logo"){ bgLogo(c,W,H,dt); BG.raf=requestAnimationFrame(bgPaint); return; }
   if(BG.mode==="laser"){ bgLaser(c,W,H,dt); BG.raf=requestAnimationFrame(bgPaint); return; }
@@ -6060,15 +6263,15 @@ function seqElec(g,v,x,y,r,filled,fill,stroke,lw){   // electro-technik icons ::
 function bgWave(c,W,H,dt){
   const S=BG._wv||(BG._wv={t:0,lift:0,rip:null,node:null});
   if(!S.rip)S.rip=[]; if(!S.node)S.node=new Array(VOICES).fill(0);
-  let ar=[255,188,58]; if(BG.fxColor==="green")ar=[53,213,146]; else if(BG.fxColor==="violet")ar=[176,112,255]; else if(BG.fxColor==="white")ar=[236,240,248]; else if(BG.fxColor==="multi")ar=[110,215,255];
+  let ar=[255,188,58]; if(BG.fxColor==="green")ar=[53,213,146]; else if(BG.fxColor==="violet")ar=[176,112,255]; else if(BG.fxColor==="white")ar=[236,240,248]; else if(BG.fxColor==="black")ar=[24,24,30]; else if(BG.fxColor==="multi")ar=[110,215,255];
   { const cr0=ar[0],cg0=ar[1],cb0=ar[2],lum=cr0*0.3+cg0*0.6+cb0*0.1; if(lum<205){ const k=Math.min(0.6,(205-lum)/255); ar=[cr0+(255-cr0)*k,cg0+(255-cg0)*k,cb0+(255-cb0)*k]; } }
   const cr=ar[0],cg=ar[1],cb=ar[2];
   S.t+=dt*0.5; S.lift=Math.max(0,S.lift-dt*2.2);
   for(let k=S.rip.length-1;k>=0;k--){ const rp=S.rip[k]; rp.age+=dt; if(rp.age>rp.life)S.rip.splice(k,1); }
   for(let v=0;v<VOICES;v++)S.node[v]=Math.max(0,S.node[v]-dt*0.18);
-  c.fillStyle="#040309"; c.fillRect(0,0,W,H);
+  c.fillStyle=bgGround(1); c.fillRect(0,0,W,H);
   const horizonY=H*0.28, C=84, R=50, t=S.t, ampPx=H*0.19;
-  c.globalCompositeOperation="lighter";                                                               // additive = glowing particles on dark
+  c.globalCompositeOperation=bgAdd();                                                               // additive = glowing particles on dark
   for(let r=0;r<R;r++){ const gz=r/(R-1), d=1+gz*4.2, dp=1/d;
     for(let cc=0;cc<C;cc++){ const gx=cc/(C-1), u=gx-0.5;
       let hn=(Math.sin(gx*4.0+t*0.5)*Math.cos(gz*3.0-t*0.4))*0.18;                                     // gentle bed only :: the beat is the star
@@ -6088,7 +6291,7 @@ function bgWave(c,W,H,dt){
 }
 function bgPlasma(c,W,H,dt){
   const S=BG._pl||(BG._pl={t:0,pulse:0,tint:null,buf:null,bc:null,img:null,bw:0,bh:0});
-  let ar=[255,188,58]; if(BG.fxColor==="green")ar=[53,213,146]; else if(BG.fxColor==="violet")ar=[176,112,255]; else if(BG.fxColor==="white")ar=[236,240,248]; else if(BG.fxColor==="multi")ar=[32,224,208];
+  let ar=[255,188,58]; if(BG.fxColor==="green")ar=[53,213,146]; else if(BG.fxColor==="violet")ar=[176,112,255]; else if(BG.fxColor==="white")ar=[236,240,248]; else if(BG.fxColor==="black")ar=[24,24,30]; else if(BG.fxColor==="multi")ar=[32,224,208];
   { const cr0=ar[0],cg0=ar[1],cb0=ar[2],lum=cr0*0.3+cg0*0.6+cb0*0.1; if(lum<205){ const k=Math.min(0.6,(205-lum)/255); ar=[cr0+(255-cr0)*k,cg0+(255-cg0)*k,cb0+(255-cb0)*k]; } }
   let cr=ar[0],cg=ar[1],cb=ar[2];
   if(S.tint){ const p=S.pulse*0.7; cr=cr+(S.tint[0]-cr)*p; cg=cg+(S.tint[1]-cg)*p; cb=cb+(S.tint[2]-cb)*p; }   // multi: pulse tints toward the hit voice color
@@ -6106,7 +6309,7 @@ function bgPlasma(c,W,H,dt){
     const i=(y*bw+x)<<2, br=val*(0.82+S.pulse*0.85);
     d[i]=cr*br<255?cr*br:255; d[i+1]=cg*br<255?cg*br:255; d[i+2]=cb*br<255?cb*br:255; d[i+3]=255; } }
   S.bc.putImageData(S.img,0,0);
-  c.fillStyle="#040309"; c.fillRect(0,0,W,H);
+  c.fillStyle=bgGround(1); c.fillRect(0,0,W,H);
   c.imageSmoothingEnabled=true; c.drawImage(S.buf,0,0,bw,bh,0,0,W,H);                                 // low-res upscaled = soft blur
   const vg=c.createRadialGradient(W/2,H/2,Math.min(W,H)*0.08,W/2,H/2,Math.max(W,H)*0.62);
   vg.addColorStop(0,"rgba(0,0,0,0)"); vg.addColorStop(1,"rgba(4,3,9,0.72)"); c.fillStyle=vg; c.fillRect(0,0,W,H);   // radial focus: bright center, soft dark edges
@@ -6114,15 +6317,15 @@ function bgPlasma(c,W,H,dt){
 function bgHorizon(c,W,H,dt){
   const S=BG._hz||(BG._hz={p:0,flash:0,waves:[],rail:0,surge:0,rows:null,logs:null});
   if(!S.waves)S.waves=[]; if(!S.logs)S.logs=[];
-  let cr,cg,cb; if(BG.fxColor==="green"){cr=53;cg=213;cb=146;} else if(BG.fxColor==="violet"){cr=176;cg=112;cb=255;} else if(BG.fxColor==="white"){cr=236;cg=240;cb=248;} else if(BG.fxColor==="multi"){cr=32;cg=224;cb=208;} else {cr=255;cg=188;cb=58;}
+  let cr,cg,cb; if(BG.fxColor==="green"){cr=53;cg=213;cb=146;} else if(BG.fxColor==="violet"){cr=176;cg=112;cb=255;} else if(BG.fxColor==="white"){cr=236;cg=240;cb=248;} else if(BG.fxColor==="black"){cr=24;cg=24;cb=30;} else if(BG.fxColor==="multi"){cr=32;cg=224;cb=208;} else {cr=255;cg=188;cb=58;}
   { const lum=cr*0.3+cg*0.6+cb*0.1; if(lum<205){ const k=Math.min(0.6,(205-lum)/255); cr=cr+(255-cr)*k;cg=cg+(255-cg)*k;cb=cb+(255-cb)*k; } }
   const acc=(a)=>"rgba("+(cr|0)+","+(cg|0)+","+(cb|0)+","+a+")";
   const yH=(H*0.46)|0, VPx=W/2, fh=H-yH, ch=yH;
-  c.fillStyle="#040309"; c.fillRect(0,0,W,H);
+  c.fillStyle=bgGround(1); c.fillRect(0,0,W,H);
   if(!S.stars){ S.stars=[]; for(let i=0;i<150;i++)S.stars.push({x:Math.random()*W,y:Math.random()*H,z:Math.random(),ph:Math.random()*6.28,hue:(20+Math.random()*215)|0}); }
   S.spark=Math.max(0,(S.spark||0)-dt*2.4);
   const tn=(typeof performance!=="undefined"?performance.now():Date.now())*0.001, rr=Math.max(0.5,Math.min(W,H)*0.0008);
-  c.globalCompositeOperation="lighter";
+  c.globalCompositeOperation=bgAdd();
   for(const st of S.stars){ const tw=0.5+0.5*Math.sin(tn*1.8+st.ph), a=Math.min(0.8,(0.1+tw*0.18)*(0.5+st.z*0.6)*(1+S.spark*0.6)), sz=rr*(0.5+st.z*0.9)*(0.75+tw*0.4);
     c.fillStyle="hsla("+st.hue+","+bgSat(40)+"%,"+bgLit(88)+"%,"+a+")"; c.beginPath(); c.arc(st.x,st.y,sz,0,6.283); c.fill(); }
   c.globalCompositeOperation="source-over";
@@ -6167,11 +6370,11 @@ function bgSeq(c,W,H,dt){
   if(!S.pos){ S.pos=new Array(VOICES).fill(0); S.vel=new Array(VOICES).fill(0); S.tgt=new Array(VOICES).fill(0); S.punch=new Array(VOICES).fill(0); S.pd=new Array(VOICES).fill(99); S.gate=0; S.inv=new Array(VOICES).fill(0); S.row=Array.from({length:VOICES},(_,i)=>i); }
   if(!S.inv)S.inv=new Array(VOICES).fill(0);
   if(!S.row)S.row=Array.from({length:VOICES},(_,i)=>i);
-  c.fillStyle="#040209"; c.fillRect(0,0,W,H);
+  c.fillStyle=bgGround(1); c.fillRect(0,0,W,H);
   if(!state.playing){ for(let i=0;i<VOICES;i++){S.vel[i]=0;S.punch[i]=0;} S.flash=0; return; }          // brachial: nothing when PLAY is off
   const multi=(BG.fxColor==="multi");
   const lift=(rgb)=>{ let cr=rgb[0],cg=rgb[1],cb=rgb[2]; const lum=cr*0.3+cg*0.6+cb*0.1; if(lum<205){ const k=Math.min(0.6,(205-lum)/255); cr=cr+(255-cr)*k;cg=cg+(255-cg)*k;cb=cb+(255-cb)*k; } return [cr|0,cg|0,cb|0]; };
-  const baseFor=(v)=>{ if(multi){ const bc=(typeof BGCOLS!=="undefined"&&BGCOLS[v])?BGCOLS[v]:[255,188,58]; return lift(bc); } if(BG.fxColor==="green")return lift([53,213,146]); if(BG.fxColor==="violet")return lift([176,112,255]); if(BG.fxColor==="white")return lift([236,240,248]); return lift([255,188,58]); };
+  const baseFor=(v)=>{ if(multi){ const bc=(typeof BGCOLS!=="undefined"&&BGCOLS[v])?BGCOLS[v]:[255,188,58]; return lift(bc); } if(BG.fxColor==="green")return lift([53,213,146]); if(BG.fxColor==="violet")return lift([176,112,255]); if(BG.fxColor==="white")return lift([236,240,248]); if(BG.fxColor==="black")return [24,24,30]; return lift([255,188,58]); };
   const pat=(typeof curPat==="function")?curPat():null; if(!pat||!pat.steps)return;
   const N=Math.max(1,(pat.bars||1)*STEPS_PER_BAR), rh=H/9, cw=rh;                                   // square cells, fixed reel window
   const cx0=W/2, half=Math.ceil((W/cw)/2)+1, hh=Math.min(dt,0.033), stf=210, dmp=18;                // spring: schwung + slight overshoot
@@ -6188,13 +6391,13 @@ function bgSeq(c,W,H,dt){
 }
 function bgDatamosh(c,W,H,dt){
   const S=BG._dm||(BG._dm={tears:[],blocks:[],scroll:0,flash:0,buf:null,bc:null,rows:null,scan:null});
-  let cr,cg,cb; if(BG.fxColor==="green"){cr=53;cg=213;cb=146;} else if(BG.fxColor==="violet"){cr=176;cg=112;cb=255;} else if(BG.fxColor==="white"){cr=236;cg=240;cb=248;} else if(BG.fxColor==="multi"){const t=BG.tintRGB||[255,188,58];cr=t[0];cg=t[1];cb=t[2];} else {cr=255;cg=188;cb=58;}
+  let cr,cg,cb; if(BG.fxColor==="green"){cr=53;cg=213;cb=146;} else if(BG.fxColor==="violet"){cr=176;cg=112;cb=255;} else if(BG.fxColor==="white"){cr=236;cg=240;cb=248;} else if(BG.fxColor==="black"){cr=24;cg=24;cb=30;} else if(BG.fxColor==="multi"){const t=BG.tintRGB||[255,188,58];cr=t[0];cg=t[1];cb=t[2];} else {cr=255;cg=188;cb=58;}
   { const lum=cr*0.3+cg*0.6+cb*0.1; if(lum<205){ const k=Math.min(0.6,(205-lum)/255); cr=cr+(255-cr)*k; cg=cg+(255-cg)*k; cb=cb+(255-cb)*k; } }   // lift low-luminance palettes so brightness reads equal across colors
   if(!S.buf||S.buf.width!==(W|0)||S.buf.height!==(H|0)){ S.buf=document.createElement("canvas"); S.buf.width=Math.max(1,W|0); S.buf.height=Math.max(1,H|0); S.bc=S.buf.getContext("2d");
     S.rows=[]; for(let i=0;i<44;i++)S.rows.push({y:Math.random(), x:Math.random(), w:0.06+Math.random()*0.6, b:0.15+Math.random()*0.8, sp:0.2+Math.random()*1.4});
     const tile=document.createElement("canvas"); tile.width=1; tile.height=3; const tc=tile.getContext("2d"); tc.fillStyle="rgba(0,0,0,0.5)"; tc.fillRect(0,0,1,1); S.scan=S.bc.createPattern(tile,"repeat"); }
   const b=S.bc, acc=(a)=>"rgba("+cr+","+cg+","+cb+","+a+")";
-  b.fillStyle="#050308"; b.fillRect(0,0,W,H);                               // base signal -> buffer
+  b.fillStyle=bgGround(1); b.fillRect(0,0,W,H);                               // base signal -> buffer
   S.scroll=(S.scroll+dt*46)%H;
   for(const r of S.rows){ const y=(((r.y*H)+S.scroll*r.sp)%H)|0, x=(r.x*W)|0, w=(r.w*W)|0;
     b.fillStyle=acc(r.b*0.66); b.fillRect(x,y,w,2);
@@ -6225,7 +6428,7 @@ function bgDatamosh(c,W,H,dt){
         for(let s2=0;s2<16;s2++){ const on=rw[s2]>0, act=(s2===(stp%16));
           b.fillStyle=acc(act?Math.min(1,0.65+S.pulse*0.35):(on?0.82:0.32)); b.fillText(on?"1":"\u00b7", bx+s2*cw, by+v*fs*1.2); } } } }
   if(S.scan){ b.fillStyle=S.scan; b.fillRect(0,0,W,H); }                    // CRT scanlines
-  c.fillStyle="#040209"; c.fillRect(0,0,W,H);
+  c.fillStyle=bgGround(1); c.fillRect(0,0,W,H);
   c.drawImage(S.buf,0,0);
   for(let i=S.tears.length-1;i>=0;i--){ const t=S.tears[i];
     if(t.h>0)c.drawImage(S.buf,0,t.y,W,t.h,t.dx,t.y,W,t.h);                 // horizontal tear = shifted band
@@ -6240,7 +6443,7 @@ function bgDatamosh(c,W,H,dt){
 function bgLogo(c,W,H,dt){
   const word=BG.curWord, L=word.length, E=BG.energy;
   for(let i=0;i<L;i++){ E[i]*=Math.exp(-dt*12); if(E[i]<0.05)E[i]=0; }       // fast decay :: hard rhythm, no fade
-  let col; if(BG.fxColor==="green")col="rgb(53,213,146)"; else if(BG.fxColor==="violet")col="rgb(176,112,255)"; else if(BG.fxColor==="white")col="rgb(236,240,248)"; else if(BG.fxColor==="multi"){const t=BG.tintRGB||[255,188,58];col="rgb("+t[0]+","+t[1]+","+t[2]+")";} else col="rgb(255,188,58)";
+  let col; if(BG.fxColor==="green")col="rgb(53,213,146)"; else if(BG.fxColor==="violet")col="rgb(176,112,255)"; else if(BG.fxColor==="white")col="rgb(236,240,248)"; else if(BG.fxColor==="black")col="rgb(24,24,30)"; else if(BG.fxColor==="multi"){const t=BG.tintRGB||[255,188,58];col="rgb("+t[0]+","+t[1]+","+t[2]+")";} else col="rgb(255,188,58)";
   c.clearRect(0,0,W,H);
   const fam="'Anton','Archivo Black','Arial Black',sans-serif";
   let fs=300; c.font="900 "+fs+"px "+fam; const refW=c.measureText("SNAD INDUSTRIES").width||1; fs=fs*(W*0.94/refW); c.font="900 "+fs+"px "+fam;  // old big size, same for both words
@@ -6297,9 +6500,9 @@ function rot3(p,rx,ry,rz){let x=p[0],y=p[1],z=p[2];
   let czv=Math.cos(rz),szv=Math.sin(rz),x2=x1*czv-y1*szv,y2=x1*szv+y1*czv;
   return [x2,y2,z2];}
 function bgLaser(c,W,H,dt){
-  c.globalCompositeOperation="source-over"; c.fillStyle="rgba(0,0,0,0.22)"; c.fillRect(0,0,W,H);   // phosphor persistence
+  c.globalCompositeOperation="source-over"; c.fillStyle=bgGround(0.22); c.fillRect(0,0,W,H);   // phosphor persistence
   if(!BG.lasers||!BG.lasers.length)return;
-  c.save();c.globalCompositeOperation="lighter";c.lineJoin="round";c.lineCap="round";
+  c.save();c.globalCompositeOperation=bgAdd();c.lineJoin="round";c.lineCap="round";
   const centers=[];
   if(BG.lworld==null)BG.lworld=0; BG.lworld+=dt*(Math.PI*2/20);                        // full scene revolution :: 20s
   const SRY=BG.lworld, SRX=0.26+0.12*Math.sin(BG.lworld*0.5);                           // slow 3D tumble of the whole field
@@ -6351,7 +6554,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=728","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=747","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
@@ -6363,7 +6566,7 @@ function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
 function drawBrick(c,x,y,w,h,hue,L){
   const rx=Math.round(x-w/2),ry=Math.round(y-h/2),rw=Math.round(w),rh=Math.round(h),rB=ry+rh,rR=rx+rw,seed=(x*13+y*7)|0;
   const ic=BG.icode;
-  const glow=(gx,gy,gw,gh)=>{ if(L<=0.02||gw<=1||gh<=1)return; c.save();c.globalCompositeOperation="lighter";c.strokeStyle="hsla("+hue+","+bgSat(95)+"%,"+bgLit(66)+"%,"+(0.5*L)+")";c.lineWidth=Math.max(1.5,rw*0.016);c.shadowColor="hsl("+hue+","+bgSat(95)+"%,"+bgLit(60)+"%)";c.shadowBlur=8*L;c.strokeRect(gx+0.75,gy+0.75,gw-1.5,gh-1.5);c.restore(); };
+  const glow=(gx,gy,gw,gh)=>{ if(L<=0.02||gw<=1||gh<=1)return; c.save();c.globalCompositeOperation=bgAdd();c.strokeStyle="hsla("+hue+","+bgSat(95)+"%,"+bgLit(66)+"%,"+(0.5*L)+")";c.lineWidth=Math.max(1.5,rw*0.016);c.shadowColor="hsl("+hue+","+bgSat(95)+"%,"+bgLit(60)+"%)";c.shadowBlur=8*L;c.strokeRect(gx+0.75,gy+0.75,gw-1.5,gh-1.5);c.restore(); };
   const hole=(hx,hy,hw,hh)=>{ if(hw<=0||hh<=0)return; c.save();c.globalCompositeOperation="destination-out";c.fillStyle="#000";c.fillRect(hx,hy,hw,hh);c.restore(); glow(hx,hy,hw,hh); };
   if(!ic){ drawCodeFillClip(c,rx,ry,rw,rh,rx,ry,rw,rh,hue,L,seed); return; }
   const cw=ic.fs*0.62, cur=Math.floor(ic.pos/ic.cols), partX=(ic.pos-cur*ic.cols)*cw, fullY=cur*ic.lh, partYbot=(cur+1)*ic.lh;
@@ -6439,7 +6642,7 @@ function bgArcade(c,W,H,dt){
       A.resident[i]={glyph:inc.glyph,pop:1.24}; A.flash[i]=1; A.incoming[i]=null; } }
   for(let i=0;i<9;i++){ const r=A.resident[i]; if(!r)continue; r.pop+=(1-r.pop)*Math.min(1,dt*12);
     arcBlock(c,slotX(i),rowY,s,arcHue(i),r.glyph,1,r.pop);
-    if(A.flash[i]>0.02){c.save();c.globalCompositeOperation="lighter";arcSym(c,slotX(i),rowY,s*r.pop,r.glyph,"hsla("+arcHue(i)+","+bgSat(70)+"%,"+bgLit(86)+"%,"+(0.55*A.flash[i])+")");c.restore();A.flash[i]*=Math.exp(-dt*11);} }
+    if(A.flash[i]>0.02){c.save();c.globalCompositeOperation=bgAdd();arcSym(c,slotX(i),rowY,s*r.pop,r.glyph,"hsla("+arcHue(i)+","+bgSat(70)+"%,"+bgLit(86)+"%,"+(0.55*A.flash[i])+")");c.restore();A.flash[i]*=Math.exp(-dt*11);} }
   for(let i=0;i<9;i++){const inc=A.incoming[i];if(!inc)continue; arcBlock(c,slotX(i),inc.y,s,inc.hue,inc.glyph,1,1);}
 }
 function bgVoid(c,W,H,dt){
@@ -6476,7 +6679,7 @@ function bubFlow(fx,fy,t){                                                    //
   const vy=Math.cos(fx*3.4-t*0.21)*0.5+Math.sin(fy*2.2+t*0.16)*0.5; return [vx,vy]; }
 function bubDust(c,W,H,dt,mul,baseH,t){                                       // floating motes :: slow glimmer carried by the same current, no gravity
   if(!BG.bubDust){ BG.bubDust=[]; for(let i=0;i<70;i++)BG.bubDust.push({x:Math.random(),y:Math.random(),vx:0,vy:0,h:Math.random(),ph:Math.random()*6}); }
-  const S=Math.min(W,H), rr=Math.max(0.8,S*0.0022); c.globalCompositeOperation="lighter";
+  const S=Math.min(W,H), rr=Math.max(0.8,S*0.0022); c.globalCompositeOperation=bgAdd();
   for(const p of BG.bubDust){ p.ph+=dt*2; const f=bubFlow(p.x,p.y,t); p.vx+=(Math.random()-0.5)*0.05*dt; p.vy+=(Math.random()-0.5)*0.05*dt; p.vx*=0.97; p.vy*=0.97;
     p.x+=(p.vx+f[0]*0.05)*dt; p.y+=(p.vy+f[1]*0.05)*dt;                       // carried by the current, not falling
     if(p.x<0)p.x+=1; else if(p.x>1)p.x-=1; if(p.y<0)p.y+=1; else if(p.y>1)p.y-=1;
@@ -6489,7 +6692,7 @@ function bubDraw(c,b,mul,baseH,t){
   const g=c.createRadialGradient(b.x,b.y,r*0.2,b.x,b.y,r);
   g.addColorStop(0,"hsla("+hue+","+bgSat(70)+"%,"+bgLit(60)+"%,0)"); g.addColorStop(0.72,"hsla("+hue+","+bgSat(75)+"%,"+bgLit(58)+"%,"+(0.05*fade)+")"); g.addColorStop(1,"hsla("+hue+","+bgSat(85)+"%,"+bgLit(62)+"%,"+(0.13*fade)+")");
   const sq=BG.bubSquare; c.fillStyle=g; c.beginPath(); if(sq)c.rect(b.x-r,b.y-r,r*2,r*2); else c.arc(b.x,b.y,r,0,6.283); c.fill();
-  c.globalCompositeOperation="lighter";
+  c.globalCompositeOperation=bgAdd();
   const ang=t*0.7+b.x*0.02, spread=mul?300:70;                                                            // oil-on-water iridescence :: gentle rotating film
   if(c.createConicGradient){ const cg=c.createConicGradient(ang,b.x,b.y); for(let s=0;s<=6;s++){ const h=(((hue-spread/2)+spread*(s/6))%360+360)%360; cg.addColorStop(s/6,"hsla("+h+","+bgSat(85)+"%,"+bgLit(70)+"%,"+(0.22*fade)+")"); } c.strokeStyle=cg; }
   else c.strokeStyle="hsla("+hue+","+bgSat(85)+"%,"+bgLit(68)+"%,"+(0.22*fade)+")";
@@ -6528,7 +6731,7 @@ function bgBubbles(c,W,H,dt){                                                 //
     }
   }}
   if(targetB>0 && B.length>targetB)B.splice(0,B.length-targetB); else if(targetB===0 && B.length>0)B.splice(0,B.length);   // keep only the target count (empty when nothing plays)
-  c.globalCompositeOperation="source-over"; c.fillStyle="rgba(4,3,8,0.18)"; c.fillRect(0,0,W,H);   // trailing veil
+  c.globalCompositeOperation="source-over"; c.fillStyle=bgGround(0.18); c.fillRect(0,0,W,H);   // trailing veil
   bubDust(c,W,H,dt,mul,baseH,t);                                                                    // floating motes on the same current
   for(let i=0;i<B.length;i++)bubDraw(c,B[i],mul,baseH,t);
 }
@@ -6538,7 +6741,7 @@ function fracDust(c,cx,cy,W,H,dt,mul,baseH){                                  //
   if(!BG.fracDust){ BG.fracDust=[]; for(let i=0;i<120;i++)BG.fracDust.push({x:Math.random()*2-1,y:Math.random()*2-1,z:0.3+Math.random()*3.2,h:Math.random()}); }
   BG.fracDustBoost=Math.max(0,(BG.fracDustBoost||0)-dt*2.2);
   const foc=Math.max(W,H)*0.62, sp=0.45+BG.fracDustBoost, D=Math.max(W,H);
-  c.globalCompositeOperation="lighter";
+  c.globalCompositeOperation=bgAdd();
   for(const p of BG.fracDust){ const pz0=p.z; p.z+=sp*dt;
     if(p.z>3.6){ p.z=0.3; p.x=Math.random()*2-1; p.y=Math.random()*2-1; p.h=Math.random(); continue; }
     const sx=cx+p.x/p.z*foc, sy=cy+p.y/p.z*foc; if(sx<-40||sx>W+40||sy<-40||sy>H+40)continue;
@@ -6553,9 +6756,9 @@ function bgFracture(c,W,H,dt){                                                //
   const cx=W/2, cy=H/2, R=Math.max(W,H)*0.5, N=8, RINGS=6, C=BG.fracC, Hh=BG.fracH;
   const dec=Math.pow(0.08,dt); for(let r=0;r<RINGS;r++)C[r]*=dec; BG.fracCore*=Math.pow(0.12,dt); BG.fracRot+=dt*0.12;
   const mul=(BG.fxColor==="multi"), baseH=bgBaseHue(), wedge=Math.PI/N;
-  c.globalCompositeOperation="source-over"; c.fillStyle="rgba(5,3,9,0.30)"; c.fillRect(0,0,W,H);   // dark trails
+  c.globalCompositeOperation="source-over"; c.fillStyle=bgGround(0.30); c.fillRect(0,0,W,H);   // trails
   fracDust(c,cx,cy,W,H,dt,mul,baseH);                                              // depth :: receding starfield behind the wheel
-  c.save(); c.translate(cx,cy); c.rotate(BG.fracRot); c.globalCompositeOperation="lighter";
+  c.save(); c.translate(cx,cy); c.rotate(BG.fracRot); c.globalCompositeOperation=bgAdd();
   for(let s=0;s<N;s++){ c.save(); c.rotate(s*2*Math.PI/N); if(s&1)c.scale(1,-1);
     for(let r=0;r<RINGS;r++){ const ch=C[r], hue=(((mul?Hh[r]:(baseH+(r-2.5)*10))%360)+360)%360;
       const r0=R*(0.14+r*0.125), rf=r0+R*(0.05+ch*0.14), rm=(r0+rf)*0.5, w=wedge*(0.30+ch*0.42);
@@ -6568,13 +6771,13 @@ function bgFracture(c,W,H,dt){                                                //
   c.restore();
   const core=BG.fracCore;                                                    // core :: kick pulse
   if(core>0.02){ const hue=(((mul?Hh[0]:baseH)%360)+360)%360, cr=R*(0.05+core*0.09);
-    c.save(); c.translate(cx,cy); c.rotate(-BG.fracRot*1.3); c.globalCompositeOperation="lighter";
+    c.save(); c.translate(cx,cy); c.rotate(-BG.fracRot*1.3); c.globalCompositeOperation=bgAdd();
     c.beginPath(); for(let k=0;k<6;k++){ const a=k/6*Math.PI*2, rr=(k&1)?cr:cr*0.5, x=Math.cos(a)*rr, y=Math.sin(a)*rr; k?c.lineTo(x,y):c.moveTo(x,y);} c.closePath();
     c.fillStyle="hsla("+hue+","+bgSat(90)+"%,"+bgLit(60)+"%,"+(0.10+core*0.30)+")"; c.fill();
     c.lineWidth=1+core*3; c.strokeStyle="hsla("+hue+","+bgSat(95)+"%,"+bgLit(72)+"%,0.85)"; c.stroke(); c.restore();
   }
   const sh=BG.fracShards;                                                    // shards :: kick splinters fly out and burn up
-  c.save(); c.translate(cx,cy); c.globalCompositeOperation="lighter";
+  c.save(); c.translate(cx,cy); c.globalCompositeOperation=bgAdd();
   for(let i=sh.length-1;i>=0;i--){ const p=sh[i]; p.age+=dt; if(p.age>=p.life){sh.splice(i,1);continue;}
     p.x+=p.vx*dt; p.y+=p.vy*dt; p.vx*=0.985; p.vy*=0.985; p.rot+=p.vrot*dt;
     const k=1-p.age/p.life, hue=(((mul?p.hue:baseH)%360)+360)%360, sz=p.size*(0.6+k*0.6);
@@ -6588,21 +6791,21 @@ function bgFracture(c,W,H,dt){                                                //
 const MICROMAP=[0,1,2,3,3,3,7,8,5];                                           // voice -> creature :: 0 amoeba 1 mitosis 2 paramecium 7 diatom(Tom1) 8 puffer(Tom2) 5 eyes(Wood) 3 placeholder
 function microEnsure(){ if(!BG.mic)BG.mic=[]; }
 function microWall(m,W,H,r){ if(m.x<r){m.x=r;m.vx=Math.abs(m.vx);} else if(m.x>W-r){m.x=W-r;m.vx=-Math.abs(m.vx);} if(m.y<r){m.y=r;m.vy=Math.abs(m.vy);} else if(m.y>H-r){m.y=H-r;m.vy=-Math.abs(m.vy);} }
-function drawCell(c,m,hue){ const fl=m.fl||0, e=Math.max(0,Math.min(1,m.e+fl*0.8)), r=m.r*(1+fl*0.28); c.save(); c.globalCompositeOperation="lighter";
+function drawCell(c,m,hue){ const fl=m.fl||0, e=Math.max(0,Math.min(1,m.e+fl*0.8)), r=m.r*(1+fl*0.28); c.save(); c.globalCompositeOperation=bgAdd();
   if(m.div>0){ const o=r*0.6*m.div, rr=r*(1-0.14*m.div);
     for(const s of [-1,1]){ c.beginPath(); c.arc(m.x+s*o,m.y,rr,0,6.283); c.fillStyle="hsla("+hue+","+bgSat(70)+"%,"+bgLit(55)+"%,"+(0.10*e)+")"; c.fill(); c.lineWidth=1.4; c.strokeStyle="hsla("+hue+","+bgSat(80)+"%,"+bgLit(66)+"%,"+(0.5*e)+")"; c.stroke();
       c.beginPath(); c.arc(m.x+s*o,m.y,rr*0.28,0,6.283); c.fillStyle="hsla("+hue+","+bgSat(85)+"%,"+bgLit(72)+"%,"+(0.5*e)+")"; c.fill(); }
   } else { c.beginPath(); c.arc(m.x,m.y,r,0,6.283); c.fillStyle="hsla("+hue+","+bgSat(70)+"%,"+bgLit(55)+"%,"+(0.10*e)+")"; c.fill(); c.lineWidth=1.4; c.strokeStyle="hsla("+hue+","+bgSat(80)+"%,"+bgLit(66)+"%,"+(0.5*e)+")"; c.stroke();
     c.beginPath(); c.arc(m.x,m.y,r*0.28,0,6.283); c.fillStyle="hsla("+hue+","+bgSat(85)+"%,"+bgLit(72)+"%,"+(0.5*e)+")"; c.fill(); }
   c.restore(); }
-function drawAmoeba(c,m,hue){ const fl=m.fl||0, e=Math.max(0,Math.min(1,m.e+fl*0.7)), N=34; c.save(); c.globalCompositeOperation="lighter"; c.lineJoin="round"; c.beginPath();
+function drawAmoeba(c,m,hue){ const fl=m.fl||0, e=Math.max(0,Math.min(1,m.e+fl*0.7)), N=34; c.save(); c.globalCompositeOperation=bgAdd(); c.lineJoin="round"; c.beginPath();
   for(let k=0;k<=N;k++){ const a=k/N*6.283; let rr=m.r*(1+fl*0.12)*(1+0.14*Math.sin(a*3+m.ph)+0.08*Math.sin(a*5-m.ph*0.7));
     for(const p of m.pods){ let da=Math.abs(((a-p.a+Math.PI)%6.283)-Math.PI); if(da<1.0)rr+=p.len*Math.exp(-(da*da)/0.14); }
     const x=m.x+Math.cos(a)*rr, y=m.y+Math.sin(a)*rr; k?c.lineTo(x,y):c.moveTo(x,y); }
   c.closePath(); c.fillStyle="hsla("+hue+","+bgSat(65)+"%,"+bgLit(52)+"%,"+(0.10*e)+")"; c.fill(); c.lineWidth=1.6; c.strokeStyle="hsla("+hue+","+bgSat(78)+"%,"+bgLit(64)+"%,"+(0.55*e)+")"; c.stroke();
   c.beginPath(); c.arc(m.x,m.y,m.r*0.22,0,6.283); c.fillStyle="hsla("+hue+","+bgSat(85)+"%,"+bgLit(70)+"%,"+(0.5*e)+")"; c.fill(); c.restore(); }
 function microCol(m){ switch(m.t){ case 2:return m.len*0.62; case 5:return m.sz*0.9; case 7:return m.sz*0.9; case 8:return m.sz; default:return m.r; } }
-function drawParamecium(c,m,hue){ const fl=m.fl||0, e=Math.max(0,Math.min(1,m.e+fl*0.7)), L=m.len, Wd=L*0.4; c.save(); c.translate(m.x,m.y); c.rotate(m.ang); c.globalCompositeOperation="lighter";
+function drawParamecium(c,m,hue){ const fl=m.fl||0, e=Math.max(0,Math.min(1,m.e+fl*0.7)), L=m.len, Wd=L*0.4; c.save(); c.translate(m.x,m.y); c.rotate(m.ang); c.globalCompositeOperation=bgAdd();
   const N=40; c.beginPath();                                                  // asymmetric slipper body (wider front, tapered back)
   for(let k=0;k<=N;k++){ const t=k/N*6.283, hw=Wd*(0.7+0.4*(0.5+0.5*Math.cos(t))), x=Math.cos(t)*L, y=Math.sin(t)*hw; k?c.lineTo(x,y):c.moveTo(x,y); }
   c.closePath(); c.fillStyle="hsla("+hue+","+bgSat(60)+"%,"+bgLit(55)+"%,"+(0.11*e)+")"; c.fill(); c.lineWidth=1.5; c.strokeStyle="hsla("+hue+","+bgSat(75)+"%,"+bgLit(64)+"%,"+(0.55*e)+")"; c.stroke();
@@ -6614,7 +6817,7 @@ function drawParamecium(c,m,hue){ const fl=m.fl||0, e=Math.max(0,Math.min(1,m.e+
   c.beginPath(); c.moveTo(L*0.55,-Wd*0.22); c.lineTo(L*0.05,Wd*0.05); c.stroke();                       // oral groove -> mouth
   c.restore(); }
 function drawEyes(c,m,hue){ const fl=m.fl||0, e=Math.max(0,Math.min(1,m.e+fl*0.5)), sz=m.sz*(1+m.wide*0.30+fl*0.15), eyeR=sz*0.46, sep=sz*0.62, open=1-m.blink*0.92, t=(BG.micT||0)*6+m.x*0.02;
-  c.save(); c.globalCompositeOperation="lighter";
+  c.save(); c.globalCompositeOperation=bgAdd();
   const bw=sep+eyeR*1.1, bh=eyeR*1.25;                                                                    // shared translucent body :: it's one creature
   c.beginPath(); c.ellipse(m.x,m.y,bw,bh,0,0,6.283); c.fillStyle="hsla("+hue+","+bgSat(60)+"%,"+bgLit(52)+"%,"+(0.06*e)+")"; c.fill(); c.lineWidth=1.2; c.strokeStyle="hsla("+hue+","+bgSat(78)+"%,"+bgLit(64)+"%,"+(0.34*e)+")"; c.stroke();
   c.lineWidth=1; c.lineCap="round"; c.strokeStyle="hsla("+hue+","+bgSat(82)+"%,"+bgLit(72)+"%,"+(0.32*e)+")"; const NC=26;      // fine cilia around the body
@@ -6626,11 +6829,11 @@ function drawEyes(c,m,hue){ const fl=m.fl||0, e=Math.max(0,Math.min(1,m.e+fl*0.5
       c.beginPath(); c.arc(px,py,pr,0,6.283); c.fillStyle="hsla("+hue+","+bgSat(85)+"%,"+bgLit(58)+"%,"+(0.55*e)+")"; c.fill();
       c.beginPath(); c.arc(px,py,pr*0.5,0,6.283); c.fillStyle="hsla("+hue+","+bgSat(92)+"%,"+bgLit(86)+"%,"+(0.92*e)+")"; c.fill(); } }
   c.restore(); }
-function drawDiatom(c,m,hue){ const fl=m.fl||0, e=Math.max(0,Math.min(1,m.e+fl*0.9)), L=m.sz, Wd=m.sz*0.42; c.save(); c.translate(m.x,m.y); c.rotate(m.rot); c.globalCompositeOperation="lighter";
+function drawDiatom(c,m,hue){ const fl=m.fl||0, e=Math.max(0,Math.min(1,m.e+fl*0.9)), L=m.sz, Wd=m.sz*0.42; c.save(); c.translate(m.x,m.y); c.rotate(m.rot); c.globalCompositeOperation=bgAdd();
   c.beginPath(); c.ellipse(0,0,L,Wd,0,0,6.283); c.fillStyle="hsla("+hue+","+bgSat(50)+"%,"+bgLit(58)+"%,"+(0.08*e)+")"; c.fill(); c.lineWidth=1.6; c.strokeStyle="hsla("+hue+","+bgSat(78)+"%,"+bgLit(70)+"%,"+((0.5+fl*0.5)*e)+")"; c.stroke();
   c.lineWidth=1; c.strokeStyle="hsla("+hue+","+bgSat(70)+"%,"+bgLit(66)+"%,"+((0.34+fl*0.5)*e)+")"; c.beginPath(); c.moveTo(-L,0); c.lineTo(L,0); c.stroke();
   const NR=9; for(let k=1;k<NR;k++){ const x=-L+2*L*k/NR, hh=Wd*Math.sqrt(Math.max(0,1-(x/L)*(x/L)))*0.9; c.beginPath(); c.moveTo(x,-hh); c.lineTo(x,hh); c.stroke(); } c.restore(); }
-function drawPuffer(c,m,hue){ const fl=m.fl||0, e=Math.max(0,Math.min(1,m.e+fl*0.5)), r=m.sz*(0.85+0.15*Math.sin((m.breath||0)*3)+m.pulse*0.3); c.save(); c.globalCompositeOperation="lighter";
+function drawPuffer(c,m,hue){ const fl=m.fl||0, e=Math.max(0,Math.min(1,m.e+fl*0.5)), r=m.sz*(0.85+0.15*Math.sin((m.breath||0)*3)+m.pulse*0.3); c.save(); c.globalCompositeOperation=bgAdd();
   const g=c.createRadialGradient(m.x,m.y,r*0.2,m.x,m.y,r); g.addColorStop(0,"hsla("+hue+","+bgSat(70)+"%,"+bgLit(62)+"%,"+(0.16*e)+")"); g.addColorStop(1,"hsla("+hue+","+bgSat(75)+"%,"+bgLit(60)+"%,0)");
   c.fillStyle=g; c.beginPath(); c.arc(m.x,m.y,r,0,6.283); c.fill();
   c.lineWidth=1.4; c.strokeStyle="hsla("+hue+","+bgSat(78)+"%,"+bgLit(68)+"%,"+((0.4+m.pulse*0.45)*e)+")"; c.beginPath(); c.arc(m.x,m.y,r,0,6.283); c.stroke();
@@ -6638,7 +6841,7 @@ function drawPuffer(c,m,hue){ const fl=m.fl||0, e=Math.max(0,Math.min(1,m.e+fl*0
   c.restore(); }
 function dustEnsure(){ if(!BG.dust){ BG.dust=[]; for(let i=0;i<54;i++)BG.dust.push({x:Math.random(),y:Math.random(),vx:0,vy:0,h:Math.random()}); } }
 function dustKick(fx,fy,vel){ dustEnsure(); const rad=0.09,r2=rad*rad; for(const p of BG.dust){ const dx=p.x-fx,dy=p.y-fy,d2=dx*dx+dy*dy; if(d2<r2){ const d=Math.sqrt(d2)||1e-3,f=(1-d/rad)*vel*0.05; p.vx+=dx/d*f; p.vy+=dy/d*f; } } }
-function dustDraw(c,W,H,dt,mul,baseH){ dustEnsure(); const S=Math.min(W,H), rr=Math.max(0.8,S*0.0016); c.globalCompositeOperation="lighter";   // permanent Brownian dust :: keeps the field alive even at idle
+function dustDraw(c,W,H,dt,mul,baseH){ dustEnsure(); const S=Math.min(W,H), rr=Math.max(0.8,S*0.0016); c.globalCompositeOperation=bgAdd();   // permanent Brownian dust :: keeps the field alive even at idle
   for(const p of BG.dust){ p.vx+=(Math.random()-0.5)*2.6*dt; p.vy+=(Math.random()-0.5)*2.6*dt; p.vx*=0.82; p.vy*=0.82; p.x+=p.vx*dt; p.y+=p.vy*dt;
     if(p.x<0)p.x+=1; else if(p.x>1)p.x-=1; if(p.y<0)p.y+=1; else if(p.y>1)p.y-=1;
     const hue=(((mul?p.h*300+40:baseH)%360)+360)%360; c.fillStyle="hsla("+hue+","+bgSat(55)+"%,"+bgLit(66)+"%,0.26)"; c.beginPath(); c.arc(p.x*W,p.y*H,rr,0,6.283); c.fill(); }
@@ -6665,7 +6868,7 @@ function microHit(voice,vel,sub){ microEnsure(); const M=BG.mic, W=BG.W,H=BG.H, 
   dustKick(hx/W, hy/H, vel);
 }
 function bgMicrobe(c,W,H,dt){ microEnsure(); const M=BG.mic, S=Math.min(W,H), mul=(BG.fxColor==="multi"), baseH=bgBaseHue();
-  c.globalCompositeOperation="source-over"; c.fillStyle="rgba(6,8,10,0.34)"; c.fillRect(0,0,W,H);   // dark field + faint trails
+  c.globalCompositeOperation="source-over"; c.fillStyle=bgGround(0.34); c.fillRect(0,0,W,H);   // field + faint trails
   dustDraw(c,W,H,dt,mul,baseH);                                                                       // permanent Brownian dust layer
   BG.micT=(BG.micT||0)+dt;
   for(let i=M.length-1;i>=0;i--){ const m=M[i]; m.e-=dt*0.25; m.fl=Math.max(0,(m.fl||0)-dt*6);            // PASS 1 :: behaviour + integrate + births/deaths · fl = short beat pulse
@@ -6707,7 +6910,7 @@ function bgMicrobe(c,W,H,dt){ microEnsure(); const M=BG.mic, S=Math.min(W,H), mu
       a.fl=Math.min(1,(a.fl||0)+0.22); b.fl=Math.min(1,(b.fl||0)+0.22);                                  // touch -> bioluminescent flash
     }
   }}
-  c.globalCompositeOperation="lighter";
+  c.globalCompositeOperation=bgAdd();
   for(const m of M){ const hue=(((mul?m.hue:baseH)%360)+360)%360, fl=m.fl||0, e=Math.max(0,Math.min(1,m.e));   // PASS 3 :: cheap radial glow halo + gentle breathing (no costly shadowBlur)
     const breath=0.78+0.22*Math.sin(BG.micT*1.5+m.x*0.01), gr=microCol(m)*1.9;
     const g=c.createRadialGradient(m.x,m.y,0,m.x,m.y,gr); g.addColorStop(0,"hsla("+hue+","+bgSat(85)+"%,"+bgLit(60)+"%,"+((0.09+fl*0.16)*breath*e)+")"); g.addColorStop(1,"hsla("+hue+","+bgSat(85)+"%,"+bgLit(60)+"%,0)");
@@ -6720,23 +6923,30 @@ function bgStart(){if(BG.run)return;BG.run=true;BG.last=performance.now();BG.raf
 function bgStop(){BG.run=false;cancelAnimationFrame(BG.raf);BG.c&&BG.c.clearRect(0,0,BG.W,BG.H);if(BG.refl){BG.refl.cv.width=1;BG.refl.cv.height=1;}}
 function bgSet(m){BG.mode=m;const b=document.getElementById("bgBtn");if(b)b.textContent=(m==="credits"?"":"BG: ")+m.toUpperCase();if(m==="off")bgStop();else bgStart();}
 function bgCycle(){const o=["off","logo","liquid","powder","plasma","wave","bubbles","microbe","cube","fracture","datamosh","seq","horizon","impact","laser","glyphs","credits"];bgSet(o[(o.indexOf(BG.mode)+1)%o.length]);}
-function colCycle(){const o=["amber","violet","green","white","multi"],lab={amber:"AMBER",violet:"VIOLET",green:"GREEN",white:"WHITE",multi:"MULTI"};BG.fxColor=o[(o.indexOf(BG.fxColor)+1)%o.length];const b=document.getElementById("colBtn");if(b)b.textContent="FX: "+lab[BG.fxColor];}
+function fxLabel(c){ const lab={amber:"AMBER",violet:"VIOLET",green:"GREEN",white:"WHITE",black:"BLACK",multi:"MULTI"};
+  return lab[c]||String(c).toUpperCase(); }
+function paintColBtn(){ const b=document.getElementById("colBtn"); if(b)b.textContent="FX: "+fxLabel(BG.fxColor); }
+function colCycle(){const o=["amber","violet","green","white","black","multi"];BG.fxColor=o[(o.indexOf(BG.fxColor)+1)%o.length];paintColBtn();}
 
 // ---- boot ----
 document.getElementById("revfoot").textContent="REV "+REV;
 let skinState="invert";
-function skinApply(){const root=document.documentElement,lab={ghost:"GHOST",shadow:"SHADOW",invert:"INVERT",black:"BLACK"};
+function skinApply(){const root=document.documentElement,lab={ghost:"GHOST",shadow:"AMBER",invert:"VIOLET",black:"BLACK",paper:"PAPER"};   // the old names described an effect that is long gone :: these say what you see
   root.classList.toggle("inv",skinState==="shadow");                         // shadow keeps its chassis, unchanged
   root.classList.toggle("ghost",skinState==="ghost");
   root.classList.toggle("skin-shadow",skinState==="shadow");
   root.classList.toggle("skin-invert",skinState==="invert");
   root.classList.toggle("black",skinState==="black");
-  if(skinState==="black"&&typeof BG!=="undefined"&&BG.fxColor!=="white"){ BG.fxColor="white";
-    const cb=document.getElementById("colBtn"); if(cb)cb.textContent="FX: WHITE"; }   // a monochrome device in front of a violet plasma makes no sense
+  root.classList.toggle("paper",skinState==="paper");
+  if(typeof paintColBtn==="function")paintColBtn();   // the label depends on the skin
+  if(skinState==="black"&&typeof BG!=="undefined"&&BG.fxColor!=="white"&&BG.fxColor!=="black"){ BG.fxColor="white";
+    if(typeof paintColBtn==="function")paintColBtn(); }   // a monochrome device in front of a violet plasma makes no sense
   if(typeof buildSeq==="function")buildSeq();
+  if(document.getElementById("pagegrp")&&typeof refreshStrip==="function")refreshStrip();   // inline group colour on the pattern strip :: only once the strip exists, skinApply also runs at boot
+  if(document.getElementById("editor")&&typeof buildEditor==="function")buildEditor();      // knob colours are inline too
   if(typeof state!=="undefined"&&state.liveOpen&&typeof buildLiveScreen==="function")buildLiveScreen();
   const b=document.getElementById("skinBtn");if(b)b.textContent="SKIN: "+lab[skinState];}
-function skinCycle(){const o=["ghost","shadow","invert","black"];skinState=o[(o.indexOf(skinState)+1)%o.length];skinApply();}
+function skinCycle(){const o=["ghost","shadow","invert","black","paper"];skinState=o[(o.indexOf(skinState)+1)%o.length];skinApply();}
 document.getElementById("skinBtn").onclick=()=>skinCycle();
 skinApply();
 { const _lv=document.getElementById("liveScreen"); if(_lv&&_lv.parentNode!==document.body)document.body.appendChild(_lv); }   // top-level from the start
