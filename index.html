@@ -201,7 +201,12 @@ body{
 .rack .rl.rl-btn.off{color:var(--dimmer)}
 .rl-led{width:6px;height:6px;border-radius:50%;background:#2a1c10;display:inline-block;margin-left:6px;vertical-align:middle;box-shadow:inset 0 0 2px #000}
 .rl-led.on{background:var(--signal);box-shadow:0 0 6px var(--signal)}
-.knobs{display:flex;gap:10px;flex-wrap:nowrap}
+.knobs{display:flex;gap:10px;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}
+.knobs::-webkit-scrollbar{height:5px}
+.knobs::-webkit-scrollbar-thumb{background:var(--line-hi);border-radius:3px}
+.knobs::-webkit-scrollbar-track{background:transparent}
+.knobs>*{flex:0 0 auto}
+.knob-sep{flex:0 0 1px;align-self:stretch;margin:6px 3px;background:linear-gradient(180deg,transparent,var(--line-hi),transparent);opacity:.7}
 /* DRIVE/CRUSH toggle: sits on the // FX header line, over the rightmost knob */
 .fx-sw{position:absolute;top:-15px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:5px;background:none;border:none;padding:0;cursor:pointer;font-family:var(--mono);font-size:8px;letter-spacing:1px;line-height:1;white-space:nowrap;z-index:2}
 .fx-sw .tr{position:relative;width:24px;height:12px;border-radius:7px;background:rgba(0,0,0,.5);border:1px solid var(--line)}
@@ -890,6 +895,27 @@ html.paper .lv-pad.filled{background:linear-gradient(180deg,#e8e5e1 0%,#dad7d3 1
 html.paper .lv-pad.hollow{background:#f2f0ed;color:rgba(0,0,0,.28);border-style:dashed;border-color:rgba(0,0,0,.16)}
 html.paper .lv-scene.on{background:#14130f;color:#fafafa;border-color:#14130f}
 html.paper .lv-gname{color:#14130f}
+/* catch-all first :: any button without its own styling, then the specific ones override below */
+html.paper button{background:linear-gradient(180deg,#fbfaf8 0%,#e6e4e0 62%,#dbd8d4 100%);color:#14130f;border:none;border-radius:5px;
+  box-shadow:0 1px 0 rgba(255,255,255,.95) inset, 0 0 0 1px rgba(0,0,0,.10)}
+html.mach button{background:linear-gradient(180deg,#b8babd 0%,#8e9093 52%,#76787c 100%);color:#101314;border:1px solid #3a3b3e;border-radius:4px;
+  box-shadow:0 1px 0 rgba(255,255,255,.5) inset}
+/* elements that carry no class of their own :: they inherit the browser default, which is black on black here */
+html.paper #finbar button,html.paper .field input,html.paper input[type="text"],html.paper textarea{
+  background:linear-gradient(180deg,#fbfaf8 0%,#e6e4e0 62%,#dbd8d4 100%);color:#14130f;
+  border:none;border-radius:5px;box-shadow:0 1px 0 rgba(255,255,255,.95) inset, 0 0 0 1px rgba(0,0,0,.10)}
+html.paper #finbar button.on{background:#14130f;color:#f4f2ee;box-shadow:none}
+html.paper .field input::placeholder,html.paper textarea::placeholder{color:#8a8884}
+html.mach #finbar button,html.mach .field input,html.mach input[type="text"],html.mach textarea{
+  background:linear-gradient(180deg,#b8babd 0%,#8e9093 52%,#76787c 100%);color:#101314;
+  border:1px solid #3a3b3e;border-radius:4px;box-shadow:0 1px 0 rgba(255,255,255,.5) inset}
+html.mach #finbar button.on{background:linear-gradient(180deg,#e8cf74,#c9a83e);color:#171205;border-color:#7a6520}
+html.mach .field input::placeholder,html.mach textarea::placeholder{color:#3e4142}
+/* a lit step must win over the inline group colour */
+html.paper .step.on,html.paper .step.on:nth-child(4n+1){background:#f4f2ee !important;border-color:#f4f2ee !important;color:#14130f}
+html.paper .step.acc,html.paper .step.acc:nth-child(4n+1){background:#fff !important;border-color:#fff !important}
+html.mach .step.on,html.mach .step.on:nth-child(4n+1){background:#d0dbdc !important;border-color:#eef4f4 !important;color:#101314}
+html.mach .step.acc,html.mach .step.acc:nth-child(4n+1){background:#fff !important;border-color:#fff !important}
 html.paper .btn.livebtn{background:#14130f;color:#f4f2ee;border-color:#14130f;font-weight:700}
 html.paper .btn.livebtn:hover{background:#26241f}
 html.paper .btn.livebtn[disabled]{background:linear-gradient(180deg,#e8e5e1,#d8d5d1);color:#9a9894;border-color:transparent}
@@ -935,7 +961,9 @@ html.mach .btn,html.mach .cell-btn,html.mach .mute,html.mach .lv-msb,html.mach .
 html.mach .pg-btn,html.mach .mfx-b,html.mach .lv-fxbtn,html.mach .sel{
   background:linear-gradient(180deg,#b8babd 0%,#8e9093 52%,#76787c 100%);border:1px solid #3a3b3e;border-radius:4px;
   color:#101314;box-shadow:0 1px 0 rgba(255,255,255,.5) inset, 0 1px 2px rgba(0,0,0,.4)}
-html.mach .btn:hover,html.mach .cell-btn:hover{background:linear-gradient(180deg,#c8cacd 0%,#9ea0a3 52%,#86888c 100%)}
+html.mach .btn:hover,html.mach .cell-btn:hover{background:linear-gradient(180deg,#c8cacd 0%,#9ea0a3 52%,#86888c 100%);color:#101314}
+html.mach #ctrlbar button,html.mach #ctrlbarL button,html.mach #hidebar button{background:linear-gradient(180deg,#b8babd,#8e9093);border-color:#3a3b3e;color:#101314}
+html.mach #ctrlbar button:hover,html.mach #ctrlbarL button:hover,html.mach #hidebar button:hover{background:linear-gradient(180deg,#c8cacd,#9ea0a3);color:#101314}
 html.mach .btn.play.on,html.mach .cell-btn.on,html.mach .lv-tr.on,html.mach .pg-btn.lit,html.mach .pg-btn.on,
 html.mach .kit-field .cell-btn.on,html.mach .mfx-b.snd,html.mach .lv-scene.on,html.mach .mute.on{
   background:linear-gradient(180deg,#e8cf74 0%,#c9a83e 100%);color:#171205;border-color:#7a6520;
@@ -1043,6 +1071,7 @@ html.mach .island .screw,html.mach .lv-side .screw{background:radial-gradient(ci
       <div class="lv-ctrl" id="lvCtrl"></div>
     </div>
     <div class="lv-scenes" id="lvScenes"></div>
+    <div class="lv-scenes" id="lvSetlist" style="display:none"></div>
     <div class="lv-msg" id="lvMsg"></div>
     <div class="lv-body">
       <div class="lv-groups" id="lvGroups"></div>
@@ -1088,7 +1117,7 @@ html.mach .island .screw,html.mach .lv-side .screw{background:radial-gradient(ci
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 772</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 779</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -2230,7 +2259,7 @@ registerProcessor("crush-fx", CrushFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="772";
+const REV="779";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -3095,6 +3124,21 @@ document.addEventListener("keydown",(e)=>{ if(e.key==="Escape"&&document.getElem
   if((e.ctrlKey||e.metaKey)&&e.shiftKey&&(e.key==="L"||e.key==="l")){ e.preventDefault(); enterLive(); return; }   // same path as the LIVE button if(state.kit!==6)return; const t=e.target; if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"))return;
   if((e.ctrlKey||e.metaKey)&&(e.key==="g"||e.key==="G")){ e.preventDefault(); if(e.shiftKey)ungroupSelection(); else groupSelection(); } });   // ctrl+G groups the selected VOID slots
 function groupOfKey(k){for(const g of PARAM_GROUPS)if(g.keys.indexOf(k)>=0)return g;return null;}
+// ---- which knobs belong together :: a knob before the next divider only does something with the ones beside it ----
+const PARAM_BANDS=[
+  { tag:"PITCH",  keys:["tune","basef","pitch","transp","freq","penv","pdec","penvAmt"] },
+  { tag:"ATTACK", keys:["attack","att","phase","click","clickF","clickD","punchF","punchD","exc"] },
+  { tag:"BODY",   keys:["decay","khold","hold","kdec","curve","sustain","life","dec"] },
+  { tag:"OSC",    keys:["wave","oscDecay","oscLevel","waveBase","waveEnv","waveDec","waveShape"] },
+  { tag:"FM",     keys:["fmRatio","fmAmt","fmDecay","fm","fmBase","fmEnv","fmDec","fmRate"] },
+  { tag:"TONE",   keys:["tone","gain","shape","warm","soft","col","sdrv","pulse","accent"] },
+  { tag:"NOISE",  keys:["noise","noiseLevel","noiseColor","noiseDecay","ncol","ndec","ring","rphase","spread","spray","phaseDrift","rate"] },
+  { tag:"TRANS",  keys:["transAmt","transSpd","transMode","transTgt"] },
+  { tag:"FILTER", keys:["hp","hpq","lp","lpq","res","reso","hres","lres","flt","eqHp","eqFreq","eqGain","eqLp","sweep","swDec"] },
+  { tag:"DIST",   keys:["dtype","ddrive","dpre","dtone","dmix"] },
+  { tag:"OUT",    keys:["pan","level","olvl","mix","smoothPan"] },
+];
+function paramBand(key){ for(let i=0;i<PARAM_BANDS.length;i++)if(PARAM_BANDS[i].keys.indexOf(key)>=0)return i; return -1; }
 function knobColor(k){ const g=groupOfKey(k); if(g){ const m={FM:"#3f9fe0",NOISE:"#5ac85a",WAVE:"#2fd0c0",TRANS:"#a06cff",EQ:"#e070c8",OSC:"#ffab3d"}; if(m[g.label])return m[g.label]; }
   if(/pitch|tune|click|punch[FD]|basef|penv|pdec/i.test(k))return "#ff6a52";
   if(/fm/i.test(k))return "#3f9fe0";
@@ -4071,6 +4115,7 @@ function buildLiveScreen(){ if(!state.liveOpen)return; buildLiveScenes();
     host.appendChild(row); });
   buildLiveLoops();   // loop tracks sit in the same list, below the groups
   lvFitRows();
+  if(typeof paintSetlist==="function")paintSetlist();
   buildLiveSide(); }
 function lvFitRows(){   // six rows fit at full height :: past that they share what is there instead of running off the bottom
   const host=document.getElementById("lvGroups"); if(!host)return;
@@ -4644,11 +4689,11 @@ function buildEditor(){
   const fx=K4?k4fxDefs():edefs.filter(df=>FX_KEYS[df.key]);
   // per-kit fixed frames: widest param/fx count across this kit, so racks don't jump between voices
   const GAP=10,KW=50,PAD=22;
-  let mp=0,mf=0;
+  let mp=0,mf=0,mps=0;
   if(K4){ mp=params.length; mf=fx.length; }
   else KITS.forEach((kt,ki)=>{ if(ki===3)return; kt.voices.forEach(v=>{const pd=v.defs.filter(d=>!FX_KEYS[d.key]);let p=0;const sg=new Set();pd.forEach(d=>{const g=groupOfKey(d.key);if(g){if(!sg.has(g)){sg.add(g);p++;}}else p++;});const f=v.defs.filter(d=>FX_KEYS[d.key]).length;if(p>mp)mp=p;if(f>mf)mf=f;});});   // global max across all non-sample kits :: editor never resizes between kits
   // (editor frame is now global :: no per-kit VOID special case needed)
-  const rackW=(n)=>(n*KW+(n-1)*GAP+PAD)+"px";
+  const rackW=(n,seps)=>"min(100%,"+(n*KW+(n-1)*GAP+PAD+(seps||0)*7)+"px)";   // a divider costs 1px plus 3px margin each side :: and never wider than the island allows
   const hasToggle=(vo.fxMode!==undefined&&("crush" in vo.vals));
   function setKnobGS(def){ let pos=null;                                          // SET mode :: one knob moves the param, relative & clamped
     const has=(v)=>Object.prototype.hasOwnProperty.call(v.vals,def.key);
@@ -4693,19 +4738,24 @@ function buildEditor(){
     return wrap;
   }
   const racks=document.createElement("div");racks.className="racks";
-  const mk=(label,defs,cls,fixedN,onHead)=>{const rack=document.createElement("div");rack.className="rack "+cls;rack.style.width=rackW(fixedN);
+  const mk=(label,defs,cls,fixedN,onHead)=>{const rack=document.createElement("div");rack.className="rack "+cls;rack.style.width=rackW(fixedN,mps);
     const rl=document.createElement("div");rl.className="rl";rl.textContent=label;if(onHead){rl.className="rl rl-btn"+(onHead.off?" off":"");rl.title="click to switch filter type · off / lowpass / highpass";rl.onclick=onHead;const led=document.createElement("span");led.className="rl-led"+(onHead.off?"":" on");rl.appendChild(led);}rack.appendChild(rl);
-    const kc=document.createElement("div");kc.className="knobs";kc.style.minHeight="93px";   // reserve knob height so empty racks (VOID) match filled ones :: no jump
+    const kc=document.createElement("div");kc.className="knobs";kc.style.minHeight="93px";
+      const kcAdd=(el,key)=>{
+        const b=(typeof paramBand==="function")?paramBand(key):-1;
+        if(b>=0&&kc._lastBand!==undefined&&kc._lastBand!==b&&kc.children.length){
+          const sep=document.createElement("div"); sep.className="knob-sep"; kc.appendChild(sep); }
+        kc._lastBand=b; kc.appendChild(el); };   // reserve knob height so empty racks (VOID) match filled ones :: no jump
     let driveWrap=null; const seenG=new Set();
     defs.forEach(def=>{
       if(cls==="params"){ const g=groupOfKey(def.key); if(g){ if(!seenG.has(g)){seenG.add(g);kc.appendChild(makeGroupBtn(g));} return; } }
-      if(setMode){ const gs=setKnobGS(def); kc.appendChild(makeKnob(def,gs.get,gs.set,(cls==="fx"&&hasToggle&&def.key==="drive")?"DRIVE":null,false)); }
+      if(setMode){ const gs=setKnobGS(def); kcAdd(makeKnob(def,gs.get,gs.set,(cls==="fx"&&hasToggle&&def.key==="drive")?"DRIVE":null,false),def.key); }
       else if(cls==="fx"&&hasToggle&&def.key==="drive"){
         const get=()=>vo.vals[vo.fxMode==="crush"?"crush":"drive"];
         const set=(val)=>{const k=vo.fxMode==="crush"?"crush":"drive";vo.vals[k]=val;sendParam(vid,k,val);};
         driveWrap=makeKnob(def,get,set,vo.fxMode==="crush"?"CRUSH":"DRIVE",false,vid+":"+(vo.fxMode==="crush"?"crush":"drive")); kc.appendChild(driveWrap);
       }else{
-        kc.appendChild(makeKnob(def,()=>vo.vals[def.key],(val)=>{vo.vals[def.key]=val;sendParam(vid,def.key,val);},null,false,vid+":"+def.key));
+        kcAdd(makeKnob(def,()=>vo.vals[def.key],(val)=>{vo.vals[def.key]=val;sendParam(vid,def.key,val);},null,false,vid+":"+def.key),def.key);
       }
     });
     rack.appendChild(kc);
@@ -5257,7 +5307,7 @@ function openSampleModePopup(vid,anchorEl){
   const kc=document.createElement("div");kc.className="mfx-knobs mfx-pop-knobs";
   k4modeCtrl(mode).forEach(def=>{
     const get=()=>vo.vals[def.key], set=(val)=>{vo.vals[def.key]=val;sendParam(vid,def.key,val);};
-    kc.appendChild(makeKnob(def,get,set));
+    kcAdd(makeKnob(def,get,set),def.key);
   });
   pop.appendChild(kc);ov.appendChild(pop);
   ov.onclick=(e)=>{if(e.target===ov)shut();};
@@ -5911,7 +5961,8 @@ function openKitFileDialog(){
   const sh=document.createElement("button"); sh.id="sharebtn"; sh.className="cell-btn"; sh.textContent="SAVE KIT"; sh.style.marginLeft="8px"; sh.title="save this kit as a .brk file \u00b7 sounds, all patterns, ratchets, automation and the master fx"; sh.onclick=()=>shareKitLink(); rb.parentNode.insertBefore(sh,rb.nextSibling);
   const ld=document.createElement("button"); ld.id="loadbtn"; ld.className="cell-btn"; ld.textContent="LOAD KIT"; ld.style.marginLeft="6px"; ld.title="load a .brk kit file \u00b7 you can also just drop one onto the window"; ld.onclick=()=>openKitFileDialog(); sh.parentNode.insertBefore(ld,sh.nextSibling);
 })();
-document.addEventListener("keydown",e=>{if(e.code==="Space"&&e.target.tagName!=="INPUT"){e.preventDefault();state.playing?stopSeq():startSeq();}});
+document.addEventListener("keydown",e=>{const t=e.target,tn=t&&t.tagName;
+    if(e.code==="Space"&&tn!=="INPUT"&&tn!=="TEXTAREA"&&tn!=="SELECT"&&!(t&&t.isContentEditable)){e.preventDefault();state.playing?stopSeq():startSeq();}});   // textarea was missing :: you could not type a space in feedback
 // ---- the quiet door :: STRG+Q ----
 (function(){
   const CHECK=1749892828;
@@ -6196,6 +6247,139 @@ async function loadLiveSet(entry){
       (missing.length?(" \u00b7 "+missing.length+" missing"):""));
     if(missing.length)console.warn("missing loop files:",missing);
   }catch(e){ setStatus("SET // load failed :: "+(e&&e.message||"")); }
+}
+// ---- SETLIST :: a running order with three sets held ready ----
+const SETLIST={ items:[], cur:-1, cache:new Map(), busy:false };   // cache holds decoded audio for the window around cur
+function paintSetlist(pending){
+  const bar=document.getElementById("lvSetlist"); if(!bar)return;
+  bar.style.display=SETLIST.items.length?"flex":"none";
+  bar.innerHTML="";
+  const lab=document.createElement("span"); lab.className="lv-sclab"; lab.textContent="SETLIST"; bar.appendChild(lab);
+  SETLIST.items.forEach((it,i)=>{
+    const b=document.createElement("button");
+    const ready=SETLIST.cache.has(i), on=(i===SETLIST.cur), wait=(pending===i);
+    b.className="lv-scene"+(on?" on":"")+(wait?" pend":"");
+    b.textContent=it.name;
+    b.style.opacity=(ready||on)?"1":".55";              // held sets read brighter, so you can see what is instant
+    b.title=on?("playing \u00b7 "+it.name):(ready?"ready \u00b7 switches at once":"not held \u00b7 loads on the way in");
+    b.onclick=()=>setlistGo(i);
+    bar.appendChild(b);
+  });
+  const mb=setlistBytes()/1048576;
+  const info=document.createElement("span"); info.className="lv-lbl"; info.style.marginLeft="10px";
+  info.textContent=(mb>=1?mb.toFixed(0)+" MB held":"");
+  bar.appendChild(info);
+  const ed=document.createElement("button"); ed.className="lv-scene"; ed.textContent="EDIT";
+  ed.title="pick which sets are in the running order"; ed.style.marginLeft="10px";
+  ed.onclick=()=>openSetlistEditor(); bar.appendChild(ed);
+}
+async function openSetlistEditor(){
+  const list=await setList();
+  if(!list){ return; }
+  if(!list.length){ setStatus("SETLIST // no sets in "+SETDIR.name); return; }
+  closeSoundPicker();
+  const chosen=SETLIST.items.map(x=>x.name);
+  const ov=document.createElement("div"); ov.id="soundPicker"; ov.className="sound-picker";
+  const hd=document.createElement("div"); hd.className="lv-sec"; hd.textContent="RUNNING ORDER \u00b7 "+SETDIR.name; ov.appendChild(hd);
+  const note=document.createElement("div");
+  note.style.cssText="font-family:var(--mono);font-size:10px;line-height:1.7;letter-spacing:.5px;color:var(--dimmer);padding:0 2px 10px";
+  note.textContent="tap to add in order \u00b7 three sets stay held at a time, so the next one switches without a wait";
+  ov.appendChild(note);
+  const pick=SETLIST.items.map(x=>x.name);   // start from the order that is already set
+  list.forEach(e=>{ const b=document.createElement("button"); b.className="lv-fxbtn";
+    const n=chosen.indexOf(e.name);
+    b.textContent=(n>=0?(n+1)+" \u00b7 ":"")+e.name;
+    b.style.opacity=(n>=0)?"1":".6";
+    b.onclick=()=>{ const at=pick.indexOf(e.name);
+      if(at>=0)pick.splice(at,1); else pick.push(e.name);
+      redraw(); };
+    ov.appendChild(b); });
+  function redraw(){ [...ov.querySelectorAll(".lv-fxbtn")].forEach((b,idx)=>{
+      const nm=list[idx].name, n=pick.indexOf(nm);
+      b.textContent=(n>=0?(n+1)+" \u00b7 ":"")+nm; b.style.opacity=(n>=0)?"1":".6"; }); }
+  redraw();
+  const row=document.createElement("div"); row.style.cssText="display:flex;gap:8px;margin-top:10px";
+  const clr=document.createElement("button"); clr.className="lv-fxbtn add"; clr.textContent="CLEAR";
+  clr.onclick=()=>{ pick.length=0; redraw(); };
+  const ok=document.createElement("button"); ok.className="lv-fxbtn add"; ok.textContent="DONE";
+  ok.onclick=()=>{ SETLIST.items=pick.map(n=>list.find(e=>e.name===n)).filter(Boolean);
+    SETLIST.cur=-1; SETLIST.cache.clear(); ov.remove(); paintSetlist(); setlistPrefetch();
+    setStatus("SETLIST // "+SETLIST.items.length+" set"+(SETLIST.items.length===1?"":"s")); };
+  row.append(clr,ok); ov.appendChild(row);
+  document.body.appendChild(ov);
+}
+function setlistWindow(){ const w=[]; for(const d of [-1,0,1]){ const i=SETLIST.cur+d; if(i>=0&&i<SETLIST.items.length)w.push(i); } return w; }
+function setlistBytes(){ let b=0; for(const v of SETLIST.cache.values())b+=v.bytes||0; return b; }
+async function setlistFetch(i){   // read one set and decode its loops, without touching the machine
+  const it=SETLIST.items[i]; if(!it)return null;
+  if(SETLIST.cache.has(i))return SETLIST.cache.get(i);
+  const fh=await it.dir.getFileHandle("set.json");
+  const set=JSON.parse(await (await fh.getFile()).text());
+  if(!set||set.format!=="brachinski-live-set")throw new Error("not a live set");
+  let ldir=null; try{ ldir=await it.dir.getDirectoryHandle("loops"); }catch(e){}
+  const bufs={}; let bytes=0, missing=[];
+  for(let ti=0;ti<(set.loops||[]).length;ti++){
+    for(let si=0;si<((set.loops[ti].slots)||[]).length;si++){
+      const sl=set.loops[ti].slots[si]; if(!sl||!sl.file)continue;
+      if(!ldir){ missing.push(sl.file); continue; }
+      try{ const f=await (await ldir.getFileHandle(sl.file)).getFile();
+        const buf=await ac.decodeAudioData(await f.arrayBuffer());
+        bufs[ti+":"+si]=buf; bytes+=buf.length*buf.numberOfChannels*4;
+      }catch(e){ missing.push(sl.file); }
+    }
+  }
+  const entry={set,bufs,bytes,missing};
+  SETLIST.cache.set(i,entry);
+  return entry;
+}
+function setlistTrim(){   // let go of anything outside the window, or a long night eats the memory
+  const keep=new Set(setlistWindow());
+  for(const k of [...SETLIST.cache.keys()])if(!keep.has(k))SETLIST.cache.delete(k);
+}
+async function setlistPrefetch(){
+  for(const i of setlistWindow()){ if(!SETLIST.cache.has(i)){ try{ await setlistFetch(i); paintSetlist(); }catch(e){} } }
+  setlistTrim(); paintSetlist();
+}
+function setlistApply(entry){   // put a fetched set on the machine :: no disk access here, so it is quick
+  const set=entry.set;
+  stopSeq(); restore(set.snapshot);
+  if(set.look){
+    if(set.look.skin&&typeof skinState!=="undefined"){ skinState=set.look.skin; if(typeof skinApply==="function")skinApply(); }
+    if(typeof BG!=="undefined"){ if(set.look.bg)BG.mode=set.look.bg; if(set.look.col)BG.fxColor=set.look.col;
+      if(typeof paintColBtn==="function")paintColBtn(); }
+  }
+  if(set.loops&&typeof loopState!=="undefined"){
+    loopState.tracks.length=0;
+    for(let ti=0;ti<set.loops.length;ti++){
+      const src=set.loops[ti], tr=loopTrack(ti);
+      tr.gain=src.gain!=null?src.gain:1; tr.filt=src.filt||0; tr.cur=null;
+      tr.fx=JSON.parse(JSON.stringify(src.fx||[]));
+      for(let si=0;si<(src.slots||[]).length;si++){
+        const sl=src.slots[si]; if(!sl)continue;
+        const buf=entry.bufs[ti+":"+si]; if(!buf)continue;
+        tr.slots[si]={buf:buf,name:sl.name||sl.file,bpm:sl.bpm||null,baseBpm:sl.baseBpm||null,
+          rate:sl.rate||1,secs:sl.secs||buf.duration,pitch:sl.pitch||0};
+      }
+    }
+    loopState.shown=Math.max(1,set.loops.length);
+    loopState.tracks.forEach((t,i)=>{ try{ loopRewire(i); }catch(e){} });
+  }
+  buildLiveScreen();
+}
+async function setlistGo(i){
+  if(SETLIST.busy||i<0||i>=SETLIST.items.length)return;
+  SETLIST.busy=true;
+  try{
+    const known=SETLIST.cache.has(i);
+    if(!known){ setStatus("SETLIST // loading "+SETLIST.items[i].name+"\u2026"); paintSetlist(i); }
+    const entry=await setlistFetch(i);
+    SETLIST.cur=i;
+    setlistApply(entry);
+    setStatus("SETLIST // "+SETLIST.items[i].name+(entry.missing.length?(" \u00b7 "+entry.missing.length+" loop missing"):""));
+    paintSetlist();
+    setlistPrefetch();                                   // pull the neighbours in behind the scenes
+  }catch(e){ setStatus("SETLIST // "+(e&&e.message||"load failed")); }
+  finally{ SETLIST.busy=false; paintSetlist(); }
 }
 async function openSetPicker(){
   const list=await setList();
@@ -6978,7 +7162,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=772","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=779","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
@@ -7354,7 +7538,7 @@ function colCycle(){const o=["amber","violet","green","white","black","multi"];B
 
 // ---- boot ----
 document.getElementById("revfoot").textContent="REV "+REV;
-let skinState="invert";
+let skinState="shadow";
 function skinApply(){const root=document.documentElement,lab={ghost:"TRANSPARENT",shadow:"AMBER",invert:"VIOLET",black:"BLACK",paper:"BRIGHT",mach:"BRACHINISTE"};   // the old names described an effect that is long gone :: these say what you see
   root.classList.toggle("inv",skinState==="shadow");                         // shadow keeps its chassis, unchanged
   root.classList.toggle("ghost",skinState==="ghost");
