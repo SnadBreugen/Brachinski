@@ -188,7 +188,7 @@ body{
 .pg-btn:hover{border-color:var(--amber);filter:brightness(1.12)}
 .pg-btn.lit{background:linear-gradient(180deg,var(--amber),var(--amber-deep));border-color:var(--amber);color:#12091d;text-shadow:0 1px 0 rgba(255,255,255,.2)}
 .pg-btn.on{background:linear-gradient(180deg,var(--amber),var(--amber-deep));border-color:var(--amber);color:#12091d;text-shadow:0 1px 0 rgba(255,255,255,.2);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 0 10px var(--amber-glow)}
-.pg-pop{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:12px;background:linear-gradient(180deg,var(--panel2,#140d24),var(--panel,#0d0918));border:1.5px solid var(--line-hi);border-radius:10px;padding:12px 14px 10px;z-index:80;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+.pg-pop{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:12px;background:linear-gradient(180deg,var(--panel2,#140d24),var(--panel,#0d0918));border:1.5px solid var(--line-hi);border-radius:10px;padding:12px 14px 10px;z-index:9600;box-shadow:0 12px 40px rgba(0,0,0,.6)}
 .pg-pop-ti{font-family:var(--mono);font-weight:700;font-size:10px;letter-spacing:2px;color:var(--amber);margin-bottom:8px;text-align:center;white-space:nowrap}
 .pg-pop .knobs{display:flex;gap:14px}
 .pg-pop::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);border:7px solid transparent;border-top-color:var(--line-hi)}
@@ -626,7 +626,7 @@ html.ghost .crt{opacity:.14}
 .foot .rev{font-family:var(--pixel);font-size:16px;color:var(--amber);text-shadow:0 0 8px var(--amber-glow)}
 .hint{color:var(--dim);font-size:9px;letter-spacing:1px;padding:2px 12px 8px}
 html.live-on{overflow:hidden}
-html.live-on body>*:not(#liveScreen):not(#soundPicker):not(#slotmenu):not(#fxWindow):not(#loopEditor):not(#gfxEditor):not(#livePatEd):not(.kbd-overlay){display:none!important}
+html.live-on body>*:not(#liveScreen):not(#soundPicker):not(#slotmenu):not(#fxWindow):not(#loopEditor):not(#gfxEditor):not(#livePatEd):not(.kbd-overlay):not(.pg-pop){display:none!important}
 #liveScreen[hidden]{display:none!important}   /* author display:flex would otherwise beat the hidden attribute */
 #liveScreen{position:fixed;inset:0;z-index:9000;background:radial-gradient(1100px 600px at 50% -5%,#1a0d2e 0%,transparent 60%),var(--bg);display:flex;flex-direction:column;padding:30px 34px 34px;overflow:auto;font-family:var(--mono,inherit)}
 #liveScreen>#bgfx{z-index:0}   /* window-sized canvas, stays fixed :: only the stacking order changes */
@@ -1120,7 +1120,7 @@ html.mach .island .screw,html.mach .lv-side .screw{background:radial-gradient(ci
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 788</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 792</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -2262,7 +2262,7 @@ registerProcessor("crush-fx", CrushFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="788";
+const REV="792";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -2519,9 +2519,7 @@ const state={
   bus:Array(VOICES).fill(0),
   plock:null,
   sum:{dist:0},
-  master:{vol:0.8,limit:true,roll:0,modules:[
-    {kind:"dist",bypass:false,mode:"ins",dist:0,mix:1}
-  ]},
+  master:{vol:0.8,limit:true,roll:0,modules:[]},   // starts empty :: dist is an ordinary effect you add when you want it
   fin:{preset:"off",amount:1},
   kits:KITS.map(k=>mkVoices(k.voices)),
   voices:null,
@@ -3066,7 +3064,7 @@ function makeKnob(def,get,set,labelOverride,arm,autoKey){
     const led=document.createElement("div");led.className="klock";wrap.appendChild(led);
     return wrap; }
   const wrap=document.createElement("div");wrap.className="knob"+(def.disabled?" off":"");
-  const _tip=(window.TIP_PARAM&&TIP_PARAM[def.key])||(window.TIP_FX&&TIP_FX[def.key]);if(_tip)wrap.title=_tip;
+  const _tip=(window.TIP_PARAM&&window.TIP_PARAM[def.key])||(window.TIP_FX&&window.TIP_FX[def.key]);   // read through window on both halves :: the bare name throws before the language pack has runif(_tip)wrap.title=_tip;
   const dial=document.createElement("div");dial.className="dial";
   { const _c=skinCol(knobColor(def.key)); dial.style.setProperty("--kc",_c); dial.style.setProperty("--kg",_c+"99"); dial.style.setProperty("--kr",_c+"88"); }   // color-code every knob by category (shown under SPECTRA skin)
   const cap=document.createElement("div");cap.className="cap";dial.appendChild(cap);
@@ -4734,7 +4732,16 @@ function buildEditor(){
         if(setMode){const gs=setKnobGS(def);kc2.appendChild(makeKnob(def,gs.get,(v)=>{gs.set(v);refresh();},null,false));}
         else kc2.appendChild(makeKnob(def,()=>vo.vals[k],(v)=>{vo.vals[k]=v;sendParam(vid,k,v);refresh();},null,false,vid+":"+k));});   // arm=false :: no p-lock inside popup (knob vanishes, cannot be un-armed)
       _MID_CTX=null;
-      pop.append(ti,kc2);wrap.appendChild(pop);
+      pop.append(ti,kc2);
+        document.body.appendChild(pop);                                            // on the page, not inside the knob row :: the row scrolls and would clip it
+        { const r=btn.getBoundingClientRect(), pr=pop.getBoundingClientRect();
+          pop.style.position="fixed"; pop.style.bottom="auto"; pop.style.right="auto";
+          pop.style.transform="none"; pop.style.translate="none"; pop.style.margin="0";
+          let x=Math.round(r.left+r.width/2-pr.width/2);                      // work out the corner directly :: no transform to fight with
+          let y=Math.round(r.top-pr.height-12);
+          if(x<8)x=8; if(x+pr.width>innerWidth-8)x=innerWidth-8-pr.width;
+          if(y<8)y=Math.round(r.bottom+12);                                   // no room above, drop it below
+          pop.style.left=x+"px"; pop.style.top=y+"px"; }
       window.__pgClose=closeP;
       document.addEventListener("pointerdown",outside,true);                     // added on click :: this interaction's pointerdown already passed, so no self-close
     });
@@ -5435,7 +5442,9 @@ function buildAddSlot(){
   };
   return box;
 }
-function hbtn(label,title,on,fn){const b=document.createElement("button");b.className="mfx-b"+(on?" snd":"");b.textContent=label;b.title=title;b.onclick=fn;return b;}
+function hbtn(label,title,on,fn){const b=document.createElement("button");b.className="mfx-b"+(on?" snd":"");b.textContent=label;b.title=title;
+    b.onclick=(e)=>{ if(e)e.stopPropagation(); return fn(e); };   // the menu guard listens for click on the way up :: without this the opening click closes it again
+    return b;}
 function mfxFit(box){ let n=0; box.querySelectorAll(".knob").forEach(k=>{if(k.style.display!=="none")n++;});   // only visible knobs count :: compact cards show three
   const w=n?(n*50+(n-1)*10+20):128; box.style.width=Math.max(w,128)+"px"; }
 function moduleModeButtons(m,hd){
@@ -5470,7 +5479,7 @@ function buildModule(m,i,ctx){
   const hd=document.createElement("div");hd.className="mfx-hd";
   const byp=document.createElement("button");byp.className="mfx-byp"+(m.bypass?"":" active");byp.title="bypass : effect on/off";
   byp.onclick=()=>{m.bypass=!m.bypass;buildMaster();wireMaster();if(typeof commit==="function")commit();};
-  const ti=document.createElement("div");ti.className="mfx-ti";ti.textContent=({dist:"DISTORTION",filter:"FILTER",delay:"DELAY",reverb:"REVERB"})[m.kind]||m.kind.toUpperCase();ti.title=(window.TIP_MOD&&TIP_MOD[m.kind])||"";
+  const ti=document.createElement("div");ti.className="mfx-ti";ti.textContent=({dist:"DISTORTION",filter:"FILTER",delay:"DELAY",reverb:"REVERB"})[m.kind]||m.kind.toUpperCase();ti.title=(window.TIP_MOD&&window.TIP_MOD[m.kind])||"";
   hd.append(byp,ti);
   // mode buttons are added after the knobs are counted :: compact cards get ··· instead
   {
@@ -5623,7 +5632,7 @@ function buildKit(){
   const block=document.createElement("div");block.className="kit-block";
   const hd=document.createElement("div");hd.className="kit-hd";hd.textContent="DRUMKITS";hd.title=(window.TIP&&TIP.KIT)||"";block.appendChild(hd);
   const field=document.createElement("div");field.className="kit-field";
-  KIT_ORDER.forEach((ki,pos)=>{const b=document.createElement("button");b.className="cell-btn"+(ki===state.kit?" on":"");b.textContent=(pos+1);b.title=(window.TIP_KIT&&TIP_KIT[KITKEYS[ki]])||"";b.dataset.desc=b.title;b.onclick=()=>switchKit(ki);field.appendChild(b);});
+  KIT_ORDER.forEach((ki,pos)=>{const b=document.createElement("button");b.className="cell-btn"+(ki===state.kit?" on":"");b.textContent=(pos+1);b.title=(window.TIP_KIT&&window.TIP_KIT[KITKEYS[ki]])||"";b.dataset.desc=b.title;b.onclick=()=>switchKit(ki);field.appendChild(b);});
   block.appendChild(field);host.appendChild(block);
   const disp=document.createElement("div");disp.className="kit-disp";
   const dl=document.createElement("span");dl.className="kit-disp-l";dl.textContent="KIT";
@@ -5632,8 +5641,8 @@ function buildKit(){
   const lab=document.createElement("div");lab.className="kit-block";
   const lhd=document.createElement("div");lhd.className="kit-hd";lhd.textContent="SUMAD\u0027S DRUM LAB";lhd.title="sound design by Sumad";lab.appendChild(lhd);
   const lfield=document.createElement("div");lfield.className="kit-field";lfield.style.flex="0 0 auto";
-  const kb=document.createElement("button");kb.className="cell-btn"+(state.kit===5?" on":"");kb.textContent="KICK";kb.title="Sumad\u0027s Kick Lab"; kb.dataset.desc=(window.TIP_KIT&&TIP_KIT.kicklab)||kb.title;kb.onclick=()=>switchKit(5);lfield.appendChild(kb);
-  const rb=document.createElement("button");rb.className="cell-btn"+(state.kit===7?" on":"");rb.textContent="RIMSHOT";rb.title="Sumad\u0027s 909 rimshot lab"; rb.dataset.desc=(window.TIP_KIT&&TIP_KIT.rimlab)||rb.title;rb.onclick=()=>switchKit(7);lfield.appendChild(rb);
+  const kb=document.createElement("button");kb.className="cell-btn"+(state.kit===5?" on":"");kb.textContent="KICK";kb.title="Sumad\u0027s Kick Lab"; kb.dataset.desc=(window.TIP_KIT&&window.TIP_KIT.kicklab)||kb.title;kb.onclick=()=>switchKit(5);lfield.appendChild(kb);
+  const rb=document.createElement("button");rb.className="cell-btn"+(state.kit===7?" on":"");rb.textContent="RIMSHOT";rb.title="Sumad\u0027s 909 rimshot lab"; rb.dataset.desc=(window.TIP_KIT&&window.TIP_KIT.rimlab)||rb.title;rb.onclick=()=>switchKit(7);lfield.appendChild(rb);
   lab.appendChild(lfield);host.appendChild(lab);
 }   // LIVE island hidden while the live page is unfinished :: CTRL+SHIFT+L opens it
 
@@ -7167,7 +7176,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=788","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=792","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
@@ -7570,7 +7579,7 @@ skinApply();
 bgInit();document.getElementById("bgBtn").onclick=()=>bgCycle();document.getElementById("colBtn").onclick=()=>colCycle();
 (function(){var mv=document.getElementById("mvol");if(mv){mv.value=(state.master.vol!=null?state.master.vol:1);mv.oninput=function(){state.master.vol=parseFloat(mv.value);if(masterOut)masterOut.gain.value=state.master.vol;};mv.onchange=function(){if(typeof commit==="function")commit();};}})();
 (function(){var lb=document.getElementById("limitBtn");if(lb){var setL=function(){lb.classList.toggle("on",state.master.limit!==false);};setL();lb.onclick=function(){state.master.limit=(state.master.limit===false);setL();if(typeof wireMaster==="function")wireMaster();if(typeof commit==="function")commit();if(typeof setStatus==="function")setStatus("LIMITER // "+(state.master.limit!==false?"ON":"OFF"));};}})();
-function buildFinbar(){const bar=document.getElementById("finbar");if(!bar)return;bar.innerHTML="";const items=[["off","OFF"],["glue","GLUE"],["punch","PUNCH"],["loud","LOUD"],["air","AIR"],["warm","WARM"],["wide","WIDE"],["wdist","W.DIST"],["boombox","BOOMBOX"],["lofi","LOFI"]];items.forEach(function(it){const b=document.createElement("button");b.textContent=it[1];b.dataset.fin=it[0];if(state.fin.preset===it[0])b.classList.add("on");b.title=(window.TIP_FIN&&TIP_FIN[it[0]])||"";b.onclick=function(){state.fin.preset=it[0];var kids=bar.children;for(var i=0;i<kids.length;i++){if(kids[i].dataset&&kids[i].dataset.fin!==undefined)kids[i].classList.toggle("on",kids[i].dataset.fin===it[0]);}finSwap(function(){if(fin)applyFinalizer();wireMaster();});if(typeof commit==="function")commit();};bar.appendChild(b);});
+function buildFinbar(){const bar=document.getElementById("finbar");if(!bar)return;bar.innerHTML="";const items=[["off","OFF"],["glue","GLUE"],["punch","PUNCH"],["loud","LOUD"],["air","AIR"],["warm","WARM"],["wide","WIDE"],["wdist","W.DIST"],["boombox","BOOMBOX"],["lofi","LOFI"]];items.forEach(function(it){const b=document.createElement("button");b.textContent=it[1];b.dataset.fin=it[0];if(state.fin.preset===it[0])b.classList.add("on");b.title=(window.TIP_FIN&&window.TIP_FIN[it[0]])||"";b.onclick=function(){state.fin.preset=it[0];var kids=bar.children;for(var i=0;i<kids.length;i++){if(kids[i].dataset&&kids[i].dataset.fin!==undefined)kids[i].classList.toggle("on",kids[i].dataset.fin===it[0]);}finSwap(function(){if(fin)applyFinalizer();wireMaster();});if(typeof commit==="function")commit();};bar.appendChild(b);});
   const wrap=document.createElement("span");wrap.className="finmix";
   const lab=document.createElement("span");lab.className="finmixlab";lab.textContent="AMOUNT";
   const sl=document.createElement("input");sl.type="range";sl.min="0";sl.max="1";sl.step="0.01";sl.value=String(state.fin.amount!=null?state.fin.amount:1);sl.className="mvol";sl.title="finalizer amount: morphs the whole chain, phase-clean";
@@ -7687,7 +7696,7 @@ function setHoverDesc(txt){
 }
 function setT(id,txt){const e=document.getElementById(id);if(e&&!e.dataset.desc&&txt)e.title=txt;}
 function tagControls(){
-  document.querySelectorAll(".sel[data-v]").forEach(b=>{const vo=state.voices[+b.dataset.v];if(vo&&!b.dataset.desc&&!b.title)b.title=(TIP_VOICE[vo.name]||"VOICE : click = select + audition · shape it in the editor");});
+  document.querySelectorAll(".sel[data-v]").forEach(b=>{const vo=state.voices[+b.dataset.v];if(vo&&!b.dataset.desc&&!b.title)b.title=((window.TIP_VOICE||{})[vo.name]||"VOICE : click = select + audition · shape it in the editor");});
   document.querySelectorAll(".mute[data-v]").forEach(b=>{if(!b.dataset.desc&&!b.title)b.title="MUTE : silence this voice in the loop";});
   document.querySelectorAll("#strip .pat").forEach(b=>{if(!b.dataset.desc&&!b.title)b.title=TIP.PATTERN;});
   document.querySelectorAll("#strip .bar").forEach(b=>{if(!b.dataset.desc&&!b.title)b.title=TIP.BARS;});
