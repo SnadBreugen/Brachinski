@@ -25,8 +25,8 @@
   --chassis1:#6d28d9;
   --chassis2:#5824b0;
   --chassis-edge:#2a1259;
-  --panel:#0e0a16;
-  --panel2:#140d20;
+  --panel:#241a38;
+  --panel2:#2c2044;
   --ink:#f2ddf2;
   --dim:#d8ccea;
   --dimmer:#aa9cc0;
@@ -69,7 +69,7 @@ body{
   border:1.5px solid var(--chassis-edge);
   box-shadow:
     0 0 0 1px #1a0c38,
-    0 30px 80px rgba(0,0,0,.7),
+    0 10px 26px rgba(0,0,0,.5),
     inset 0 1px 0 rgba(255,255,255,.10),
     inset 0 -2px 7px rgba(0,0,0,.24);
 }
@@ -147,7 +147,7 @@ body{
   background:linear-gradient(180deg,var(--panel2),var(--panel));
   border:1.5px solid #050208;border-radius:7px;
   margin:0 6px 14px;padding:18px 16px 16px;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.05),inset 0 0 0 1px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.5);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05),inset 0 0 0 1px rgba(0,0,0,.4),0 1px 3px rgba(0,0,0,.45);
 }
 .island > .tag{
   position:absolute;top:-1px;right:-1px;
@@ -201,9 +201,11 @@ body{
 .rack .rl.rl-btn.off{color:var(--dimmer)}
 .rl-led{width:6px;height:6px;border-radius:50%;background:#2a1c10;display:inline-block;margin-left:6px;vertical-align:middle;box-shadow:inset 0 0 2px #000}
 .rl-led.on{background:var(--signal);box-shadow:0 0 6px var(--signal)}
-.knobs{display:flex;gap:10px;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}
-.knobs::-webkit-scrollbar{height:5px}
-.knobs::-webkit-scrollbar-thumb{background:var(--line-hi);border-radius:3px}
+.knobs{display:flex;gap:10px;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:var(--amber-deep) transparent}
+.knobs::-webkit-scrollbar{height:0}
+.knobs:hover::-webkit-scrollbar{height:4px}   /* out of the way until you go near it */
+.knobs::-webkit-scrollbar-thumb{background:var(--amber-deep);border-radius:2px}
+.knobs::-webkit-scrollbar-thumb:hover{background:var(--amber)}
 .knobs::-webkit-scrollbar-track{background:transparent}
 .knobs>*{flex:0 0 auto}
 .knob-sep{flex:0 0 1px;align-self:stretch;margin:6px 3px;background:linear-gradient(180deg,transparent,var(--line-hi),transparent);opacity:.7}
@@ -384,6 +386,32 @@ html.zen .chassis,html.zen .feat-panel,html.zen #ctrlbarL{display:none!important
 /* INFO/TOOLTIP PANEL :: drecksler feat-panel, colours bound to brachinski skin vars */
 .feat-panel{position:fixed;top:130px;left:calc(50% - 924px);width:320px;display:none;z-index:5;font-family:var(--mono);font-size:12px;line-height:1.95;letter-spacing:.04em;pointer-events:none}
 @media (min-width:1890px){.feat-panel{display:block}}
+#helpBtn{position:fixed;top:14px;left:16px;z-index:70;width:34px;height:34px;border-radius:50%;
+  font-family:var(--mono);font-size:16px;font-weight:700;line-height:1;cursor:pointer;
+  background:rgba(0,0,0,.32);border:1px solid var(--line-hi);color:var(--amber);display:block}
+#helpBtn:hover{border-color:var(--amber);color:var(--amber-hi)}
+@media (min-width:1890px){#helpBtn{display:none}}
+html.zen #helpBtn,body.text-off #helpBtn{display:none!important}
+#hoverBar{position:fixed;left:0;right:0;bottom:0;z-index:68;display:none;
+  font-family:var(--mono);font-size:11px;line-height:1.6;letter-spacing:.04em;
+  padding:10px 16px;background:var(--panel2);border-top:1px solid var(--line);color:var(--dim);
+  box-shadow:0 -1px 3px rgba(0,0,0,.35)}
+#hoverBar.on{display:block}
+#hoverBar b{color:var(--amber);font-weight:700}
+@media (min-width:1890px){#hoverBar{display:none!important}}
+html.zen #hoverBar,body.text-off #hoverBar{display:none!important}
+#helpOv{position:fixed;inset:0;z-index:9700;display:none;background:rgba(0,0,0,.62);
+  backdrop-filter:blur(3px);overflow-y:auto;padding:48px 18px}
+#helpOv.on{display:block}
+#helpOv .help-inner{max-width:560px;margin:0 auto;font-family:var(--mono);font-size:12px;line-height:1.95;letter-spacing:.04em}
+#helpOv .feat-line{background:var(--panel);padding:7px 12px;margin-bottom:4px;border-radius:4px;color:var(--dim);white-space:pre-wrap}
+#helpOv .feat-line b{display:block;color:var(--amber);font-weight:700;margin-bottom:2px}
+#helpOv .help-pick{cursor:pointer;color:var(--amber);font-weight:700}
+#helpOv .help-pick:hover,#helpOv .help-pick:focus,#helpOv .help-pick.on{background:var(--panel2);outline:none}
+#helpOv .help-det{margin-top:12px;padding:12px 14px;border-radius:5px;background:var(--panel2);
+  border:1px solid var(--line);color:var(--dim);min-height:5.5em;white-space:pre-wrap;position:sticky;bottom:0}
+#helpOv .help-x{position:fixed;top:14px;right:16px;width:34px;height:34px;border-radius:50%;
+  background:rgba(0,0,0,.4);border:1px solid var(--line-hi);color:var(--amber);font-size:15px;cursor:pointer}
 .feat-line{min-height:1.95em;white-space:pre-wrap;background:var(--panel);padding:1px 10px;margin-bottom:2px;border-radius:3px}
 .f-p{color:var(--dim)}
 .f-k{color:var(--amber)}
@@ -440,7 +468,7 @@ html.zen #snadlink,html.zen #langbar,html.zen #fbBtn,html.zen #fbPanel{display:n
 #fbPanel .fb-row button{font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:6px 12px;border-radius:5px;border:1px solid var(--line-hi);background:#100b1c;color:var(--amber);cursor:pointer}
 #fbPanel #fbSend{background:var(--amber);color:#0a0714;border-color:var(--amber);font-weight:700}
 #fbPanel #fbStatus{font-size:9px;letter-spacing:1px;color:var(--dimmer)}
-html.inv{--dim:#e8d9ae;--dimmer:#cbb676;--chassis1:#ffc900;--chassis2:#ffbe1a;--chassis-edge:#e0991a;--amber:#f2a81e;--amber-deep:#b8760c;--amber-glow:rgba(242,168,30,.5);--line:#caa24e;--line-hi:#e6bf6a}
+html.inv{--panel:#0e0a16;--panel2:#140d20;--dim:#e8d9ae;--dimmer:#cbb676;--chassis1:#ffc900;--chassis2:#ffbe1a;--chassis-edge:#e0991a;--amber:#f2a81e;--amber-deep:#b8760c;--amber-glow:rgba(242,168,30,.5);--line:#caa24e;--line-hi:#e6bf6a}
 html.inv .disp,html.inv .kit-disp,html.inv .voice-name{color:#fff;text-shadow:0 0 6px rgba(255,255,255,.4)}
 html.inv .kit-hd,html.inv .eyebrow,html.inv .eyebrow span,html.inv .subtitle,html.inv .foot,html.inv .meter .ml{color:#2a1400}
 html.skin-shadow .kit-hd,html.skin-shadow .eyebrow,html.skin-shadow .eyebrow span,
@@ -461,8 +489,9 @@ html.inv .chassis::before,html.inv .chassis::after,html.inv .lv-bolt{background:
 html.inv .lv-brand,html.inv .lv-lbl,html.inv .lv-val,html.inv .lv-pos,html.inv .lv-sclab{color:#2a1400}   /* these sit on the yellow chassis, not on a dark panel */
 html.inv .lv-brand span{color:rgba(34,16,0,.72)}
 html.inv .chassis::before{box-shadow:inset 0 -1px 2px rgba(0,0,0,.6),0 1px 1px rgba(0,0,0,.5),760px 0 0 0 #7a4400}
-html.inv .crt{background:radial-gradient(ellipse 88% 78% at center,transparent 74%,rgba(120,55,0,.12) 100%)}
-html.inv .chassis,html.inv .lv-case{box-shadow:0 0 0 1px rgba(150,80,0,.32),0 20px 50px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.22),inset 0 -2px 5px rgba(190,95,0,.09)}
+html.inv .crt{background:radial-gradient(ellipse 96% 88% at center,transparent 86%,rgba(120,55,0,.05) 100%);animation:none}
+html.inv{--chassis1:#ffc900;--chassis2:#ffc307}
+html.inv .chassis,html.inv .lv-case{box-shadow:0 0 0 1px rgba(150,80,0,.32),0 8px 20px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.22),inset 0 -2px 5px rgba(190,95,0,.09)}
 html.ghost{--dim:#d5e8dd;--dimmer:#a9c4b6;--amber:#35D592;--amber-deep:#1c9c68;--amber-glow:rgba(53,213,146,.55)}
 html.ghost .btn.play.on{background:linear-gradient(180deg,#6ee7b7,#22a06b);color:#03231a;border-color:var(--amber)}
 html.ghost .step.on{background:linear-gradient(180deg,#6ee7b7,#22a06b);border-color:#9df3d0}
@@ -470,7 +499,7 @@ html.ghost .step.acc{background:linear-gradient(180deg,#fff,#6ee7b7);border-colo
 html.ghost .slider::-webkit-slider-thumb{background:linear-gradient(180deg,#6ee7b7,#22a06b)}
 html.ghost .cell-btn.on{color:#03231a}
 html.black{--chassis1:#1c1c1f;--chassis2:#121214;--chassis-edge:#000;--line:#3a3a40;--line-hi:#55555e;--dim:#c8c8cf;--dimmer:#83838c;
-  --amber:#f2f4f8;--amber-deep:#9aa0ab;--amber-glow:rgba(255,255,255,.42);--amber-hi:#fff;--amber-lit:#fff;--ink:#eef1f6;--kitink:#e9ecf2;--signal:#ffffff;--signal-rgb:255,255,255}   /* neutral white text too, the default ink is warm */   /* monochrome device :: every accent goes white, group colours stay */
+  --panel:#0e0a16;--panel2:#140d20;--amber:#f2f4f8;--amber-deep:#9aa0ab;--amber-glow:rgba(255,255,255,.42);--amber-hi:#fff;--amber-lit:#fff;--ink:#eef1f6;--kitink:#e9ecf2;--signal:#ffffff;--signal-rgb:255,255,255}   /* neutral white text too, the default ink is warm */   /* monochrome device :: every accent goes white, group colours stay */
 html.paper{--bg:#e9e9ee;--chassis1:#f2f2f5;--chassis2:#dcdce2;--chassis-edge:#b8b8c0;
   --panel:#fbfbfd;--panel2:#f2f2f6;--line:#9a9aa6;--line-hi:#6a6a78;--dim:#26262e;--dimmer:#54545e;
   --amber:#14141a;--amber-deep:#5a5a66;--amber-glow:rgba(0,0,0,.28);--amber-hi:#000;--amber-lit:#000;
@@ -478,7 +507,7 @@ html.paper{--bg:#e9e9ee;--chassis1:#f2f2f5;--chassis2:#dcdce2;--chassis-edge:#b8
 html.paper body{background:radial-gradient(1100px 600px at 50% -5%,#fdfdff 0%,transparent 60%),var(--bg)}
 html.paper .chassis{background:#f4f4f7}
 
-html.paper .chassis,html.paper .lv-case{box-shadow:0 0 0 1px #d2d2da,0 18px 44px rgba(0,0,0,.12)}
+html.paper .chassis,html.paper .lv-case{box-shadow:0 0 0 1px #d2d2da,0 8px 20px rgba(0,0,0,.12)}
 html.paper .chassis::before,html.paper .chassis::after,html.paper .lv-bolt{background:radial-gradient(circle at 35% 30%,#fff,#a8a8b4 70%)}
 html.paper .crt{background:radial-gradient(ellipse 90% 80% at 42% 26%,rgba(255,255,255,.55) 0%,rgba(255,255,255,0) 62%);mix-blend-mode:normal;animation:none;opacity:1}
 html.paper .status,html.paper .readout,html.paper .kit-disp{background:#fff;border-color:#c8c8d0;box-shadow:inset 0 1px 3px rgba(0,0,0,.10)}
@@ -574,7 +603,7 @@ html.paper .mfx-b{background:#fff;border-color:#8a8a98;color:#26262e}
 html.paper .chassis::before,html.paper .chassis::after,html.paper .lv-bolt{background:#c8c8d2;box-shadow:none}
 html.paper .island .screw,html.paper .lv-side .screw{background:#c8c8d2;box-shadow:none}
 html.paper .crt{background:none}
-html.paper .lv-fxs,html.paper .lv-grow,html.paper .lv-side{background:linear-gradient(180deg,#fbfbfd,#f2f2f6);border-color:#c8c8d0;box-shadow:inset 0 1px 0 #fff,0 4px 14px rgba(0,0,0,.07)}
+html.paper .lv-fxs,html.paper .lv-grow,html.paper .lv-side{background:linear-gradient(180deg,#fbfbfd,#f2f2f6);border-color:#c8c8d0;box-shadow:inset 0 1px 0 #fff,0 1px 3px rgba(0,0,0,.08)}
 html.paper .lv-fxb{background:rgba(0,0,0,.06);border-color:#c8c8d0}
 html.paper .lv-fxk .trk{stroke:rgba(0,0,0,.10)}
 html.paper .lv-fxk .ndl{stroke:#14141a}
@@ -605,7 +634,7 @@ html.paper #fbPanel input,html.paper #fbPanel textarea{background:#fff;border-co
 html.paper .lv-msg,html.paper .lv-brand{color:#14141a}
 html.paper .cell-btn.pat.queued{border-color:#000}
 html.black .chassis::before,html.black .chassis::after,html.black .lv-bolt{background:radial-gradient(circle at 35% 30%,#9a9aa4,#232328 70%)}
-html.black .chassis,html.black .lv-case{box-shadow:0 0 0 1px #000,0 22px 60px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.06),inset 0 -2px 6px rgba(0,0,0,.28)}
+html.black .chassis,html.black .lv-case{box-shadow:0 0 0 1px #000,0 10px 26px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06),inset 0 -2px 6px rgba(0,0,0,.28)}
 html.ghost .chassis,html.ghost .lv-case{background:transparent;border-color:rgba(176,112,255,.45);box-shadow:0 0 0 1px rgba(176,112,255,.3)}
 html.ghost .lv-case::before{opacity:0}   /* ghost keeps its open chassis :: that is where the movement is meant to show */
 html.ghost .chassis::before,html.ghost .chassis::after,html.ghost .lv-bolt{opacity:.45}
@@ -630,14 +659,14 @@ html.live-on body>*:not(#liveScreen):not(#soundPicker):not(#slotmenu):not(#fxWin
 #liveScreen[hidden]{display:none!important}   /* author display:flex would otherwise beat the hidden attribute */
 #liveScreen{position:fixed;inset:0;z-index:9000;background:radial-gradient(1100px 600px at 50% -5%,#1a0d2e 0%,transparent 60%),var(--bg);display:flex;flex-direction:column;padding:30px 34px 34px;overflow:auto;font-family:var(--mono,inherit)}
 #liveScreen>#bgfx{z-index:0}   /* window-sized canvas, stays fixed :: only the stacking order changes */
-.lv-case{position:relative;z-index:1;flex:1 0 auto;display:flex;flex-direction:column;padding:12px 14px 14px;border-radius:9px;background:transparent;border:1.5px solid var(--chassis-edge);box-shadow:0 0 0 1px #1a0c38,0 30px 80px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.10),inset 0 -2px 7px rgba(0,0,0,.24)}   /* same recipe as .chassis on the main page */
+.lv-case{position:relative;z-index:1;flex:1 0 auto;display:flex;flex-direction:column;padding:12px 14px 14px;border-radius:9px;background:transparent;border:1.5px solid var(--chassis-edge);box-shadow:0 0 0 1px #1a0c38,0 10px 26px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.10),inset 0 -2px 7px rgba(0,0,0,.24)}   /* same recipe as .chassis on the main page */
 .lv-case::before{content:"";position:absolute;inset:0;border-radius:9px;background:linear-gradient(170deg,var(--chassis1) 0%,var(--chassis1) 38%,var(--chassis2) 100%);opacity:.88;z-index:-1}
 html.paper .lv-case::before{background:#f4f4f7;opacity:1}   /* the case, with the background moving through it */
 .btn.livebtn{background:linear-gradient(180deg,var(--amber),var(--amber-deep));border-color:var(--amber);color:#180e00;font-weight:700;letter-spacing:3px;box-shadow:0 0 14px var(--amber-glow),inset 0 1px 0 rgba(255,255,255,.35)}
 .btn.livebtn:hover{filter:brightness(1.12)}
 .btn.livebtn[disabled]{background:linear-gradient(180deg,#241a35,#150e22);border-color:var(--line);color:var(--dimmer);font-weight:400;box-shadow:inset 0 1px 0 rgba(255,255,255,.06);cursor:not-allowed;opacity:.55}
 .lv-fxbar{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px;flex:0 0 auto}
-.lv-fxs{position:relative;display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:7px;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1.5px solid #050208;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),inset 0 0 0 1px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.5);overflow:hidden}
+.lv-fxs{position:relative;display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:7px;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1.5px solid #050208;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),inset 0 0 0 1px rgba(0,0,0,.4),0 1px 3px rgba(0,0,0,.45);overflow:hidden}
 .lv-fxs::after{content:"";position:absolute;inset:0;border-radius:7px;pointer-events:none;opacity:0;background:radial-gradient(120% 90% at 50% 120%,var(--fxc),transparent 70%);transition:opacity .18s}
 .lv-fxs.on::after{opacity:.10}
 .lv-fxs.on{border-color:var(--fxc)}
@@ -670,8 +699,8 @@ html.paper .lv-case::before{background:#f4f4f7;opacity:1}   /* the case, with th
 .lv-pos{font-size:13px;color:var(--amber);min-width:52px;letter-spacing:1px}
 .lv-body{display:flex;gap:18px;padding-top:16px;flex:1;min-height:0;align-items:stretch}
 .lv-groups{flex:1;display:flex;flex-direction:column;gap:var(--rowgap,12px);min-width:0;align-content:flex-start}   /* every row keeps its own height :: spare space stays at the bottom */
-.lv-grow{height:var(--rowh,78px);min-height:var(--rowh,78px);max-height:var(--rowh,78px);box-sizing:border-box;display:flex;align-items:stretch;gap:16px;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1.5px solid #050208;border-left:6px solid var(--gc,var(--amber));border-radius:7px;padding:var(--rowpad,10px) 16px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),inset 0 0 0 1px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.5)}   /* fixed :: rows must never resize with their content */
-.lv-grow.sel{border-color:var(--gc,var(--amber));box-shadow:inset 0 0 0 1px var(--gc,var(--amber)),inset 0 1px 0 rgba(255,255,255,.05),0 6px 18px rgba(0,0,0,.5)}
+.lv-grow{height:var(--rowh,78px);min-height:var(--rowh,78px);max-height:var(--rowh,78px);box-sizing:border-box;display:flex;align-items:stretch;gap:16px;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1.5px solid #050208;border-left:6px solid var(--gc,var(--amber));border-radius:7px;padding:var(--rowpad,10px) 16px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),inset 0 0 0 1px rgba(0,0,0,.4),0 1px 3px rgba(0,0,0,.45)}   /* fixed :: rows must never resize with their content */
+.lv-grow.sel{border-color:var(--gc,var(--amber));box-shadow:inset 0 0 0 1px var(--gc,var(--amber)),inset 0 1px 0 rgba(255,255,255,.05),0 1px 3px rgba(0,0,0,.45)}
 .lv-gname{width:150px;min-width:150px;max-width:150px;overflow:hidden;flex:0 0 auto;display:flex;flex-direction:column;justify-content:center;font-size:calc(var(--rowh,78px) * 0.218);line-height:1.15;letter-spacing:2px;font-weight:700;color:var(--gc,#fff)}
 .lv-gsub{font-size:10px;line-height:1.2;letter-spacing:1px;color:var(--dim);display:block;font-weight:400;margin-top:3px}
 .lv-pads{flex:1;display:flex;gap:10px;min-width:0}
@@ -715,7 +744,7 @@ html.black .lv-pad.filled{background:#26262c;border-color:#8e8e98;color:rgba(255
 .lv-gmute{flex:0 0 auto;align-self:stretch;background:transparent;border:1px solid var(--line);color:var(--dim);border-radius:7px;padding:0 18px;font-family:inherit;font-size:11px;letter-spacing:1px;cursor:pointer}
 .lv-gmute.on{background:#c0392b;color:#fff;border-color:#e35b4b}
 .lv-gmute.pend{animation:lvblink .45s steps(2,end) infinite;border-color:#e35b4b;color:#ffb3a8}
-.lv-side{position:relative;width:400px;flex:0 0 auto;align-self:stretch;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1.5px solid #050208;border-radius:7px;padding:18px 16px 16px;overflow-y:auto;overflow-x:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),inset 0 0 0 1px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.5)}
+.lv-side{position:relative;width:400px;flex:0 0 auto;align-self:stretch;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1.5px solid #050208;border-radius:7px;padding:18px 16px 16px;overflow-y:auto;overflow-x:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),inset 0 0 0 1px rgba(0,0,0,.4),0 1px 3px rgba(0,0,0,.45)}
 .lv-side .screw{position:absolute;width:8px;height:8px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#4a3a66,#0c0814 70%);box-shadow:inset 0 -1px 1px rgba(0,0,0,.6),0 1px 1px rgba(0,0,0,.45)}
 .lv-side .screw.tl{top:8px;left:8px}.lv-side .screw.bl{bottom:8px;left:8px}.lv-side .screw.br{bottom:8px;right:8px}
 .lv-fxlist{display:flex;flex-direction:column;gap:8px}
@@ -806,8 +835,8 @@ html.black .lv-pad.filled{background:#26262c;border-color:#8e8e98;color:rgba(255
 
 /* PAPER :: flat by decree. no gradients, no glow, no inner shadows. this block is last, so it wins. */
 html.paper body{background:#e9e9ee}
-html.paper .chassis{background:linear-gradient(155deg,rgba(253,252,250,.88) 0%,rgba(242,240,237,.88) 26%,rgba(230,227,223,.88) 58%,rgba(216,213,209,.88) 82%,rgba(206,203,198,.88) 100%)}
-html.paper .lv-case::before{background:linear-gradient(155deg,#fdfcfa 0%,#f2f0ed 26%,#e6e3df 58%,#d8d5d1 82%,#cecbc6 100%);opacity:1}
+html.paper .chassis{background:linear-gradient(155deg,rgba(252,251,249,.88) 0%,rgba(246,244,241,.88) 34%,rgba(238,236,232,.88) 72%,rgba(232,229,225,.88) 100%)}
+html.paper .lv-case::before{background:linear-gradient(155deg,#fcfbf9 0%,#f6f4f1 34%,#eeece8 72%,#e8e5e1 100%);opacity:1}
 html.paper .chassis,html.paper .lv-case{box-shadow:0 0 0 1px #b6b6c2}
 html.paper .crt{background:none;animation:none}
 html.paper .island,html.paper .lv-fxs,html.paper .lv-grow,html.paper .lv-side{background:#fdfdfe;border:1px solid #b6b6c2;box-shadow:none}
@@ -846,8 +875,8 @@ html.paper{--bg:#5c5854;--chassis1:#f7f6f4;--chassis2:#dcdad7;--chassis-edge:#c8
   --amber:#16161a;--amber-deep:#4a4a52;--amber-glow:rgba(0,0,0,.10);--amber-hi:#000;--amber-lit:#000;
   --ink:#16161a;--kitink:#f2f2f4;--signal:#000000;--signal-rgb:0,0,0}
 html.paper .chassis{border:none;border-radius:16px;
-  box-shadow:0 1px 0 rgba(255,255,255,.9) inset, 0 -1px 0 rgba(0,0,0,.05) inset, 0 24px 60px rgba(0,0,0,.20)}
-html.paper .lv-case{border:none;border-radius:16px;box-shadow:0 24px 60px rgba(0,0,0,.20)}
+  box-shadow:0 1px 0 rgba(255,255,255,.9) inset, 0 -1px 0 rgba(0,0,0,.05) inset, 0 10px 26px rgba(0,0,0,.16)}
+html.paper .lv-case{border:none;border-radius:16px;box-shadow:0 10px 26px rgba(0,0,0,.16)}
 html.paper .island,html.paper .lv-fxs,html.paper .lv-grow,html.paper .lv-side{
   background:linear-gradient(180deg,#dbd8d4 0%,#e6e3df 12%,#e6e3df 100%);border:none;border-radius:11px;
   box-shadow:0 2px 4px rgba(0,0,0,.10) inset, 0 1px 0 rgba(255,255,255,.85)}
@@ -947,11 +976,11 @@ html.mach{--bg:#2a2c2e;--chassis1:#9a9c9f;--chassis2:#5e5f63;--chassis-edge:#3a3
   --amber:#d8c47a;--amber-deep:#8a7838;--amber-glow:rgba(216,196,122,.35);--amber-hi:#f0e4b0;--amber-lit:#fff6d2;
   --ink:#0c0f0e;--kitink:#d0dbdc;--signal:#d8c47a;--signal-rgb:216,196,122}
 html.mach body{background:radial-gradient(900px 500px at 50% -10%,#3a3c3f 0%,#232527 60%),#1e2022}
-html.mach .chassis{background:linear-gradient(168deg,rgba(162,164,167,.88) 0%,rgba(142,144,147,.88) 22%,rgba(118,120,124,.88) 58%,rgba(94,95,99,.88) 88%,rgba(78,79,83,.88) 100%);
+html.mach .chassis{background:linear-gradient(168deg,rgba(158,160,163,.88) 0%,rgba(150,152,155,.88) 30%,rgba(140,142,146,.88) 70%,rgba(132,134,138,.88) 100%);
   border:1px solid #3a3b3e;border-radius:10px;
-  box-shadow:0 1px 0 rgba(255,255,255,.42) inset, 0 -1px 0 rgba(0,0,0,.30) inset, 0 26px 64px rgba(0,0,0,.55)}
-html.mach .lv-case::before{background:linear-gradient(168deg,#a2a4a7 0%,#8e9093 22%,#76787c 58%,#5e5f63 88%,#4e4f53 100%);opacity:1}
-html.mach .lv-case{border:1px solid #3a3b3e;box-shadow:0 26px 64px rgba(0,0,0,.55)}
+  box-shadow:0 1px 0 rgba(255,255,255,.42) inset, 0 -1px 0 rgba(0,0,0,.30) inset, 0 10px 26px rgba(0,0,0,.45)}
+html.mach .lv-case::before{background:linear-gradient(168deg,#9ea0a3 0%,#96989b 30%,#8c8e92 70%,#84868a 100%);opacity:1}
+html.mach .lv-case{border:1px solid #3a3b3e;box-shadow:0 10px 26px rgba(0,0,0,.45)}
 html.mach .crt{background:linear-gradient(166deg,rgba(255,255,255,.16) 0%,rgba(255,255,255,0) 40%);animation:none;opacity:1}
 html.mach .island,html.mach .lv-fxs,html.mach .lv-grow,html.mach .lv-side{
   background:linear-gradient(180deg,#182022 0%,#1c2426 100%);border:1px solid #0a0e0f;border-radius:6px;
@@ -1016,6 +1045,9 @@ html.mach .island .screw,html.mach .lv-side .screw{background:radial-gradient(ci
 </head>
 <body>
 <canvas id="bgfx"></canvas>
+<div id="hoverBar" aria-live="polite"></div>
+<button id="helpBtn" title="how it works" aria-label="how it works">?</button>
+<div id="helpOv"><button class="help-x" id="helpX" aria-label="close">✕</button><div class="help-inner" id="helpInner"></div></div>
 <aside class="feat-panel" id="featPanel" aria-hidden="true"><div id="featLines"></div></aside>
 <aside id="wipBox" aria-hidden="true"><div class="feat-hover empty" id="featHover"></div></aside>
 <div id="ctrlbarL"><button id="textBtn" title="explainer text on/off">TEXT: ON</button></div>
@@ -1120,7 +1152,7 @@ html.mach .island .screw,html.mach .lv-side .screw{background:radial-gradient(ci
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 792</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 801</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -2262,7 +2294,7 @@ registerProcessor("crush-fx", CrushFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="792";
+const REV="801";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -7176,7 +7208,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=792","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=801","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
@@ -7661,6 +7693,37 @@ applyLang((state&&state.lang)||"en");
 
 const featPanel=document.getElementById("featPanel"),featLines=document.getElementById("featLines"),featHover=document.getElementById("featHover");
 let featTimer=null;
+function openHelpOverlay(){
+  const ov=document.getElementById("helpOv"), inner=document.getElementById("helpInner");
+  if(!ov||!inner)return;
+  inner.innerHTML="";
+  const head=document.createElement("div"); head.className="feat-line";
+  const hb2=document.createElement("b"); hb2.textContent="BRACHINSKI";
+  head.appendChild(hb2);
+  head.appendChild(document.createTextNode(((window.TIP_WIP)||{}).planHead||"how it works"));
+  inner.appendChild(head);
+  const plan=(typeof PLAN!=="undefined"&&(PLAN[state.lang]||PLAN.en))||[];
+  const det=document.createElement("div"); det.className="help-det";
+  const hint=((window.TIP_WIP)||{}).planHint||"hover a point \u00b7 details appear below";
+  det.textContent=hint;
+  const show=(t)=>{ det.textContent=t; };
+  plan.forEach(([label,detail])=>{
+    const ln=document.createElement("div"); ln.className="feat-line help-pick"; ln.tabIndex=0;
+    ln.textContent=label;
+    const txt=label+" \u00b7 "+detail;
+    ln.onpointerenter=()=>show(txt); ln.onfocus=()=>show(txt);
+    ln.onclick=()=>{ show(txt); inner.querySelectorAll(".help-pick.on").forEach(x=>x.classList.remove("on")); ln.classList.add("on"); };
+    inner.appendChild(ln);
+  });
+  inner.appendChild(det);
+  ov.classList.add("on");
+}
+function closeHelpOverlay(){ const ov=document.getElementById("helpOv"); if(ov)ov.classList.remove("on"); }
+{ const _hb=document.getElementById("helpBtn"); if(_hb)_hb.onclick=openHelpOverlay;
+  const _hx=document.getElementById("helpX"); if(_hx)_hx.onclick=closeHelpOverlay;
+  const _ov=document.getElementById("helpOv");
+  if(_ov)_ov.addEventListener("pointerdown",(e)=>{ if(e.target===_ov)closeHelpOverlay(); });
+  document.addEventListener("keydown",(e)=>{ if(e.key==="Escape")closeHelpOverlay(); }); }
 function showDeviceInfo(){
   if(!featLines)return;
   if(featTimer){clearInterval(featTimer);featTimer=null;}
@@ -7710,7 +7773,6 @@ function tagControls(){
 }
 const WIDE=()=>!!(window.matchMedia&&window.matchMedia("(min-width:1890px)").matches);
 function applyTips(root){
-  if(!WIDE())return;
   (root||document).querySelectorAll("[title]").forEach(el=>{if(el.closest(".feat-panel"))return;el.dataset.desc=el.title;el.removeAttribute("title");});
 }
 function tipsRefresh(){tagControls();applyTips(document);}
@@ -7775,9 +7837,14 @@ function switchLang(l){ applyLang(l); if(typeof buildWip==="function")buildWip()
 // TEXT toggle in the ctrl-bar
 (function(){const tb=document.getElementById("textBtn");if(tb)tb.onclick=()=>{const off=document.body.classList.toggle("text-off");tb.textContent="TEXT: "+(off?"OFF":"ON");};})();
 // hover wiring (panel only active >=1890; native title tooltips below that)
-if(WIDE()){
-  document.addEventListener("mouseover",(e)=>{const t=(e.target&&e.target.closest)?e.target.closest("[data-desc]"):null;setHoverDesc(t?t.dataset.desc:null);});
-}
+document.addEventListener("mouseover",(e)=>{const t=(e.target&&e.target.closest)?e.target.closest("[data-desc]"):null;
+  const d=t?t.dataset.desc:null;
+  if(WIDE()){ setHoverDesc(d); return; }
+  const bar=document.getElementById("hoverBar"); if(!bar)return;   // no room for the side panel :: same text in a strip along the bottom
+  if(!d){ bar.classList.remove("on"); bar.textContent=""; return; }
+  bar.innerHTML=""; const q=document.createElement("b"); q.textContent="? ";
+  bar.appendChild(q); bar.appendChild(document.createTextNode(d)); bar.classList.add("on");
+});
 setHoverDesc(null);
 buildEditor();           // rebuild so knobs pick up titles now that TIP_* exist
 tipsRefresh();
