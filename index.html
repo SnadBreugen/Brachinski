@@ -376,8 +376,8 @@ html.zen .chassis,html.zen .feat-panel,html.zen #ctrlbarL{display:none!important
 #psWarn .ps-ok{font-family:var(--mono);font-size:12px;letter-spacing:2px;color:var(--amber);background:#140e20;border:1px solid var(--line);padding:10px 16px;cursor:pointer}
 #psWarn .ps-ok:hover{background:#1c1430}
 #ctrlbar{position:fixed;top:14px;right:16px;z-index:60;display:flex;gap:8px}
-#ctrlbarL{position:fixed;top:14px;left:16px;z-index:60;display:flex;gap:8px}
-#hidebar{position:fixed;top:14px;left:130px;z-index:61;display:flex}
+#ctrlbarL{position:fixed;top:14px;left:60px;z-index:60;display:flex;gap:8px}
+#hidebar{position:fixed;top:14px;left:174px;z-index:61;display:flex}
 #hidebar button{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--dim);background:rgba(20,13,32,.82);border:1px solid var(--line);border-radius:5px;padding:7px 10px;text-align:center;box-sizing:border-box;cursor:pointer;width:74px}
 #hidebar button:hover{color:var(--ink);border-color:var(--line-hi)}
 #ctrlbar button,#ctrlbarL button{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--dim);background:rgba(20,13,32,.82);border:1px solid var(--line);border-radius:5px;padding:7px 10px;text-align:center;box-sizing:border-box;cursor:pointer;white-space:nowrap;overflow:hidden}
@@ -390,8 +390,28 @@ html.zen .chassis,html.zen .feat-panel,html.zen #ctrlbarL{display:none!important
   font-family:var(--mono);font-size:16px;font-weight:700;line-height:1;cursor:pointer;
   background:rgba(0,0,0,.32);border:1px solid var(--line-hi);color:var(--amber);display:block}
 #helpBtn:hover{border-color:var(--amber);color:var(--amber-hi)}
-@media (min-width:1890px){#helpBtn{display:none}}
+/* the map lives behind this mark, so it stays reachable at every size */
 html.zen #helpBtn,body.text-off #helpBtn{display:none!important}
+#mapOv{position:fixed;inset:0;z-index:9800;display:none;background:var(--bg);overflow-y:auto}
+#mapOv.on{display:flex;align-items:center;justify-content:center;padding:28px}
+.map-wrap{width:100%;max-width:1040px}
+#mapHost svg{width:100%;height:auto;display:block}
+.map-foot{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.map-foot button{font-family:var(--mono);font-size:11px;letter-spacing:2.5px;padding:11px 22px;border-radius:7px;cursor:pointer;
+  background:transparent;border:1px solid var(--line-hi);color:var(--dim)}
+.map-foot button:hover{border-color:var(--amber);color:var(--amber)}
+#mapGo{background:var(--amber);border-color:var(--amber);color:var(--bg);font-weight:700}
+#mapGo:hover{filter:brightness(1.12);color:var(--bg)}
+.bm-card{fill:var(--panel2);stroke:var(--line);stroke-width:1}
+.bm-hub{fill:var(--panel);stroke:var(--amber);stroke-width:2}
+.bm-line{stroke:var(--line-hi);stroke-width:1.5;fill:none}
+.bm-flow{stroke:var(--amber);stroke-width:2;fill:none}
+.bm-k{font-family:var(--mono);font-size:15px;font-weight:700;letter-spacing:3px;fill:var(--ink)}
+.bm-d{font-family:var(--mono);font-size:11px;letter-spacing:1.5px;fill:var(--dimmer)}
+.bm-big{font-family:var(--wordmark);font-size:44px;letter-spacing:2px;fill:var(--amber)}
+.bm-sub{font-family:var(--mono);font-size:12px;letter-spacing:2px;fill:var(--dim)}
+.bm-tag{font-family:var(--mono);font-size:10px;letter-spacing:3px;fill:var(--amber-deep)}
+.bm-title{font-family:var(--wordmark);font-size:26px;letter-spacing:1px;fill:var(--ink)}
 #hoverBar{position:fixed;left:0;right:0;bottom:0;z-index:68;display:none;
   font-family:var(--mono);font-size:11px;line-height:1.6;letter-spacing:.04em;
   padding:10px 16px;background:var(--panel2);border-top:1px solid var(--line);color:var(--dim);
@@ -406,6 +426,15 @@ html.zen #hoverBar,body.text-off #hoverBar{display:none!important}
 #helpOv .help-inner{max-width:560px;margin:0 auto;font-family:var(--mono);font-size:12px;line-height:1.95;letter-spacing:.04em}
 #helpOv .feat-line{background:var(--panel);padding:7px 12px;margin-bottom:4px;border-radius:4px;color:var(--dim);white-space:pre-wrap}
 #helpOv .feat-line b{display:block;color:var(--amber);font-weight:700;margin-bottom:2px}
+#helpOv .help-mapbox{margin-bottom:14px}
+.help-map{width:100%;height:auto;display:block;color:var(--amber-deep)}
+.help-map rect{fill:var(--panel2);stroke:var(--line);stroke-width:1}
+.help-map .hm-hub{fill:var(--panel);stroke:var(--amber);stroke-width:1.5}
+.help-map path{stroke:var(--amber-deep);stroke-width:1.4;fill:none}
+.help-map text{font-family:var(--mono);letter-spacing:.06em}
+.help-map .hm-n{font-size:9px;font-weight:700;fill:var(--amber)}
+.help-map .hm-t{font-size:15px;font-weight:700;fill:var(--amber);letter-spacing:.14em}
+.help-map .hm-s{font-size:7.5px;fill:var(--dim)}
 #helpOv .help-pick{cursor:pointer;color:var(--amber);font-weight:700}
 #helpOv .help-pick:hover,#helpOv .help-pick:focus,#helpOv .help-pick.on{background:var(--panel2);outline:none}
 #helpOv .help-det{margin-top:12px;padding:12px 14px;border-radius:5px;background:var(--panel2);
@@ -1045,6 +1074,8 @@ html.mach .island .screw,html.mach .lv-side .screw{background:radial-gradient(ci
 </head>
 <body>
 <canvas id="bgfx"></canvas>
+<div id="mapOv"><div class="map-wrap"><div id="mapHost"></div>
+  <div class="map-foot"><button id="mapHow">HOW IT WORKS</button><button id="mapGo">START</button></div></div></div>
 <div id="hoverBar" aria-live="polite"></div>
 <button id="helpBtn" title="how it works" aria-label="how it works">?</button>
 <div id="helpOv"><button class="help-x" id="helpX" aria-label="close">✕</button><div class="help-inner" id="helpInner"></div></div>
@@ -1152,7 +1183,7 @@ html.mach .island .screw,html.mach .lv-side .screw{background:radial-gradient(ci
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 802</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 806</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -2294,7 +2325,7 @@ registerProcessor("crush-fx", CrushFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="802";
+const REV="806";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -7209,7 +7240,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=802","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=806","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
@@ -7694,6 +7725,50 @@ applyLang((state&&state.lang)||"en");
 
 const featPanel=document.getElementById("featPanel"),featLines=document.getElementById("featLines"),featHover=document.getElementById("featHover");
 let featTimer=null;
+function buildMap(){
+  const host=document.getElementById("mapHost"); if(!host)return;
+  const src=[["KIT 1","drum kit"],["KIT 2","drum kit"],["KIT 3","percussion"],
+             ["KIT 4","percussion"],["KIT 5","your samples"],["DRUM LAB","kick + rimshot"]];
+  let cards="";
+  src.forEach(([n,d],i)=>{ const y=86+i*62;
+    cards+='<rect class="bm-card" x="30" y="'+y+'" width="212" height="46" rx="6"/>'
+         + '<text class="bm-k" x="46" y="'+(y+21)+'">'+n+'</text>'
+         + '<text class="bm-d" x="46" y="'+(y+37)+'">'+d+'</text>'
+         + '<path class="bm-line" d="M242 '+(y+23)+' H292"/>';
+  });
+  const spineTop=109, spineBot=86+5*62+23;
+  const S='<svg viewBox="0 0 1000 560" xmlns="http://www.w3.org/2000/svg">'
+  +'<defs><marker id="bmA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">'
+  +'<path d="M0 0 L10 5 L0 10 z" fill="var(--amber)"/></marker>'
+  +'<marker id="bmB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">'
+  +'<path d="M0 0 L10 5 L0 10 z" fill="var(--line-hi)"/></marker></defs>'
+  +'<text class="bm-title" x="30" y="44">BRACHINSKI</text>'
+  +'<text class="bm-tag" x="30" y="64">HOW IT FITS TOGETHER</text>'
+  +cards
+  +'<path class="bm-line" d="M292 '+spineTop+' V'+spineBot+'"/>'
+  +'<path class="bm-flow" d="M292 268 H352" marker-end="url(#bmA)"/>'
+  +'<rect class="bm-hub" x="356" y="176" width="252" height="186" rx="10"/>'
+  +'<text class="bm-tag" x="482" y="212" text-anchor="middle">KIT 6</text>'
+  +'<text class="bm-big" x="482" y="256" text-anchor="middle">VOID</text>'
+  +'<text class="bm-sub" x="482" y="290" text-anchor="middle">collect what you like</text>'
+  +'<text class="bm-sub" x="482" y="312" text-anchor="middle">shape it, group it</text>'
+  +'<text class="bm-sub" x="482" y="334" text-anchor="middle">ctrl + G</text>'
+  +'<path class="bm-flow" d="M608 268 H686" marker-end="url(#bmA)"/>'
+  +'<rect class="bm-hub" x="690" y="198" width="252" height="142" rx="10"/>'
+  +'<text class="bm-big" x="816" y="262" text-anchor="middle">LIVE</text>'
+  +'<text class="bm-sub" x="816" y="296" text-anchor="middle">play the groups</text>'
+  +'<rect class="bm-card" x="356" y="466" width="586" height="60" rx="8"/>'
+  +'<text class="bm-k" x="649" y="494" text-anchor="middle">AUDIOTOOL</text>'
+  +'<text class="bm-d" x="649" y="512" text-anchor="middle">kits go out as a machiniste \u00b7 loops come back in</text>'
+  +'<path class="bm-line" d="M452 362 V462" marker-end="url(#bmB)"/>'
+  +'<text class="bm-d" x="462" y="416">export</text>'
+  +'<path class="bm-line" d="M846 462 V344" marker-end="url(#bmB)"/>'
+  +'<text class="bm-d" x="856" y="416">loops</text>'
+  +'</svg>';
+  host.innerHTML=S;
+}
+function openMap(){ buildMap(); const o=document.getElementById("mapOv"); if(o)o.classList.add("on"); }
+function closeMap(){ const o=document.getElementById("mapOv"); if(o)o.classList.remove("on"); }
 function openHelpOverlay(){
   const ov=document.getElementById("helpOv"), inner=document.getElementById("helpInner");
   if(!ov||!inner)return;
@@ -7720,11 +7795,14 @@ function openHelpOverlay(){
   ov.classList.add("on");
 }
 function closeHelpOverlay(){ const ov=document.getElementById("helpOv"); if(ov)ov.classList.remove("on"); }
-{ const _hb=document.getElementById("helpBtn"); if(_hb)_hb.onclick=openHelpOverlay;
+{ try{ if(!localStorage.getItem("brk_seen_map")){ localStorage.setItem("brk_seen_map","1"); setTimeout(openMap,400); } }catch(e){}   // once per browser :: clearing the cache brings it back
+  const _mg=document.getElementById("mapGo"); if(_mg)_mg.onclick=closeMap;
+  const _mh=document.getElementById("mapHow"); if(_mh)_mh.onclick=()=>{ closeMap(); openHelpOverlay(); };
+  const _hb=document.getElementById("helpBtn"); if(_hb)_hb.onclick=openMap;
   const _hx=document.getElementById("helpX"); if(_hx)_hx.onclick=closeHelpOverlay;
   const _ov=document.getElementById("helpOv");
   if(_ov)_ov.addEventListener("pointerdown",(e)=>{ if(e.target===_ov)closeHelpOverlay(); });
-  document.addEventListener("keydown",(e)=>{ if(e.key==="Escape")closeHelpOverlay(); }); }
+  document.addEventListener("keydown",(e)=>{ if(e.key==="Escape"){ closeHelpOverlay(); closeMap(); } }); }
 function showDeviceInfo(){
   if(!featLines)return;
   if(featTimer){clearInterval(featTimer);featTimer=null;}
