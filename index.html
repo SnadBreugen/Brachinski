@@ -637,6 +637,35 @@ html.paper .cell-btn.kit-void{width:76px;max-width:76px}
   padding:9px 10px;font-family:var(--mono);font-size:15px;letter-spacing:2px;font-weight:700;
   color:var(--amber);background:var(--bg);border:1px solid var(--line);border-left:none;border-right:none}
 .kit-sep{align-self:stretch;width:1px;margin:22px 16px 6px;background:currentColor;opacity:.22}
+/* a button that swaps its own label is as wide as its longest label, always */
+#hidebar #hideBtn{width:76px}
+.btn.play{width:76px}
+.btn#rec{width:76px}
+.cell-btn.sndset{width:66px;max-width:66px}
+.copy-block{align-items:center}
+.kit-hd.copy-hd,html.inv .kit-hd.copy-hd,html.skin-shadow .kit-hd.copy-hd,
+html.paper .kit-hd.copy-hd,html.mach .kit-hd.copy-hd{font-size:7px;letter-spacing:2.5px;color:rgba(255,255,255,.82);
+  text-align:center;width:104px;margin-left:0;font-weight:400;position:relative;top:-8px;
+  color:rgba(255,255,255,.82);text-shadow:0 1px 2px rgba(0,0,0,.5)}
+html.paper .kit-hd.copy-hd{color:#14130f;text-shadow:none}   /* white on a white chassis would vanish */
+html.paper .copy-block .copy-knob{border-color:#26262c;box-shadow:0 4px 0 #26262c,0 6px 7px rgba(0,0,0,.25),inset 0 2px 2px rgba(255,255,255,.42)}
+html.paper .copy-block .copy-knob:active:not(:disabled){box-shadow:0 0 0 #26262c,0 1px 3px rgba(0,0,0,.3),inset 0 3px 4px rgba(0,0,0,.5)}
+.copy-block .kit-arrow{margin:0}
+.kit-arrow{position:relative;height:38px;width:104px;flex:0 0 auto;display:flex;align-items:center;justify-content:center}
+.copy-block .copy-knob{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);z-index:2;
+  width:26px;height:26px;border-radius:50%;cursor:pointer;padding:0;margin:0;
+  background:radial-gradient(circle at 50% 30%,#ff6252 0%,#e0301e 55%,#a81d10 100%);
+  border:4px solid #cfd3da;
+  box-shadow:0 4px 0 #9aa0ab, 0 6px 7px rgba(0,0,0,.5), inset 0 2px 2px rgba(255,255,255,.42)}
+.copy-block .copy-knob:hover:not(:disabled){background:radial-gradient(circle at 50% 30%,#ff8474 0%,#f03a24 55%,#bd2413 100%)}
+.copy-block .copy-knob:active:not(:disabled){transform:translateX(-50%) translateY(4px);
+  box-shadow:0 0 0 #9aa0ab, 0 1px 3px rgba(0,0,0,.55), inset 0 3px 4px rgba(0,0,0,.5)}
+.copy-block .copy-knob:disabled{background:radial-gradient(circle at 50% 30%,#8e8e93 0%,#6b6b70 55%,#4a4a4e 100%);
+  border-color:#a8acb4;box-shadow:0 4px 0 #7d828b;cursor:default}
+.kit-field.stepped-aside{opacity:.5}
+.kit-arrow.stepped-aside{opacity:.22}
+.kit-field.stepped-aside .sel-name{color:var(--dimmer)}
+.kit-field.stepped-aside .sel-name:hover{color:var(--amber)}
 /* one height for every button in the kit row :: the whole row lines up because of this and nothing else */
 .kit-row-h{--kbh:38px}
 .kit-pad{display:flex;gap:6px;padding:6px 0}
@@ -1228,7 +1257,7 @@ html.mach .island .screw,html.mach .lv-side .screw{background:radial-gradient(ci
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 829</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 837</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -2370,7 +2399,7 @@ registerProcessor("crush-fx", CrushFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="829";
+const REV="837";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -4756,7 +4785,7 @@ function buildEditor(){
   if(setMode){ const idx=document.createElement("span");idx.className="voice-idx";idx.textContent="\u25c6";
     const nm=document.createElement("span");nm.className="voice-name";nm.textContent="SET // ALL "+state.voices.length+" VOICES";
     head.append(idx,nm); }   // a single voice is named by its own sequencer row, no need to say it twice
-  { const sb=document.createElement("button"); sb.className="cell-btn"+(setMode?" on":""); sb.style.marginLeft="auto"; sb.textContent=setMode?"SET":"SOUND"; sb.title="SOUND: edit the picked voice \u00b7 SET: move params + fx on all 9 voices together"; sb.onclick=()=>{ state.setEditKit=state.setEditKit||{}; state.setEditKit[state.kit]=!setMode; buildEditor(); }; head.append(sb); }
+  { const sb=document.createElement("button"); sb.className="cell-btn sndset"+(setMode?" on":""); sb.style.marginLeft="auto"; sb.textContent=setMode?"SET":"SOUND"; sb.title="SOUND: edit the picked voice \u00b7 SET: move params + fx on all 9 voices together"; sb.onclick=()=>{ state.setEditKit=state.setEditKit||{}; state.setEditKit[state.kit]=!setMode; buildEditor(); }; head.append(sb); }
   if(state.kit===3){
     ed.ondragover=(e)=>{e.preventDefault();};
     ed.ondrop=(e)=>{e.preventDefault();const df=e.dataTransfer;if(df&&df.files&&df.files[0])loadSampleFile(df.files[0],state.selected);};
@@ -5729,10 +5758,11 @@ function switchKit(i,force){
   if(i===state.kit&&!force)return;
   state.plock=null;
   setTimeout(()=>{ if(typeof paintLiveBtn==="function")paintLiveBtn(); },0);   // the LIVE button follows the kit
+  if(KIT_ORDER.indexOf(i)>=0)state.lastSet=i;                                // remember where to come back to
   state.kit=i; state.voices=state.kits[i]; if(state.selected>=state.voices.length)state.selected=0;
   if(i===5||i===6||i===7)syncPatternBank(); else state.curPattern=state.curPattern%PATTERNS;   // Labs + VOID use their own banks
   if(engineNode) engineNode.port.postMessage({type:"kit",index:i});
-  syncAll(); if(typeof refreshGroupRouting==="function")refreshGroupRouting(); buildKit(); buildSeq(); refreshStrip(); buildEditor();
+  syncAll(); if(typeof refreshGroupRouting==="function")refreshGroupRouting(); buildKit(); buildSeq(); buildStrip(); refreshStrip(); buildEditor();   // the header needs the rows to exist first
   { const isl=document.getElementById("masterFxIsland"); if(isl)isl.style.display=(i===6)?"none":""; }
   {const pos=KIT_ORDER.indexOf(i);setStatus(pos>=0?("KIT "+(pos+1)+" // "+KITS[i].name):KITS[i].name);}
   commit();
@@ -5743,21 +5773,32 @@ function buildKit(){
   const block=document.createElement("div");block.className="kit-block";
   const hd=document.createElement("div");hd.className="kit-hd";hd.textContent="SOUND SETS";hd.title=(window.TIP&&TIP.KIT)||"";block.appendChild(hd);
   const field=document.createElement("div");field.className="kit-field kit-sel";
-  { const cur=KIT_ORDER.indexOf(state.kit);                                   // the name lives in the selector :: no second display to contradict it
-    const at=(cur<0?0:cur);
+  { const inSet=KIT_ORDER.indexOf(state.kit)>=0;                              // the name lives in the selector :: no second display to contradict it
+    const back=inSet?state.kit:(state.lastSet!=null?state.lastSet:KIT_ORDER[0]);
+    const at=Math.max(0,KIT_ORDER.indexOf(back));
     const step=(d)=>{ switchKit(KIT_ORDER[(at+d+KIT_ORDER.length)%KIT_ORDER.length]); };
     const prev=document.createElement("button");prev.className="cell-btn sel-arrow";
     prev.textContent="\u2039";prev.title="previous drum kit";prev.dataset.desc=prev.title;
     prev.onclick=()=>step(-1);
     const name=document.createElement("div");name.className="sel-name";
     name.textContent=KITS[KIT_ORDER[at]].name;
+    if(!inSet){ field.classList.add("stepped-aside");
+      name.title="back to "+KITS[KIT_ORDER[at]].name; name.dataset.desc=name.title;
+      name.style.cursor="pointer"; name.onclick=()=>switchKit(KIT_ORDER[at]); }
     const next=document.createElement("button");next.className="cell-btn sel-arrow";
     next.textContent="\u203a";next.title="next drum kit";next.dataset.desc=next.title;
     next.onclick=()=>step(1);
     field.append(prev,name,next); }
   block.appendChild(field);host.appendChild(block);
-    { const ar=document.createElement("div");ar.className="kit-arrow";ar.setAttribute("aria-hidden","true");
-    ar.title="the sets feed your rack";ar.dataset.desc=ar.title;host.appendChild(ar);
+    { const cb2=document.createElement("div");cb2.className="kit-block copy-block";
+    const ch=document.createElement("div");ch.className="kit-hd copy-hd";ch.textContent="COPY";
+    ch.title="carry this pattern and its sounds into your rack";cb2.appendChild(ch);
+    const ar=document.createElement("div");ar.className="kit-arrow"+(state.kit===6?" stepped-aside":"");
+    const kn=document.createElement("button");kn.className="copy-knob";
+    kn.title="copy this pattern and its sounds into your rack";kn.dataset.desc=kn.title;
+    kn.disabled=(state.kit===6);
+    kn.onclick=()=>copyPatternToVoid();
+    ar.appendChild(kn);cb2.appendChild(ar);host.appendChild(cb2);
     const vb=document.createElement("div");vb.className="kit-block";
     const vh=document.createElement("div");vh.className="kit-hd";vh.textContent="RACK";
     vh.title=(window.TIP_KIT&&window.TIP_KIT.void)||"";vb.appendChild(vh);
@@ -5790,18 +5831,10 @@ function buildStrip(){
   gL.append(lMinus,lVal,lPlus);
   const gpg=document.createElement("div");gpg.className="grp";gpg.id="pagegrp";
   const gpgl=document.createElement("span");gpgl.className="gl";gpgl.textContent="PAGE //";gpg.appendChild(gpgl);
-  const gk=document.createElement("div");gk.className="grp";                   // the one move that carries work across :: it used to hide behind a right-click
-  { const kb=document.createElement("button");kb.className="cell-btn to-rack";
-    kb.textContent="\u2192 RACK";
-    kb.title="copy this pattern and its sounds into your rack";
-    kb.dataset.desc=kb.title;
-    kb.disabled=(state.kit===6);
-    kb.onclick=()=>copyPatternToVoid();
-    gk.appendChild(kb); }
   const gc=document.createElement("div");gc.className="grp";
   const cb=document.createElement("button");cb.className="cell-btn clr";cb.textContent="CLEAR";cb.onclick=()=>clearPattern();gc.appendChild(cb);
   const acb=document.createElement("button");acb.id="autoclr";acb.className="cell-btn clr";acb.textContent="AUTO CLR";acb.title="clear automation of the selected voice \u00b7 undo with ctrl+z";acb.onclick=()=>clearVoiceAuto();gc.appendChild(acb);refreshAutoClr();
-  if(state.kit===5){ strip.append(gc); } else { strip.append(gp,gb,gL,gpg,gk,gc); }   // Drum Lab :: no pattern banks / bars / length, just the trigger strip + clear
+  if(state.kit===5){ strip.append(gc); } else { strip.append(gp,gb,gL,gpg,gc); }   // Drum Lab :: no pattern banks / bars / length, just the trigger strip + clear
   refreshStrip();
 }
 function refreshStrip(){
@@ -5815,9 +5848,9 @@ function refreshStrip(){
       b.classList.toggle("has",used&&i!==cur); }); }
   document.querySelectorAll(".bar").forEach(b=>b.classList.toggle("on",+b.dataset.b===curPat().bars));
   {const lv=document.getElementById("lenval");if(lv)lv.textContent=(curPat().length||STEPS_PER_BAR);}
-  const grp=document.getElementById("pagegrp");grp.querySelectorAll(".pg").forEach(e=>e.remove());
+  const grp=document.getElementById("pagegrp"); if(grp){ grp.querySelectorAll(".pg").forEach(e=>e.remove());
   for(let i=0;i<numPages();i++){const b=document.createElement("button");b.className="cell-btn pg";b.dataset.pg=i;b.textContent=(i+1);b.classList.toggle("on",i===state.page);b.onclick=()=>{setPage(i);refreshStrip();};grp.appendChild(b);}
-  grp.style.display=numPages()>1?"":"none";
+  grp.style.display=numPages()>1?"":"none"; }   // the drum lab has no page group at all
 }
 
 // ---- sequencer ----
@@ -7306,7 +7339,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=829","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=837","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
