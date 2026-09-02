@@ -73,14 +73,6 @@ body{
     inset 0 1px 0 rgba(255,255,255,.10),
     inset 0 -2px 7px rgba(0,0,0,.24);
 }
-/* chassis corner bolts */
-.chassis::before,.chassis::after{
-  content:"";position:absolute;width:9px;height:9px;border-radius:50%;
-  background:radial-gradient(circle at 35% 30%, #d9c3ff, #3a1f6e 70%);
-  box-shadow:inset 0 -1px 2px rgba(0,0,0,.6),0 1px 1px rgba(0,0,0,.5);
-}
-.chassis::before{top:9px;left:9px;box-shadow:inset 0 -1px 2px rgba(0,0,0,.6),0 1px 1px rgba(0,0,0,.5),760px 0 0 0 #6320c9}
-.chassis::after{bottom:9px;left:9px}
 
 /* CRT patina overlay */
 .crt{
@@ -167,9 +159,9 @@ body{
 
 .field{display:flex;align-items:center;gap:8px}
 .field label{font-size:9px;letter-spacing:2px;color:var(--dim)}
-.transport .field label{color:#14100a}
-html.black .transport .field label{color:#f2f4f8}
-html.mach .transport .field label{color:#171205}
+.transport.deck .field label{color:#14100a}
+html.black .transport.deck .field label{color:#f2f4f8}
+html.mach .transport.deck .field label{color:#171205}
 .readout{min-width:50px;text-align:center;background:#0a0612;border:1px solid #060309;border-radius:4px;padding:5px 8px;color:var(--amber);font-family:var(--pixel);font-size:18px;letter-spacing:1px;text-shadow:0 0 8px var(--amber-glow);box-shadow:inset 0 2px 6px rgba(0,0,0,.7)}
 .slider{-webkit-appearance:none;appearance:none;width:90px;height:5px;border-radius:3px;background:#1c1330;outline:none;box-shadow:inset 0 1px 2px rgba(0,0,0,.7)}
 .slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:3px;background:linear-gradient(180deg,var(--amber-hi),var(--amber-deep));box-shadow:0 0 8px var(--amber-glow);cursor:pointer;border:1px solid #1a0d05}
@@ -200,6 +192,8 @@ html.mach .transport .field label{color:#171205}
 /* rack widths are set per-kit in JS (buildEditor) so frames stay fixed across voices */
 .rack .rl{height:26px;display:flex;align-items:center;box-sizing:border-box}
 .rack .rl.rl-row{gap:6px}
+.rack .rl-row .voice-name{font-size:17px;line-height:1;letter-spacing:1.5px}
+.rack .rl-row .voice-idx{font-size:9px;padding:2px 6px}
 .rack .rl.rl-row>*{margin-left:0}
 .rack .rl.rl-row>*:first-of-type{margin-left:auto}
 .rack .rl{font-size:9px;letter-spacing:2px;color:var(--amber);opacity:.8}
@@ -228,7 +222,7 @@ html.mach .transport .field label{color:#171205}
 .mfx-grid{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start}
 .mfx{position:relative;background:rgba(0,0,0,.22);border:1px solid var(--line);border-radius:6px;padding:8px 9px 10px;min-height:104px;display:flex;flex-direction:column;gap:8px;box-sizing:border-box;flex:0 0 auto}
 .mfx .mfx-hd{display:flex;align-items:center;gap:5px;min-height:18px;flex-wrap:wrap}
-.mfx .mfx-hd .cell-btn{min-width:52px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:76px}
+.mfx .mfx-hd .cell-btn{min-width:52px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:96px}   /* the longest real label is AUTO CLR at 91px */
 .mfx-knobs{min-height:93px}
 .mfx.empty{align-items:center;justify-content:center;border-style:dashed;opacity:.35}
 .mfx.empty .mfx-add{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--dim)}
@@ -523,11 +517,9 @@ html.inv .subtitle{color:rgba(34,16,0,.62)}
 html.inv .eyebrow span{color:rgba(34,16,0,.72)}
 html.inv .bars-ico i{background:#2a1400}
 html.inv .foot{color:rgba(34,16,0,.62)}
-html.inv .meter .ml{color:rgba(34,16,0,.62)}
-html.inv .chassis::before,html.inv .chassis::after,html.inv .lv-bolt{background:radial-gradient(circle at 35% 30%,#5a3000,#1f1000 70%)}
+html.inv .meter .ml{color:rgba(34,16,0,.62)}html.inv .lv-bolt{background:radial-gradient(circle at 35% 30%,#5a3000,#1f1000 70%)}
 html.inv .lv-brand,html.inv .lv-lbl,html.inv .lv-val,html.inv .lv-pos,html.inv .lv-sclab{color:#2a1400}   /* these sit on the yellow chassis, not on a dark panel */
 html.inv .lv-brand span{color:rgba(34,16,0,.72)}
-html.inv .chassis::before{box-shadow:inset 0 -1px 2px rgba(0,0,0,.6),0 1px 1px rgba(0,0,0,.5),760px 0 0 0 #7a4400}
 html.inv .crt{background:radial-gradient(ellipse 96% 88% at center,transparent 86%,rgba(120,55,0,.05) 100%);animation:none}
 html.inv{--chassis1:#ffc900;--chassis2:#ffc307}
 html.inv .chassis,html.inv .lv-case{box-shadow:0 0 0 1px rgba(150,80,0,.32),0 8px 20px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.22),inset 0 -2px 5px rgba(190,95,0,.09)}
@@ -546,8 +538,7 @@ html.paper{--bg:#e9e9ee;--chassis1:#f2f2f5;--chassis2:#dcdce2;--chassis-edge:#b8
 html.paper body{background:radial-gradient(1100px 600px at 50% -5%,#fdfdff 0%,transparent 60%),var(--bg)}
 html.paper .chassis{background:#f4f4f7}
 
-html.paper .chassis,html.paper .lv-case{box-shadow:0 0 0 1px #d2d2da,0 8px 20px rgba(0,0,0,.12)}
-html.paper .chassis::before,html.paper .chassis::after,html.paper .lv-bolt{background:radial-gradient(circle at 35% 30%,#fff,#a8a8b4 70%)}
+html.paper .chassis,html.paper .lv-case{box-shadow:0 0 0 1px #d2d2da,0 8px 20px rgba(0,0,0,.12)}html.paper .lv-bolt{background:radial-gradient(circle at 35% 30%,#fff,#a8a8b4 70%)}
 html.paper .crt{background:radial-gradient(ellipse 90% 80% at 42% 26%,rgba(255,255,255,.55) 0%,rgba(255,255,255,0) 62%);mix-blend-mode:normal;animation:none;opacity:1}
 html.paper .status,html.paper .readout,html.paper .kit-disp{background:#fff;border-color:#c8c8d0;box-shadow:inset 0 1px 3px rgba(0,0,0,.10)}
 html.paper .btn,html.paper .cell-btn,html.paper .mute,html.paper .lv-msb,html.paper .lv-tr{background:#fff;border-color:#9a9aa6;color:#14141a}
@@ -618,16 +609,9 @@ html.paper .mvol::-webkit-slider-thumb{background:#14141a}
 html.paper .island{background:#fdfdfe;border:1px solid #b6b6c2;box-shadow:none}
 html.paper .rack,html.paper .mfx{background:transparent;border-color:#b6b6c2;box-shadow:none}
 html.paper .lv-fxs,html.paper .lv-grow,html.paper .lv-side{background:#fdfdfe;border:1px solid #dcdce2;box-shadow:none}
-html.paper .island .screw,html.paper .lv-side .screw,html.paper .chassis::before,html.paper .chassis::after,html.paper .lv-bolt{opacity:.35}
+html.paper .island .screw,html.paper .lv-side .screw,html.paper .lv-bolt{opacity:.35}
 html.paper .island .screw,html.paper .lv-side .screw{background:radial-gradient(circle at 35% 30%,#fff,#b4b4be 70%)}
-html.paper .island>.tag{background:#fff;border-color:#c8c8d0;color:#14141a;text-shadow:none}
-html.paper .cell-btn.kit-void{width:76px;max-width:76px}
-.cell-btn.to-rack{background:var(--amber);border-color:var(--amber);color:var(--bg);font-weight:700;
-  max-width:none;padding-left:14px;padding-right:14px;box-shadow:0 0 10px var(--amber-glow)}
-.cell-btn.to-rack:hover:not(:disabled){filter:brightness(1.12)}
-.cell-btn.to-rack:disabled{background:transparent;border-color:var(--line);color:var(--dimmer);
-  box-shadow:none;cursor:default}
-.kit-field.kit-sel{gap:0;padding:6px;align-items:stretch}
+html.paper .island>.tag{background:#fff;border-color:#c8c8d0;color:#14141a;text-shadow:none}.kit-field.kit-sel{gap:0;padding:6px;align-items:stretch}
 .kit-field.kit-sel .cell-btn.sel-arrow{min-width:32px;max-width:32px;padding:9px 0;font-size:17px;line-height:1;
   border:1px solid var(--line);border-radius:0;box-shadow:none;background:var(--bg);color:var(--amber)}
 .kit-field.kit-sel .cell-btn.sel-arrow:first-child{border-radius:5px 0 0 5px;border-right:none}
@@ -635,11 +619,9 @@ html.paper .cell-btn.kit-void{width:76px;max-width:76px}
 .kit-field.kit-sel .cell-btn.sel-arrow:hover{color:var(--ink);background:var(--panel2)}
 .kit-field.kit-sel .sel-name{display:flex;align-items:center;justify-content:center;min-width:96px;
   padding:9px 10px;font-family:var(--mono);font-size:15px;letter-spacing:2px;font-weight:700;
-  color:var(--amber);background:var(--bg);border:1px solid var(--line);border-left:none;border-right:none}
-.kit-sep{align-self:stretch;width:1px;margin:22px 16px 6px;background:currentColor;opacity:.22}
-/* a button that swaps its own label is as wide as its longest label, always */
+  color:var(--amber);background:var(--bg);border:1px solid var(--line);border-left:none;border-right:none}/* a button that swaps its own label is as wide as its longest label, always */
 #hidebar #hideBtn{width:76px}
-.btn.play{width:76px}
+#play{width:76px}   /* only the transport key :: #export wears the same class and needs its full label */
 .btn#rec{width:76px}
 .cell-btn.sndset{width:66px;max-width:66px}
 .copy-block{align-items:center}
@@ -648,20 +630,20 @@ html.paper .kit-hd.copy-hd,html.mach .kit-hd.copy-hd{font-size:7px;letter-spacin
   text-align:center;width:104px;margin-left:0;font-weight:400;position:relative;top:-8px;
   color:rgba(255,255,255,.82);text-shadow:0 1px 2px rgba(0,0,0,.5)}
 html.paper .kit-hd.copy-hd{color:#14130f;text-shadow:none}   /* white on a white chassis would vanish */
-html.paper .copy-block .copy-knob{border-color:#26262c;box-shadow:0 4px 0 #26262c,0 6px 7px rgba(0,0,0,.25),inset 0 2px 2px rgba(255,255,255,.42)}
-html.paper .copy-block .copy-knob:active:not(:disabled){box-shadow:0 0 0 #26262c,0 1px 3px rgba(0,0,0,.3),inset 0 3px 4px rgba(0,0,0,.5)}
+html.paper .copy-block .copy-knob{border-color:#26262c;box-shadow:0 1px 0 #26262c,inset 0 1px 1px rgba(255,255,255,.22)}
+html.paper .copy-block .copy-knob:active:not(:disabled){box-shadow:0 0 0 #26262c,inset 0 1px 2px rgba(0,0,0,.3)}
 .copy-block .kit-arrow{margin:0}
 .kit-arrow{position:relative;height:38px;width:104px;flex:0 0 auto;display:flex;align-items:center;justify-content:center}
 .copy-block .copy-knob{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);z-index:2;
   width:26px;height:26px;border-radius:50%;cursor:pointer;padding:0;margin:0;
   background:radial-gradient(circle at 50% 30%,#ff6252 0%,#e0301e 55%,#a81d10 100%);
-  border:4px solid #cfd3da;
-  box-shadow:0 4px 0 #9aa0ab, 0 6px 7px rgba(0,0,0,.5), inset 0 2px 2px rgba(255,255,255,.42)}
+  border:2px solid #cfd3da;
+  box-shadow:0 1px 0 #9aa0ab, inset 0 1px 1px rgba(255,255,255,.22)}
 .copy-block .copy-knob:hover:not(:disabled){background:radial-gradient(circle at 50% 30%,#ff8474 0%,#f03a24 55%,#bd2413 100%)}
-.copy-block .copy-knob:active:not(:disabled){transform:translateX(-50%) translateY(4px);
-  box-shadow:0 0 0 #9aa0ab, 0 1px 3px rgba(0,0,0,.55), inset 0 3px 4px rgba(0,0,0,.5)}
+.copy-block .copy-knob:active:not(:disabled){transform:translateX(-50%) translateY(1px);
+  box-shadow:0 0 0 #9aa0ab, inset 0 1px 2px rgba(0,0,0,.3)}
 .copy-block .copy-knob:disabled{background:radial-gradient(circle at 50% 30%,#8e8e93 0%,#6b6b70 55%,#4a4a4e 100%);
-  border-color:#a8acb4;box-shadow:0 4px 0 #7d828b;cursor:default}
+  border-color:#a8acb4;box-shadow:0 1px 0 #7d828b;cursor:default}
 .kit-field.stepped-aside{opacity:.5}
 .kit-arrow.stepped-aside{opacity:.22}
 .kit-field.stepped-aside .sel-name{color:var(--dimmer)}
@@ -684,7 +666,7 @@ html.paper .copy-block .copy-knob:active:not(:disabled){box-shadow:0 0 0 #26262c
 .kit-arrow::after{content:"";position:absolute;right:0;top:50%;width:9px;height:9px;
   border-top:1px solid var(--amber);border-right:1px solid var(--amber);
   transform:translateY(-50%) rotate(45deg);transform-origin:center}
-.kit-field,.transport{box-shadow:none;border:1px solid #14141a}
+.kit-field,.transport.deck{box-shadow:none;border:1px solid #14141a}
 html.paper .kit-field .cell-btn{background:#fff;border-color:#b0b0ba}
 html.paper .kit-field .cell-btn.on{background:#14141a;color:#f2f2f6;border-color:#000}
 html.paper .kit-disp::after{background:none}
@@ -701,8 +683,7 @@ html.paper .meter .led{background:#e4e4ea;box-shadow:none}
 html.paper .lim-led{background:#d8d8e0;box-shadow:none}
 html.paper .pg-btn{background:#fff;border-color:#14141a;color:#14141a}
 html.paper .pg-btn.lit,html.paper .pg-btn.on{background:#14141a;border-color:#14141a;color:#fff;text-shadow:none}
-html.paper .mfx-b{background:#fff;border-color:#8a8a98;color:#26262e}
-html.paper .chassis::before,html.paper .chassis::after,html.paper .lv-bolt{background:#c8c8d2;box-shadow:none}
+html.paper .mfx-b{background:#fff;border-color:#8a8a98;color:#26262e}html.paper .lv-bolt{background:#c8c8d2;box-shadow:none}
 html.paper .island .screw,html.paper .lv-side .screw{background:#c8c8d2;box-shadow:none}
 html.paper .crt{background:none}
 html.paper .lv-fxs,html.paper .lv-grow,html.paper .lv-side{background:linear-gradient(180deg,#fbfbfd,#f2f2f6);border-color:#c8c8d0;box-shadow:inset 0 1px 0 #fff,0 1px 3px rgba(0,0,0,.08)}
@@ -734,12 +715,10 @@ html.paper #snadlink,html.paper #langbar,html.paper #fbBtn{background:rgba(255,2
 html.paper #fbPanel{background:#fbfbfd;border-color:#9c9ca6}
 html.paper #fbPanel input,html.paper #fbPanel textarea{background:#fff;border-color:#c8c8d0;color:#14141a}
 html.paper .lv-msg,html.paper .lv-brand{color:#14141a}
-html.paper .cell-btn.pat.queued{border-color:#000}
-html.black .chassis::before,html.black .chassis::after,html.black .lv-bolt{background:radial-gradient(circle at 35% 30%,#9a9aa4,#232328 70%)}
+html.paper .cell-btn.pat.queued{border-color:#000}html.black .lv-bolt{background:radial-gradient(circle at 35% 30%,#9a9aa4,#232328 70%)}
 html.black .chassis,html.black .lv-case{box-shadow:0 0 0 1px #000,0 10px 26px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06),inset 0 -2px 6px rgba(0,0,0,.28)}
 html.ghost .chassis,html.ghost .lv-case{background:transparent;border-color:rgba(176,112,255,.45);box-shadow:0 0 0 1px rgba(176,112,255,.3)}
-html.ghost .lv-case::before{opacity:0}   /* ghost keeps its open chassis :: that is where the movement is meant to show */
-html.ghost .chassis::before,html.ghost .chassis::after,html.ghost .lv-bolt{opacity:.45}
+html.ghost .lv-case::before{opacity:0}html.ghost .lv-bolt{opacity:.45}
 #bgrefl{position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:0;border-radius:9px}
 html.skin-shadow #bgrefl{opacity:.4;mix-blend-mode:multiply}
 html.skin-invert{--amber:#CB99FF;--amber-deep:#9a5ce8;--amber-glow:rgba(203,153,255,.55)}
@@ -765,9 +744,7 @@ html.live-on body>*:not(#liveScreen):not(#soundPicker):not(#slotmenu):not(#fxWin
 .lv-case::before{content:"";position:absolute;inset:0;border-radius:9px;background:linear-gradient(170deg,var(--chassis1) 0%,var(--chassis1) 38%,var(--chassis2) 100%);opacity:.88;z-index:-1}
 html.paper .lv-case::before{background:#f4f4f7;opacity:1}   /* the case, with the background moving through it */
 .btn.livebtn{background:linear-gradient(180deg,var(--amber),var(--amber-deep));border-color:var(--amber);color:#180e00;font-weight:700;letter-spacing:3px;box-shadow:0 0 14px var(--amber-glow),inset 0 1px 0 rgba(255,255,255,.35)}
-.btn.livebtn:hover{filter:brightness(1.12)}
-.btn.livebtn[disabled]{background:linear-gradient(180deg,#241a35,#150e22);border-color:var(--line);color:var(--dimmer);font-weight:400;box-shadow:inset 0 1px 0 rgba(255,255,255,.06);cursor:not-allowed;opacity:.55}
-.lv-fxbar{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px;flex:0 0 auto}
+.btn.livebtn:hover{filter:brightness(1.12)}.lv-fxbar{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px;flex:0 0 auto}
 .lv-fxs{position:relative;display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:7px;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1.5px solid #050208;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),inset 0 0 0 1px rgba(0,0,0,.4),0 1px 3px rgba(0,0,0,.45);overflow:hidden}
 .lv-fxs::after{content:"";position:absolute;inset:0;border-radius:7px;pointer-events:none;opacity:0;background:radial-gradient(120% 90% at 50% 120%,var(--fxc),transparent 70%);transition:opacity .18s}
 .lv-fxs.on::after{opacity:.10}
@@ -924,7 +901,7 @@ html.black .lv-pad.filled{background:#26262c;border-color:#8e8e98;color:rgba(255
 .kitrow{display:flex;align-items:flex-end;gap:14px;margin-bottom:14px}
 .kit-block{display:flex;flex-direction:column}
 .kit-hd{font-family:var(--mono);font-weight:700;font-size:13px;letter-spacing:5px;color:var(--ink);margin:0 0 7px 2px}
-.kit-field,.transport{display:flex;gap:8px;background:var(--amber);border-radius:10px;padding:9px 11px;box-shadow:0 2px 12px var(--amber-glow),inset 0 1px 0 rgba(255,255,255,.35)}
+.kit-field,.transport.deck{display:flex;gap:8px;background:var(--amber);border-radius:10px;padding:9px 11px;box-shadow:0 2px 12px var(--amber-glow),inset 0 1px 0 rgba(255,255,255,.35)}
 .kit-field .cell-btn{min-width:42px;font-size:15px;padding:9px 11px;background:#140d04;color:var(--kitink,#e8c88a);border:1px solid #000;box-shadow:inset 0 1px 2px rgba(0,0,0,.5)}
 .kit-field .cell-btn:hover{color:#fff}
 .kit-field .cell-btn.on{background:#fff;color:#1a1206;border-color:#000;box-shadow:0 0 0 2px rgba(0,0,0,.25)}
@@ -942,8 +919,7 @@ html.paper .lv-case::before{background:linear-gradient(155deg,#fcfbf9 0%,#f6f4f1
 html.paper .chassis,html.paper .lv-case{box-shadow:0 0 0 1px #b6b6c2}
 html.paper .crt{background:none;animation:none}
 html.paper .island,html.paper .lv-fxs,html.paper .lv-grow,html.paper .lv-side{background:#fdfdfe;border:1px solid #b6b6c2;box-shadow:none}
-html.paper .rack,html.paper .mfx,html.paper .pg-pop,html.paper .wip-card{background:transparent;border-color:#b6b6c2;box-shadow:none}
-html.paper .chassis::before,html.paper .chassis::after,html.paper .lv-bolt,
+html.paper .rack,html.paper .mfx,html.paper .pg-pop,html.paper .wip-card{background:transparent;border-color:#b6b6c2;box-shadow:none}html.paper .lv-bolt,
 html.paper .island .screw,html.paper .lv-side .screw{background:#c8c8d2;box-shadow:none}
 html.paper .cap{background:#fff;border:1px solid #14141a;box-shadow:none}
 html.paper .cap::after{background:#14141a;box-shadow:none}
@@ -967,7 +943,7 @@ html.paper .meter .led{background:#e4e4ea;box-shadow:none}
 html.paper .meter .led.on,html.paper .meter .led.hot.on{background:#14141a;box-shadow:none}
 html.paper .lim-led{background:#d8d8e0;box-shadow:none}
 html.paper .lim-btn.on .lim-led{background:#14141a;box-shadow:none}
-html.paper .kit-field,html.paper .transport{background:#14141a;box-shadow:none;border:1px solid #14141a}
+html.paper .kit-field,html.paper .transport.deck{background:#14141a;box-shadow:none;border:1px solid #14141a}
 html.paper .mute.on{color:#000;border-color:#000;box-shadow:none}
 html.paper .sel.active{border-color:#14141a;box-shadow:inset 3px 0 0 #14141a}
 /* moulded plastic, not paper cutouts :: light does the modelling, never grey shadow on white */
@@ -1002,7 +978,7 @@ html.paper .cap{background:radial-gradient(circle at 38% 22%, #7d7975 0%, #3a383
   border:none;box-shadow:0 3px 6px rgba(0,0,0,.38), 0 0 0 1px rgba(0,0,0,.35)}
 html.paper .cap::after{background:#f4f4f6;box-shadow:none}
 html.paper .dial{background:none;box-shadow:none}
-html.paper .kit-field,html.paper .transport{background:#16161a;border:none;border-radius:9px;box-shadow:0 2px 5px rgba(0,0,0,.22)}
+html.paper .kit-field,html.paper .transport.deck{background:#16161a;border:none;border-radius:9px;box-shadow:0 2px 5px rgba(0,0,0,.22)}
 html.paper .kit-field .cell-btn{background:#fcfcfd;color:#16161a}
 html.paper .status,html.paper .readout,html.paper .kit-disp{background:#14130f;border:none;
   box-shadow:0 0 0 1px rgba(0,0,0,.35), 0 1px 2px rgba(0,0,0,.30) inset}
@@ -1043,7 +1019,7 @@ html.paper .field input::placeholder,html.paper textarea::placeholder{color:#8a8
 html.mach #finbar button,html.mach .field input,html.mach input[type="text"],html.mach textarea{
   background:linear-gradient(180deg,#b8babd 0%,#8e9093 52%,#76787c 100%);color:#101314;
   border:1px solid #3a3b3e;border-radius:4px;box-shadow:0 1px 0 rgba(255,255,255,.5) inset}
-html.mach #finbar button.on{background:linear-gradient(180deg,#e8cf74,#c9a83e);color:#171205;border-color:#7a6520}
+html.mach #finbar button.on{background:#c9a83e;color:#171205;border-color:#7a6520}
 html.mach .field input::placeholder,html.mach textarea::placeholder{color:#3e4142}
 /* a lit step must win over the inline group colour */
 html.paper .step.on,html.paper .step.on:nth-child(4n+1){background:#f4f2ee !important;border-color:#f4f2ee !important;color:#14130f}
@@ -1051,17 +1027,14 @@ html.paper .step.acc,html.paper .step.acc:nth-child(4n+1){background:#fff !impor
 html.mach .step.on,html.mach .step.on:nth-child(4n+1){background:#d0dbdc !important;border-color:#eef4f4 !important;color:#101314}
 html.mach .step.acc,html.mach .step.acc:nth-child(4n+1){background:#fff !important;border-color:#fff !important}
 html.paper .btn.livebtn{background:#14130f;color:#f4f2ee;border-color:#14130f;font-weight:700}
-html.paper .btn.livebtn:hover{background:#26241f}
-html.paper .btn.livebtn[disabled]{background:linear-gradient(180deg,#e8e5e1,#d8d5d1);color:#9a9894;border-color:transparent}
-html.paper .steps{background:#1a1917;padding:4px;border-radius:6px;box-shadow:0 0 0 1px rgba(0,0,0,.35)}
+html.paper .btn.livebtn:hover{background:#26241f}html.paper .steps{background:#1a1917;padding:4px;border-radius:6px;box-shadow:0 0 0 1px rgba(0,0,0,.35)}
 html.paper .col-nums span{color:#14130f}
 html.paper .step.haslock::after{background:#f4f2ee;opacity:.5}
 html.paper .step.plockon{box-shadow:inset 0 0 0 1px #f4f2ee}
 html.paper .step.play{box-shadow:inset 0 0 0 2px #f4f2ee}
 html.paper .step.play::after{box-shadow:inset 0 0 0 2px #f4f2ee;border-radius:4px}
 html.paper .step.on.play::after,html.paper .step.acc.play::after{box-shadow:inset 0 0 0 2px #14130f}
-html.paper .lv-pad.filled{background:#e8e8ec}
-html.paper .chassis::before,html.paper .chassis::after,html.paper .lv-bolt,
+html.paper .lv-pad.filled{background:#e8e8ec}html.paper .lv-bolt,
 html.paper .island .screw,html.paper .lv-side .screw{background:#e0e0e4;box-shadow:0 0 0 1px rgba(0,0,0,.05)}
 html.paper .crt{background:linear-gradient(160deg,rgba(255,255,255,.5) 0%,rgba(255,255,255,.12) 26%,rgba(255,255,255,0) 52%);
   mix-blend-mode:normal;animation:none;opacity:1}
@@ -1075,8 +1048,8 @@ html.paper .row[data-g] .sel{box-shadow:inset 3px 0 0 #14141a}
 /* BRACHINISTE :: brushed grey shell, teal glass, one warm accent. measured off the real device. */
 html.mach{--bg:#2a2c2e;--chassis1:#9a9c9f;--chassis2:#5e5f63;--chassis-edge:#3a3b3e;
   --panel:#1c2121;--panel2:#223437;--line:#4a4b4e;--line-hi:#7e8082;--dim:#c2cfd0;--dimmer:#8fa3a4;
-  --amber:#d8c47a;--amber-deep:#8a7838;--amber-glow:rgba(216,196,122,.35);--amber-hi:#f0e4b0;--amber-lit:#fff6d2;
-  --ink:#0c0f0e;--kitink:#d0dbdc;--signal:#d8c47a;--signal-rgb:216,196,122}
+  --amber:#c9a83e;--amber-deep:#8a7838;--amber-glow:rgba(201,168,62,.35);--amber-hi:#c9a83e;--amber-lit:#c9a83e;
+  --ink:#0c0f0e;--kitink:#d0dbdc;--signal:#c9a83e;--signal-rgb:216,196,122}
 html.mach body{background:radial-gradient(900px 500px at 50% -10%,#3a3c3f 0%,#232527 60%),#1e2022}
 html.mach .chassis{background:linear-gradient(168deg,rgba(158,160,163,.88) 0%,rgba(150,152,155,.88) 30%,rgba(140,142,146,.88) 70%,rgba(132,134,138,.88) 100%);
   border:1px solid #3a3b3e;border-radius:10px;
@@ -1100,15 +1073,15 @@ html.mach #ctrlbar button,html.mach #ctrlbarL button,html.mach #hidebar button{b
 html.mach #ctrlbar button:hover,html.mach #ctrlbarL button:hover,html.mach #hidebar button:hover{background:linear-gradient(180deg,#c8cacd,#9ea0a3);color:#101314}
 html.mach .btn.play.on,html.mach .cell-btn.on,html.mach .lv-tr.on,html.mach .pg-btn.lit,html.mach .pg-btn.on,
 html.mach .kit-field .cell-btn.on,html.mach .mfx-b.snd,html.mach .lv-scene.on,html.mach .mute.on{
-  background:linear-gradient(180deg,#e8cf74 0%,#c9a83e 100%);color:#171205;border-color:#7a6520;
+  background:#c9a83e;color:#171205;border-color:#7a6520;
   box-shadow:0 1px 0 rgba(255,255,255,.45) inset, 0 1px 2px rgba(0,0,0,.4)}
 html.mach .steps{background:#0f2124;padding:3px;border-radius:4px;box-shadow:0 2px 5px rgba(0,0,0,.5) inset}
 html.mach .step{background:#223437;border:1px solid #16282b;border-radius:2px;box-shadow:none}
 html.mach .step:nth-child(4n+1){background:#2b4044}
 html.mach .step.on,html.mach .step.on:nth-child(4n+1){background:#d0dbdc;border-color:#eef4f4;box-shadow:none}
 html.mach .step.acc,html.mach .step.acc:nth-child(4n+1){background:#fff;border-color:#fff;box-shadow:none}
-html.mach .step.play{box-shadow:inset 0 0 0 2px #e8cf74}
-html.mach .step.play::after{box-shadow:inset 0 0 0 2px #e8cf74;border-radius:2px}
+html.mach .step.play{box-shadow:inset 0 0 0 2px #c9a83e}
+html.mach .step.play::after{box-shadow:inset 0 0 0 2px #c9a83e;border-radius:2px}
 html.mach .cap{background:radial-gradient(circle at 40% 24%,#e2e4e5 0%,#b4b6b8 38%,#7e8082 72%,#5a5c5e 100%);
   border:1px solid #3a3b3e;box-shadow:0 2px 4px rgba(0,0,0,.45)}
 html.mach .cap::after{background:#171a1b}
@@ -1116,18 +1089,18 @@ html.mach .status,html.mach .readout,html.mach .kit-disp{background:#0f2124;bord
   box-shadow:0 2px 4px rgba(0,0,0,.5) inset;color:#9fb6b7}
 html.mach .status,html.mach #statustxt,html.mach .readout,html.mach .kit-disp-v{color:#c8d6d7}
 html.mach .kit-field{background:#0f2124;border:1px solid #0a1416;box-shadow:0 2px 5px rgba(0,0,0,.45) inset}
-html.mach .transport{background:#c9a83e;border:1px solid #8a7838;box-shadow:none}
+html.mach .transport.deck{background:#c9a83e;border:1px solid #8a7838;box-shadow:none}
 html.mach .slider,html.mach .mvol{background:#16282b;box-shadow:inset 0 1px 2px rgba(0,0,0,.5)}
 html.mach .slider::-webkit-slider-thumb{background:linear-gradient(180deg,#c8cacd,#8e9093);border:1px solid #3a3b3e;box-shadow:0 1px 2px rgba(0,0,0,.4)}
 html.mach .mvol::-webkit-slider-thumb{background:linear-gradient(180deg,#c8cacd,#8e9093)}
 html.mach .meter .led{background:#16282b}
 html.mach .meter .led.on{background:#d0dbdc}
-html.mach .meter .led.hot.on{background:#e8cf74}
+html.mach .meter .led.hot.on{background:#c9a83e}
 html.mach .lim-led{background:#16282b}
-html.mach .lim-btn.on .lim-led{background:#e8cf74}
+html.mach .lim-btn.on .lim-led{background:#c9a83e}
 html.mach .lv-pad{background:#223437;border:1px solid #16282b;color:#8fa3a4}
 html.mach .lv-pad.filled{background:#2f4649;color:#c8d6d7}
-html.mach .lv-pad.on{background:linear-gradient(180deg,#e8cf74,#c9a83e);color:#171205;border-color:#7a6520}
+html.mach .lv-pad.on{background:#c9a83e;color:#171205;border-color:#7a6520}
 html.mach .wordmark{color:#101314;text-shadow:0 1px 0 rgba(255,255,255,.30)}
 html.mach .fin-b,html.mach .mfx-add,html.mach .lv-fxbtn.add,html.mach .void-addrow{color:#c2cfd0}
 html.mach .f-p,html.mach .feat-p{color:#2e3133}
@@ -1135,21 +1108,20 @@ html.mach .fh-txt{color:#e6ebec}
 html.mach .feat-line{background:rgba(0,0,0,.25)}
 html.mach .feat-hover{background:#0f2124;border-color:#0a1416}
 html.mach .wip-card{border-color:#0a0e0f}
-html.mach .wip-tag{color:#e8cf74}
+html.mach .wip-tag{color:#c9a83e}
 html.mach .wip-body{color:#8fa3a4}
-html.mach .status .dot{background:#e8cf74}
-html.mach #snadlink .sl-t{color:#101314}
-html.mach #snadlink .sl-s{color:#2e3133}
+html.mach .status .dot{background:#c9a83e}
+html.mach #snadlink .sl-t{color:#c9a83e}
+html.mach #snadlink .sl-s{color:#8fa3a4}
 html.mach .eyebrow span,html.mach .subtitle,html.mach .foot{color:#2e3133}
-html.mach .bars-ico i{background:#101314}
-html.mach .chassis::before,html.mach .chassis::after,html.mach .lv-bolt,
+html.mach .bars-ico i{background:#101314}html.mach .lv-bolt,
 html.mach .island .screw,html.mach .lv-side .screw{background:radial-gradient(circle at 35% 30%,#d2d4d6,#6e7073 70%)}
 </style>
 </head>
 <body>
 <canvas id="bgfx"></canvas>
 <div id="mapOv"><div class="map-wrap"><div id="mapHost"></div>
-  <div class="map-foot"><button id="mapHow">HOW IT WORKS</button><button id="mapGo">START</button></div></div></div>
+  <div class="map-foot"><button id="mapHow">HOW IT WORKS</button><button id="mapGo">CLOSE</button></div></div></div>
 <div id="hoverBar" aria-live="polite"></div>
 <button id="helpBtn" title="how it works" aria-label="how it works">?</button>
 <div id="helpOv"><button class="help-x" id="helpX" aria-label="close">✕</button><div class="help-inner" id="helpInner"></div></div>
@@ -1179,7 +1151,7 @@ html.mach .island .screw,html.mach .lv-side .screw{background:radial-gradient(ci
     <span class="tag">// VOICE EDIT</span>
     <span class="screw tl"></span><span class="screw bl"></span><span class="screw br"></span>
     <div class="kitrow" id="kitrow" style="margin-bottom:14px"></div>
-    <div class="transport">
+    <div class="transport deck">
       <button class="btn play" id="play">PLAY</button>
       <button class="btn livebtn" id="liveBtn" title="live performance screen \u00b7 ctrl+shift+L">LIVE</button>
       <div class="field"><label>BPM</label><input class="slider" id="bpm" type="range" min="60" max="200" value="120"><span class="readout" id="bpmval">120</span></div>
@@ -1257,7 +1229,7 @@ html.mach .island .screw,html.mach .lv-side .screw{background:radial-gradient(ci
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 837</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 849</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -2399,7 +2371,7 @@ registerProcessor("crush-fx", CrushFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="837";
+const REV="849";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -2489,8 +2461,8 @@ KITLABV[0]={name:"KICK 1",defs:KITLABV[0].defs.filter(x=>["dtype","ddrive","dpre
 const KITRIMV=[]; for(let _i=0;_i<9;_i++)KITRIMV.push({name:"RIM A",defs:[d("tune",0.5,2,1,1,"TUNE"),d("decay",0.2,3,0.62,1,"DECAY"),d("tone",0,1,0.5,0,"TONE"),d("click",0,2,1,0,"CLICK"),d("res",3,30,10,1,"RES"),d("drive",0,1,0.5,0,"DRIVE"),d("pan",-1,1,0),d("level",0,1.5,0.9,0,"LEVEL")]});   // RIM LAB voices (kit 7)
 KITRIMV[1]={name:"RIM B",defs:[d("tune",0.5,2,0.98,1,"TUNE"),d("decay",0.15,3,0.412,1,"DECAY"),d("tone",0,1,1,0,"TONE"),d("fmAmt",0,1,0.2,0,"FM.AMT"),d("fmRatio",0.5,4,1.5,1,"FM.RAT"),d("noise",0,1,0.07,0,"NOISE"),d("drive",0,1,0.4,0,"DRIVE"),d("pan",-1,1,0),d("level",0,1.5,0.9,0,"LEVEL")]};   // 909 rimshot :: real schematic freqs, short envelopes
 const KITVOIDV=[]; for(let _i=0;_i<9;_i++)KITVOIDV.push({name:"SLOT "+(_i+1),defs:[],empty:true});
-const KITS=[{name:"RAW",voices:KIT1V},{name:"PCKRT",voices:KIT2V},{name:"SUBS",voices:KIT3V},{name:"SAMPLES",voices:KIT4V},{name:"RESONANT",voices:KITPERCV},{name:"KICK LAB",voices:KITLABV},{name:"YOUR KIT",voices:KITVOIDV},{name:"RIM LAB",voices:KITRIMV}];
-const KIT_ORDER=[1,0,4,2,5,7]   // sumad's two labs are sound sets as well :: the rack is the only thing that is not;   // display order (pos->internal index) :: samples stays internal 3, VOID appended
+const KITS=[{name:"DRUM 2",voices:KIT1V},{name:"DRUM 1",voices:KIT2V},{name:"PERC 2",voices:KIT3V},{name:"SAMPLES",voices:KIT4V},{name:"PERC 1",voices:KITPERCV},{name:"KICK LAB",voices:KITLABV},{name:"YOUR KIT",voices:KITVOIDV},{name:"RIM LAB",voices:KITRIMV}];
+const KIT_ORDER=[1,0,4,2,5,7]   // DRUM 1, DRUM 2, PERC 1, PERC 2, then the two labs   // sumad's two labs are sound sets as well :: the rack is the only thing that is not;   // display order (pos->internal index) :: samples stays internal 3, VOID appended
 const KITKEYS=["raw","pckrt","subs","samples","resonant","kicklab","void","rimlab"];   // internal index -> tutorial key
 const userSamples=Array(9).fill(null);   // {data:Float32Array, sr, name} · session store, re-sent to worklet on engine start
 // ---- local sample persistence (IndexedDB) ----
@@ -4720,26 +4692,49 @@ function openModelMenu(ev,items,cur,pick){ closeSlotMenu();
   m.style.top=Math.min(t.bottom+4,innerHeight-r.height-8)+"px";
   menuGuard(m,closeSlotMenu); }
 function closeSoundPicker(){ const e=document.getElementById("soundPicker"); if(e)e.remove(); }
-function copyPatternToVoid(){
+function askOverwrite(setName,done){
+  const ov=document.createElement("div"); ov.className="kbd-overlay";
+  const pop=document.createElement("div"); pop.className="kbd-pop"; pop.style.maxWidth="460px";
+  const t=document.createElement("div"); t.className="kbd-title";
+  const ts=document.createElement("span"); ts.textContent="// "+setName+" IS ALREADY IN YOUR RACK"; t.appendChild(ts); pop.appendChild(t);
+  const body=document.createElement("div");
+  body.style.cssText="font-family:var(--mono);font-size:11px;line-height:1.75;letter-spacing:.5px;color:var(--dim);padding:4px 2px 16px";
+  body.textContent="OVERWRITE replaces the slots that came from this set and leaves everything else alone. ADD puts a second copy beside the first.";
+  pop.appendChild(body);
+  const row=document.createElement("div"); row.style.cssText="display:flex;gap:9px;justify-content:flex-end";
+  const mk=(label,val)=>{ const b=document.createElement("button"); b.className="btn"; b.textContent=label;
+    b.onclick=()=>{ document.removeEventListener("keydown",key,true); ov.remove(); done(val); }; return b; };
+  const key=(e)=>{ if(e.key==="Escape"){ document.removeEventListener("keydown",key,true); ov.remove(); done(null); } };
+  row.append(mk("CANCEL",null),mk("ADD","add"),mk("OVERWRITE","overwrite"));
+  pop.appendChild(row); ov.appendChild(pop);
+  ov.onpointerdown=(e)=>{ if(e.target===ov){ document.removeEventListener("keydown",key,true); ov.remove(); done(null); } };
+  document.body.appendChild(ov); document.addEventListener("keydown",key,true);
+}
+function copyPatternToVoid(mode){
   const src=state.kit; if(src===6){ setStatus("already in your kit"); return; }
   const kv=KITS[src].voices, nMax=Math.min(9,kv.length);
   const pat=curPat();
   const used=[]; for(let i=0;i<nMax;i++){ const row=pat.steps[i]; if(row&&row.some(v=>v))used.push(i); }
   if(!used.length){ setStatus("no steps to copy"); return; }
   const va=state.kits[6];
+  const already=[]; for(let i=0;i<va.length;i++)if(va[i]&&va[i].srcKit===src)already.push(i);
+  if(already.length&&!mode){ askOverwrite(KITS[src].name,(c)=>{ if(c)copyPatternToVoid(c); }); return; }   // a second copy from the same set would double it silently
+  const reuse=(mode==="overwrite")?already.slice(0,used.length):[];
   let first=0; while(first<va.length&&va[first]&&va[first].srcKit!=null)first++;   // append after what is already there
-  const need=first+used.length;
+  const need=first+Math.max(0,used.length-reuse.length);
   const cap=(typeof VOID_MAX!=="undefined"?VOID_MAX:15);
   if(need>cap){ setStatus("not enough free VOID slots ("+used.length+" needed)"); return; }
   while(va.length<need){ va.push(va[0]?Object.create(Object.getPrototypeOf(va[0])):{}); const nv=va[va.length-1]; nv.name="SLOT "+va.length; nv.defs=[]; nv.vals={}; nv.fxMode="drive"; nv.mute=false; }
   if(engineNode)engineNode.port.postMessage({type:"voidSlots",n:va.length});
   const saved=used.map(i=>({ steps:pat.steps[i]?pat.steps[i].slice():null, sub:pat.sub[i]?pat.sub[i].slice():null, locks:pat.locks[i]?JSON.parse(JSON.stringify(pat.locks[i])):null }));
   const srcVals=used.map(i=>Object.assign({},state.voices[i]?state.voices[i].vals:{}));
-  used.forEach((i,j)=>{ const dst=first+j; assignVoidSlot(dst,src,i); const vo=state.kits[6][dst]; if(vo&&srcVals[j]){ Object.assign(vo.vals,srcVals[j]); const ev=effVals(vo); for(const k in ev)sendParam(dst,k,ev[k]); } });
+  const targets=used.map((_,j)=>(j<reuse.length)?reuse[j]:(first+(j-reuse.length)));
+  used.forEach((i,j)=>{ const dst=targets[j]; assignVoidSlot(dst,src,i); const vo=state.kits[6][dst]; if(vo&&srcVals[j]){ Object.assign(vo.vals,srcVals[j]); const ev=effVals(vo); for(const k in ev)sendParam(dst,k,ev[k]); } });
   state.kit=6; state.selected=0;
-  const g=newVoidGroup();   // plain GROUP n :: import names ran out of the name column, and you rename it anyway
+  const oldG=(reuse.length&&va[reuse[0]])?va[reuse[0]].group:null;
+  const g=(mode==="overwrite"&&oldG&&groupById(oldG))?groupById(oldG):newVoidGroup();   // plain GROUP n :: import names ran out of the name column, and you rename it anyway
   const gb=g?groupBank(g.id):0;
-  for(let j=0;j<used.length;j++){ const dst=first+j; const vo=state.kits[6][dst]; if(vo&&g)vo.group=g.id;
+  for(let j=0;j<used.length;j++){ const dst=targets[j]; const vo=state.kits[6][dst]; if(vo&&g)vo.group=g.id;
     const b=state.patterns[gb]; const sv=saved[j];
     if(b&&sv.steps){ b.steps[dst]=sv.steps; b.sub[dst]=sv.sub||new Array(MAX_STEPS).fill(1); b.locks[dst]=sv.locks||{}; }   // straight into its own bank, at the slot we actually used
   }
@@ -4782,9 +4777,10 @@ function buildEditor(){
   const ed=document.getElementById("editor");ed.innerHTML="";ed.style.minHeight="152px";
   const setMode=!!(state.setEditKit&&state.setEditKit[state.kit]);
   const head=document.createElement("div");head.className="editor-head";
-  if(setMode){ const idx=document.createElement("span");idx.className="voice-idx";idx.textContent="\u25c6";
-    const nm=document.createElement("span");nm.className="voice-name";nm.textContent="SET // ALL "+state.voices.length+" VOICES";
-    head.append(idx,nm); }   // a single voice is named by its own sequencer row, no need to say it twice
+  { const idx=document.createElement("span");idx.className="voice-idx";idx.textContent=setMode?"\u25c6":(state.selected+1);
+    const nm=document.createElement("span");nm.className="voice-name";
+    nm.textContent=setMode?("SET // ALL "+state.voices.length+" VOICES"):(state.voices[state.selected]?state.voices[state.selected].name:"");
+    head.append(idx,nm); }   // rides in the frame head, so it costs no row of its own
   { const sb=document.createElement("button"); sb.className="cell-btn sndset"+(setMode?" on":""); sb.style.marginLeft="auto"; sb.textContent=setMode?"SET":"SOUND"; sb.title="SOUND: edit the picked voice \u00b7 SET: move params + fx on all 9 voices together"; sb.onclick=()=>{ state.setEditKit=state.setEditKit||{}; state.setEditKit[state.kit]=!setMode; buildEditor(); }; head.append(sb); }
   if(state.kit===3){
     ed.ondragover=(e)=>{e.preventDefault();};
@@ -5782,7 +5778,7 @@ function buildKit(){
     prev.onclick=()=>step(-1);
     const name=document.createElement("div");name.className="sel-name";
     name.textContent=KITS[KIT_ORDER[at]].name;
-    if(!inSet){ field.classList.add("stepped-aside");
+    if(!inSet){ 
       name.title="back to "+KITS[KIT_ORDER[at]].name; name.dataset.desc=name.title;
       name.style.cursor="pointer"; name.onclick=()=>switchKit(KIT_ORDER[at]); }
     const next=document.createElement("button");next.className="cell-btn sel-arrow";
@@ -5804,7 +5800,7 @@ function buildKit(){
     vh.title=(window.TIP_KIT&&window.TIP_KIT.void)||"";vb.appendChild(vh);
     const vf=document.createElement("div");vf.className="kit-pad";
     const bt=document.createElement("button");bt.className="lit-btn rack-open"+(state.kit===6?" on":"");
-    bt.textContent="OPEN";bt.title=(window.TIP_KIT&&window.TIP_KIT.void)||"your own workbench \u00b7 sounds from any set, your own samples too";
+    bt.textContent=(state.kit===6)?"RACK":"OPEN";   // a lit button says where you are, so it should not read like an invitationbt.title=(window.TIP_KIT&&window.TIP_KIT.void)||"your own workbench \u00b7 sounds from any set, your own samples too";
     bt.dataset.desc=bt.title;bt.onclick=()=>switchKit(6);
     vf.appendChild(bt);vb.appendChild(vf);host.appendChild(vb); }
   }   // LIVE island hidden while the live page is unfinished :: CTRL+SHIFT+L opens it
@@ -7339,7 +7335,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=837","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=849","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
@@ -7766,7 +7762,7 @@ atConnect(false);
 // INFO / TOOLTIP PANEL :: drecksler feat-panel ported 1:1
 // (text is placeholder · mechanics + layering first)
 // ============================================================
-const PLAN={"en":[["1 · PICK A KIT","Four drum kits, each with its own synthesis engine. RAW builds everything from raw waveforms, PCKRT is a classic analogue drum machine, SUBS gives you tuned low end, RESONANT rings and chimes. SKIP steps through them, the display beside it says where you are. Nothing here is sampled: every hit is calculated while it plays."],["2 · SHAPE THE SOUND","Click a voice in the grid, then work the editor. PARAMS build the body, FX dirty it up. SET moves a knob on all nine voices at once. Ctrl-drag a voice onto another to copy its sound."],["3 · SUMAD'S DRUM LAB","Two workbenches next to the kits, each for one sound taken apart. KICK LAB gives you the pitch drop of a kick in stages · CLICK.F is the top of the sweep, PUNCH.F the middle, TUNE where it lands, so you hear what each part contributes. RIMSHOT LAB does the same for a rim hit: three tuned resonators plus noise, two versions side by side. Both have their own sequencer tracks and their own patterns, kept apart from everything else · build a sound, write a figure, then right-click PATTERN to take it into YOUR KIT."],["4 · WRITE THE PATTERN","Tap a step: on, again for accent, again for off. Drag a step up or down for fine velocity, mouse-wheel for ratchets. Eight patterns per kit, up to four bars each."],["5 · P-LOCK · PER-STEP VALUES","Tap a knob without turning it and the step grid switches to that parameter. Now every step can hold its own value · drag one up or down and only that hit gets a different filter, decay or pitch. This is where a flat loop starts to move: one open hat brighter than the rest, one kick tuned down. Tap the knob again to leave the mode."],["6 · SET THE FEEL","PLAY runs the loop. BPM and SWING carry the groove. REC plus a knob turn while it plays records automation."],["7 · LOOK AND FEEL","BG runs a background animation driven by what you play · it reacts to your hits and changes nothing in the sound. FX picks its colour, SKIN the look of the chassis. TEXT hides these explanation panels when you no longer need them, HIDE clears the frame entirely for a full-screen view. All of it is cosmetic · nothing here touches what you hear."],["8 · YOUR KIT","YOUR KIT is your own workbench, and it starts empty. Pull sounds in from any kit, load your own samples straight into a slot with a right-click, or right-click PATTERN in a kit to bring a whole pattern across. Fifteen slots. The four kits are made for everyone; this one is only yours."],["9 · GROUP AND TREAT","Select slots with shift, CTRL+G makes them a group. A group carries its own patterns and its own effect chain · right-click a row for GROUP FX."],["10 · THE SUM","Everything meets on the master. MASTER FX is the chain over the whole mix · distortion, filter, delay, reverb, resonator, glitch, rumble. The FINALIZER underneath is the last stage: pick a character like GLUE, PUNCH or WARM instead of setting a compressor by hand. LIMIT catches whatever still peaks. Work here last, once the parts already sit together."],["11 · MIDI CONTROL","Right-click any knob and pick MIDI LEARN, then move a control on your hardware · the two are linked from then on. The knob catches up smoothly instead of jumping, so nothing lurches when you take over a moving value. Map the handful of things you actually reach for while playing: filter, decay, the group effects. Right-click again to clear it."],["12 · KEEP IT","SAVE KIT writes a file with the sounds, every pattern, the effects and the look. LOAD KIT reads it back, or just drop the file onto the window."],["13 · TAKE IT TO AUDIOTOOL","Connect with UPLINK first. EXPORT sends the whole set into Audiotool as a playable Machiniste: every voice becomes its own one-shot and the steps are written into its pattern, so you arrive with nine separate channels still open to mixing. One-shots are dry, though. If your sound leans on reverb or delay, export a loop into the timeline instead, so the tail comes with it. It goes the other way too: audio sitting in your Audiotool timeline can be pulled straight into a live loop track, with no export and no download. EXPORT WAV is the third route, for any other DAW."]],"de":[["1 · KIT WÄHLEN","Vier Drumkits, jedes mit eigener Synthese. RAW baut alles aus rohen Wellenformen, PCKRT ist eine klassische Analog-Drummachine, SUBS liefert gestimmtes Fundament, RESONANT klingt und schwingt. SKIP schaltet weiter, die Anzeige daneben sagt dir wo du bist. Nichts davon ist gesampelt: jeder Schlag wird im Moment des Spielens berechnet."],["2 · KLANG FORMEN","Stimme im Raster anklicken, dann im Editor arbeiten. PARAMS bauen den Körper, FX machen ihn schmutzig. SET dreht einen Regler auf allen neun Stimmen gleichzeitig. Strg-Ziehen kopiert einen Sound auf eine andere Stimme."],["3 · SUMADS LABOR","Zwei Werkbänke neben den Kits, jede für einen auseinandergenommenen Sound. Das KICK LAB zeigt den Tonhöhensturz einer Kick in Stufen · CLICK.F ist die Spitze des Sweeps, PUNCH.F die Mitte, TUNE wo er landet, du hörst also, was jeder Teil beiträgt. Das RIMSHOT LAB macht dasselbe für einen Rimshot: drei gestimmte Resonatoren plus Rauschen, zwei Varianten nebeneinander. Beide haben eigene Sequencer-Spuren und eigene Pattern, getrennt vom Rest · bau einen Sound, schreib eine Figur, und hol sie per Rechtsklick auf PATTERN in DEIN KIT."],["4 · PATTERN SCHREIBEN","Step antippen: an, nochmal für Akzent, nochmal aus. Step hoch oder runter ziehen für feine Anschlagstärke, Mausrad für Wiederholungen. Acht Pattern pro Kit, bis zu vier Takte."],["5 · P-LOCK · WERTE PRO STEP","Tippe einen Regler an, ohne ihn zu drehen, und das Step-Raster schaltet auf diesen Parameter um. Jeder Step hält jetzt seinen eigenen Wert · zieh einen hoch oder runter, und nur dieser eine Schlag bekommt ein anderes Filter, Decay oder eine andere Tonhöhe. Hier fängt ein flacher Loop an sich zu bewegen: eine offene Hihat heller als der Rest, eine Kick tiefer gestimmt. Nochmal auf den Regler tippen verlässt den Modus."],["6 · GROOVE EINSTELLEN","PLAY startet den Loop. BPM und SWING tragen das Feeling. REC plus Reglerdrehung während des Laufens zeichnet Automation auf."],["7 · DEIN KIT","DEIN KIT ist deine eigene Werkbank, und es fängt leer an. Hol dir Sounds aus jedem Kit, lade eigene Samples per Rechtsklick direkt in einen Slot, oder kopiere mit Rechtsklick auf PATTERN ein ganzes Pattern herüber. Fünfzehn Slots. Die vier Kits sind für alle gemacht, dieses hier gehört nur dir."],["8 · GRUPPIEREN UND VEREDELN","Plätze mit Shift auswählen, STRG+G macht eine Gruppe daraus. Jede Gruppe hat eigene Pattern und eine eigene Effektkette · Rechtsklick auf eine Zeile öffnet GROUP FX."],["9 · DIE SUMME","Alles trifft sich am Master. MASTER FX ist die Kette über dem ganzen Mix · Verzerrung, Filter, Delay, Hall, Resonator, Glitch, Rumble. Der FINALIZER darunter ist die letzte Stufe: du wählst einen Charakter wie GLUE, PUNCH oder WARM, statt einen Kompressor von Hand einzustellen. LIMIT fängt ab, was dann noch übersteht. Hier arbeitest du zuletzt, wenn die Teile schon zusammensitzen."],["10 · MIDI-STEUERUNG","Rechtsklick auf einen Regler, MIDI LEARN wählen, dann am Hardware-Regler drehen · ab da sind beide verbunden. Der Regler fängt den Wert weich ein, statt zu springen, es reißt also nichts, wenn du einen laufenden Wert übernimmst. Leg die Handvoll Dinge auf Hardware, nach denen du beim Spielen wirklich greifst: Filter, Decay, die Gruppeneffekte. Nochmal Rechtsklick löscht die Zuordnung."],["11 · SICHERN","SAVE KIT schreibt eine Datei mit den Sounds, allen Pattern, den Effekten und dem Aussehen. LOAD KIT liest sie zurück, oder zieh die Datei einfach ins Fenster."],["12 · NACH AUDIOTOOL BRINGEN","Zuerst mit UPLINK verbinden. EXPORT schickt das ganze Set als spielbaren Machiniste nach Audiotool: jede Stimme wird ein eigener One-Shot, die Steps landen in seinem Pattern, du kommst also mit neun getrennten Kanälen an. One-Shots sind allerdings trocken. Wenn dein Sound von Hall oder Delay lebt, exportiere lieber einen Loop in die Timeline, dann kommt die Fahne mit. Es geht auch andersherum: Audio, das in deiner Audiotool-Timeline liegt, holst du direkt in eine Loop-Spur, ohne Export und ohne Download. EXPORT WAV ist der dritte Weg, für jede andere DAW."],["13 · OPTIK","BG lässt eine Hintergrundanimation laufen, angetrieben von dem, was du spielst · sie reagiert auf deine Schläge und ändert nichts am Klang. FX wählt ihre Farbe, SKIN das Aussehen des Gehäuses. TEXT blendet diese Erklärungen aus, wenn du sie nicht mehr brauchst, HIDE räumt den ganzen Rahmen für die Vollbildansicht weg. Alles davon ist reine Optik · nichts hier berührt, was du hörst."]],"fr":[["1 · CHOISIR UN KIT","Quatre kits de batterie, chacun avec sa propre synthèse. RAW construit tout à partir de formes d'onde brutes, PCKRT est une boîte à rythmes analogique classique, SUBS donne un bas du spectre accordé, RESONANT sonne et résonne. SKIP passe au suivant, l'affichage à côté indique où tu es. Rien n'est échantillonné : chaque frappe est calculée pendant la lecture."],["2 · SCULPTER LE SON","Clique une voix dans la grille, puis travaille dans l'éditeur. PARAMS construisent le corps, FX le salissent. SET bouge un réglage sur les neuf voix à la fois. Ctrl-glisser copie un son sur une autre voix."],["3 · LE LABO DE SUMAD","Deux établis à côté des kits, chacun pour un son démonté. Le KICK LAB montre la chute de hauteur d'un kick par étages · CLICK.F est le sommet du balayage, PUNCH.F le milieu, TUNE l'arrivée : tu entends ce que chaque partie apporte. Le RIMSHOT LAB fait de même pour un rimshot : trois résonateurs accordés plus du bruit, deux versions côte à côte. Les deux ont leurs propres pistes et leurs propres motifs, séparés du reste · construis un son, écris une figure, puis clic droit sur PATTERN pour l'emmener dans TON KIT."],["4 · ÉCRIRE LE MOTIF","Tape un pas : allumé, encore pour l'accent, encore pour éteindre. Glisse un pas vers le haut ou le bas pour la vélocité, molette pour les répétitions. Huit motifs par kit, jusqu'à quatre mesures."],["5 · P-LOCK · VALEURS PAR PAS","Tape un réglage sans le tourner et la grille passe sur ce paramètre. Chaque pas peut alors garder sa propre valeur · tire-en un vers le haut ou le bas et seule cette frappe reçoit un autre filtre, un autre decay ou une autre hauteur. C'est là qu'une boucle plate se met à bouger : un charley ouvert plus brillant que les autres, un kick accordé plus bas. Retape le réglage pour quitter le mode."],["6 · RÉGLER LE GROOVE","PLAY lance la boucle. BPM et SWING portent le feeling. REC plus un réglage tourné pendant la lecture enregistre l'automation."],["7 · TON KIT","TON KIT est ton propre établi, et il commence vide. Prends des sons dans n'importe quel kit, charge tes propres samples directement dans un emplacement par clic droit, ou copie un motif entier via clic droit sur PATTERN. Quinze emplacements. Les quatre kits sont faits pour tout le monde, celui-ci n'appartient qu'à toi."],["8 · GROUPER ET TRAITER","Sélectionne des emplacements avec Maj, CTRL+G en fait un groupe. Chaque groupe garde ses propres motifs et sa propre chaîne d'effets · clic droit sur une ligne pour GROUP FX."],["9 · LA SOMME","Tout se rejoint sur le master. MASTER FX est la chaîne sur le mix entier · distorsion, filtre, delay, réverbération, résonateur, glitch, rumble. Le FINALIZER en dessous est l'étage final : tu choisis un caractère comme GLUE, PUNCH ou WARM au lieu de régler un compresseur à la main. LIMIT rattrape ce qui dépasse encore. On travaille ici en dernier, quand les éléments tiennent déjà ensemble."],["10 · CONTRÔLE MIDI","Clic droit sur un réglage, choisis MIDI LEARN, puis bouge une commande de ton matériel · les deux sont liés dès lors. Le réglage rattrape la valeur en douceur au lieu de sauter, rien ne se déchire quand tu reprends une valeur en mouvement. Assigne les quelques choses que tu touches vraiment en jouant : filtre, decay, les effets de groupe. Un nouveau clic droit efface l'assignation."],["11 · CONSERVER","SAVE KIT écrit un fichier avec les sons, tous les motifs, les effets et l'apparence. LOAD KIT le relit, ou dépose simplement le fichier sur la fenêtre."],["12 · EMPORTER VERS AUDIOTOOL","Connecte-toi d'abord avec UPLINK. EXPORT envoie tout le set vers Audiotool sous forme de Machiniste jouable : chaque voix devient un one-shot et les pas sont écrits dans son motif, tu arrives donc avec neuf canaux séparés. Mais les one-shots sont secs. Si ton son repose sur la réverbération ou le delay, exporte plutôt une boucle vers la timeline, la queue vient avec. Cela marche aussi dans l'autre sens : l'audio posé dans ta timeline Audiotool se récupère directement dans une piste de boucle, sans export ni téléchargement. EXPORT WAV est la troisième voie, pour toute autre DAW."],["13 · APPARENCE","BG lance une animation de fond pilotée par ce que tu joues · elle réagit à tes frappes et ne change rien au son. FX choisit sa couleur, SKIN l'aspect du châssis. TEXT masque ces panneaux d'explication quand tu n'en as plus besoin, HIDE dégage tout le cadre pour une vue plein écran. Tout cela est purement esthétique · rien ici ne touche à ce que tu entends."]]};
+const PLAN={"en":[["1 · PICK A KIT","Six sound sets, each with its own synthesis engine. DRUM 1 and DRUM 2 are full kits: kick, snare, hats, toms. PERC 1 and PERC 2 hold no kick and no snare, only the things in between. KICK LAB and RIM LAB were built by Sumad, one sound each, every parameter open. Step through them with the arrows. Nothing here is sampled: every hit is calculated while it plays."],["2 · SHAPE THE SOUND","Click a voice in the grid, then work the editor. PARAMS build the body, FX dirty it up. SET moves a knob on all nine voices at once. Ctrl-drag a voice onto another to copy its sound."],["3 · SUMAD'S DRUM LAB","Two workbenches next to the kits, each for one sound taken apart. KICK LAB gives you the pitch drop of a kick in stages · CLICK.F is the top of the sweep, PUNCH.F the middle, TUNE where it lands, so you hear what each part contributes. RIMSHOT LAB does the same for a rim hit: three tuned resonators plus noise, two versions side by side. Both have their own sequencer tracks and their own patterns, kept apart from everything else · build a sound, write a figure, then right-click PATTERN to take it into YOUR KIT."],["4 · WRITE THE PATTERN","Tap a step: on, again for accent, again for off. Drag a step up or down for fine velocity, mouse-wheel for ratchets. Eight patterns per kit, up to four bars each."],["5 · P-LOCK · PER-STEP VALUES","Tap a knob without turning it and the step grid switches to that parameter. Now every step can hold its own value · drag one up or down and only that hit gets a different filter, decay or pitch. This is where a flat loop starts to move: one open hat brighter than the rest, one kick tuned down. Tap the knob again to leave the mode."],["6 · SET THE FEEL","PLAY runs the loop. BPM and SWING carry the groove. REC plus a knob turn while it plays records automation."],["7 · LOOK AND FEEL","BG runs a background animation driven by what you play · it reacts to your hits and changes nothing in the sound. FX picks its colour, SKIN the look of the chassis. TEXT hides these explanation panels when you no longer need them, HIDE clears the frame entirely for a full-screen view. All of it is cosmetic · nothing here touches what you hear."],["8 · YOUR KIT","YOUR KIT is your own workbench, and it starts empty. Pull sounds in from any kit, load your own samples straight into a slot with a right-click, or right-click PATTERN in a kit to bring a whole pattern across. Fifteen slots. The four kits are made for everyone; this one is only yours."],["9 · GROUP AND TREAT","Select slots with shift, CTRL+G makes them a group. A group carries its own patterns and its own effect chain · right-click a row for GROUP FX."],["10 · THE SUM","Everything meets on the master. MASTER FX is the chain over the whole mix · distortion, filter, delay, reverb, resonator, glitch, rumble. The FINALIZER underneath is the last stage: pick a character like GLUE, PUNCH or WARM instead of setting a compressor by hand. LIMIT catches whatever still peaks. Work here last, once the parts already sit together."],["11 · MIDI CONTROL","Right-click any knob and pick MIDI LEARN, then move a control on your hardware · the two are linked from then on. The knob catches up smoothly instead of jumping, so nothing lurches when you take over a moving value. Map the handful of things you actually reach for while playing: filter, decay, the group effects. Right-click again to clear it."],["12 · KEEP IT","SAVE KIT writes a file with the sounds, every pattern, the effects and the look. LOAD KIT reads it back, or just drop the file onto the window."],["13 · TAKE IT TO AUDIOTOOL","Connect with UPLINK first. EXPORT sends the whole set into Audiotool as a playable Machiniste: every voice becomes its own one-shot and the steps are written into its pattern, so you arrive with nine separate channels still open to mixing. One-shots are dry, though. If your sound leans on reverb or delay, export a loop into the timeline instead, so the tail comes with it. It goes the other way too: audio sitting in your Audiotool timeline can be pulled straight into a live loop track, with no export and no download. EXPORT WAV is the third route, for any other DAW."]],"de":[["1 · KIT WÄHLEN","Sechs Sound Sets, jedes mit eigener Synthese. DRUM 1 und DRUM 2 sind volle Kits: Kick, Snare, Hats, Toms. PERC 1 und PERC 2 haben keine Kick und keine Snare, nur das, was dazwischen liegt. KICK LAB und RIM LAB hat Sumad gebaut, je ein Sound mit allen Parametern offen. Mit den Pfeilen blätterst du durch. Nichts davon ist gesampelt: jeder Schlag wird im Moment des Spielens berechnet."],["2 · KLANG FORMEN","Stimme im Raster anklicken, dann im Editor arbeiten. PARAMS bauen den Körper, FX machen ihn schmutzig. SET dreht einen Regler auf allen neun Stimmen gleichzeitig. Strg-Ziehen kopiert einen Sound auf eine andere Stimme."],["3 · SUMADS LABOR","Zwei Werkbänke neben den Kits, jede für einen auseinandergenommenen Sound. Das KICK LAB zeigt den Tonhöhensturz einer Kick in Stufen · CLICK.F ist die Spitze des Sweeps, PUNCH.F die Mitte, TUNE wo er landet, du hörst also, was jeder Teil beiträgt. Das RIMSHOT LAB macht dasselbe für einen Rimshot: drei gestimmte Resonatoren plus Rauschen, zwei Varianten nebeneinander. Beide haben eigene Sequencer-Spuren und eigene Pattern, getrennt vom Rest · bau einen Sound, schreib eine Figur, und hol sie per Rechtsklick auf PATTERN in DEIN KIT."],["4 · PATTERN SCHREIBEN","Step antippen: an, nochmal für Akzent, nochmal aus. Step hoch oder runter ziehen für feine Anschlagstärke, Mausrad für Wiederholungen. Acht Pattern pro Kit, bis zu vier Takte."],["5 · P-LOCK · WERTE PRO STEP","Tippe einen Regler an, ohne ihn zu drehen, und das Step-Raster schaltet auf diesen Parameter um. Jeder Step hält jetzt seinen eigenen Wert · zieh einen hoch oder runter, und nur dieser eine Schlag bekommt ein anderes Filter, Decay oder eine andere Tonhöhe. Hier fängt ein flacher Loop an sich zu bewegen: eine offene Hihat heller als der Rest, eine Kick tiefer gestimmt. Nochmal auf den Regler tippen verlässt den Modus."],["6 · GROOVE EINSTELLEN","PLAY startet den Loop. BPM und SWING tragen das Feeling. REC plus Reglerdrehung während des Laufens zeichnet Automation auf."],["7 · DEIN KIT","DEIN KIT ist deine eigene Werkbank, und es fängt leer an. Hol dir Sounds aus jedem Kit, lade eigene Samples per Rechtsklick direkt in einen Slot, oder kopiere mit Rechtsklick auf PATTERN ein ganzes Pattern herüber. Fünfzehn Slots. Die vier Kits sind für alle gemacht, dieses hier gehört nur dir."],["8 · GRUPPIEREN UND VEREDELN","Plätze mit Shift auswählen, STRG+G macht eine Gruppe daraus. Jede Gruppe hat eigene Pattern und eine eigene Effektkette · Rechtsklick auf eine Zeile öffnet GROUP FX."],["9 · DIE SUMME","Alles trifft sich am Master. MASTER FX ist die Kette über dem ganzen Mix · Verzerrung, Filter, Delay, Hall, Resonator, Glitch, Rumble. Der FINALIZER darunter ist die letzte Stufe: du wählst einen Charakter wie GLUE, PUNCH oder WARM, statt einen Kompressor von Hand einzustellen. LIMIT fängt ab, was dann noch übersteht. Hier arbeitest du zuletzt, wenn die Teile schon zusammensitzen."],["10 · MIDI-STEUERUNG","Rechtsklick auf einen Regler, MIDI LEARN wählen, dann am Hardware-Regler drehen · ab da sind beide verbunden. Der Regler fängt den Wert weich ein, statt zu springen, es reißt also nichts, wenn du einen laufenden Wert übernimmst. Leg die Handvoll Dinge auf Hardware, nach denen du beim Spielen wirklich greifst: Filter, Decay, die Gruppeneffekte. Nochmal Rechtsklick löscht die Zuordnung."],["11 · SICHERN","SAVE KIT schreibt eine Datei mit den Sounds, allen Pattern, den Effekten und dem Aussehen. LOAD KIT liest sie zurück, oder zieh die Datei einfach ins Fenster."],["12 · NACH AUDIOTOOL BRINGEN","Zuerst mit UPLINK verbinden. EXPORT schickt das ganze Set als spielbaren Machiniste nach Audiotool: jede Stimme wird ein eigener One-Shot, die Steps landen in seinem Pattern, du kommst also mit neun getrennten Kanälen an. One-Shots sind allerdings trocken. Wenn dein Sound von Hall oder Delay lebt, exportiere lieber einen Loop in die Timeline, dann kommt die Fahne mit. Es geht auch andersherum: Audio, das in deiner Audiotool-Timeline liegt, holst du direkt in eine Loop-Spur, ohne Export und ohne Download. EXPORT WAV ist der dritte Weg, für jede andere DAW."],["13 · OPTIK","BG lässt eine Hintergrundanimation laufen, angetrieben von dem, was du spielst · sie reagiert auf deine Schläge und ändert nichts am Klang. FX wählt ihre Farbe, SKIN das Aussehen des Gehäuses. TEXT blendet diese Erklärungen aus, wenn du sie nicht mehr brauchst, HIDE räumt den ganzen Rahmen für die Vollbildansicht weg. Alles davon ist reine Optik · nichts hier berührt, was du hörst."]],"fr":[["1 · CHOISIR UN KIT","Six sets de sons, chacun avec sa propre synthèse. DRUM 1 et DRUM 2 sont des kits complets : kick, caisse claire, charleys, toms. PERC 1 et PERC 2 n'ont ni kick ni caisse claire, seulement ce qui se trouve entre les deux. KICK LAB et RIM LAB ont été construits par Sumad, un son chacun, tous les paramètres ouverts. Les flèches font défiler. Rien n'est échantillonné : chaque frappe est calculée pendant la lecture."],["2 · SCULPTER LE SON","Clique une voix dans la grille, puis travaille dans l'éditeur. PARAMS construisent le corps, FX le salissent. SET bouge un réglage sur les neuf voix à la fois. Ctrl-glisser copie un son sur une autre voix."],["3 · LE LABO DE SUMAD","Deux établis à côté des kits, chacun pour un son démonté. Le KICK LAB montre la chute de hauteur d'un kick par étages · CLICK.F est le sommet du balayage, PUNCH.F le milieu, TUNE l'arrivée : tu entends ce que chaque partie apporte. Le RIMSHOT LAB fait de même pour un rimshot : trois résonateurs accordés plus du bruit, deux versions côte à côte. Les deux ont leurs propres pistes et leurs propres motifs, séparés du reste · construis un son, écris une figure, puis clic droit sur PATTERN pour l'emmener dans TON KIT."],["4 · ÉCRIRE LE MOTIF","Tape un pas : allumé, encore pour l'accent, encore pour éteindre. Glisse un pas vers le haut ou le bas pour la vélocité, molette pour les répétitions. Huit motifs par kit, jusqu'à quatre mesures."],["5 · P-LOCK · VALEURS PAR PAS","Tape un réglage sans le tourner et la grille passe sur ce paramètre. Chaque pas peut alors garder sa propre valeur · tire-en un vers le haut ou le bas et seule cette frappe reçoit un autre filtre, un autre decay ou une autre hauteur. C'est là qu'une boucle plate se met à bouger : un charley ouvert plus brillant que les autres, un kick accordé plus bas. Retape le réglage pour quitter le mode."],["6 · RÉGLER LE GROOVE","PLAY lance la boucle. BPM et SWING portent le feeling. REC plus un réglage tourné pendant la lecture enregistre l'automation."],["7 · TON KIT","TON KIT est ton propre établi, et il commence vide. Prends des sons dans n'importe quel kit, charge tes propres samples directement dans un emplacement par clic droit, ou copie un motif entier via clic droit sur PATTERN. Quinze emplacements. Les quatre kits sont faits pour tout le monde, celui-ci n'appartient qu'à toi."],["8 · GROUPER ET TRAITER","Sélectionne des emplacements avec Maj, CTRL+G en fait un groupe. Chaque groupe garde ses propres motifs et sa propre chaîne d'effets · clic droit sur une ligne pour GROUP FX."],["9 · LA SOMME","Tout se rejoint sur le master. MASTER FX est la chaîne sur le mix entier · distorsion, filtre, delay, réverbération, résonateur, glitch, rumble. Le FINALIZER en dessous est l'étage final : tu choisis un caractère comme GLUE, PUNCH ou WARM au lieu de régler un compresseur à la main. LIMIT rattrape ce qui dépasse encore. On travaille ici en dernier, quand les éléments tiennent déjà ensemble."],["10 · CONTRÔLE MIDI","Clic droit sur un réglage, choisis MIDI LEARN, puis bouge une commande de ton matériel · les deux sont liés dès lors. Le réglage rattrape la valeur en douceur au lieu de sauter, rien ne se déchire quand tu reprends une valeur en mouvement. Assigne les quelques choses que tu touches vraiment en jouant : filtre, decay, les effets de groupe. Un nouveau clic droit efface l'assignation."],["11 · CONSERVER","SAVE KIT écrit un fichier avec les sons, tous les motifs, les effets et l'apparence. LOAD KIT le relit, ou dépose simplement le fichier sur la fenêtre."],["12 · EMPORTER VERS AUDIOTOOL","Connecte-toi d'abord avec UPLINK. EXPORT envoie tout le set vers Audiotool sous forme de Machiniste jouable : chaque voix devient un one-shot et les pas sont écrits dans son motif, tu arrives donc avec neuf canaux séparés. Mais les one-shots sont secs. Si ton son repose sur la réverbération ou le delay, exporte plutôt une boucle vers la timeline, la queue vient avec. Cela marche aussi dans l'autre sens : l'audio posé dans ta timeline Audiotool se récupère directement dans une piste de boucle, sans export ni téléchargement. EXPORT WAV est la troisième voie, pour toute autre DAW."],["13 · APPARENCE","BG lance une animation de fond pilotée par ce que tu joues · elle réagit à tes frappes et ne change rien au son. FX choisit sa couleur, SKIN l'aspect du châssis. TEXT masque ces panneaux d'explication quand tu n'en as plus besoin, HIDE dégage tout le cadre pour une vue plein écran. Tout cela est purement esthétique · rien ici ne touche à ce que tu entends."]]};
 const LANGPACK={
  en:{
   voice:{ "KICK 1":"KICK 1 : the main kick · tuned body plus a pitch-drop at the attack. Your foundation.","KICK 2":"KICK 2 : a second kick · layer it under KICK 1 for weight, or use it alone.","SNARE":"SNARE : tone plus noise. The tone gives the body, the noise gives the snap and buzz.","CLAP":"CLAP : stacked noise bursts fired in quick succession · the spread is many hands not quite landing together.","CL HAT":"CLOSED HAT : a short, tight metallic tick. The off-beat pulse of most grooves.","OP HAT":"OPEN HAT : a longer noise wash · its decay is what holds it open. Choke it against the closed hat.","TOM 1":"TOM 1 : a pitched drum · TUNE sets the note it sings as it falls.","TOM 2":"TOM 2 : a second tom · tune it apart from TOM 1 for fills.","WOOD":"WOOD : a dry rim/wood click. Cuts through a busy mix without adding any weight.","PING 1":"PING : a pinged resonator · a tuned body struck and left to ring.","PING 2":"PING : a pinged resonator · a tuned body struck and left to ring.","PING 3":"PING : a pinged resonator · a tuned body struck and left to ring.","PING 4":"PING : a pinged resonator · a tuned body struck and left to ring.","PING 5":"PING : a pinged resonator · a tuned body struck and left to ring.","PING 6":"PING : a pinged resonator · a tuned body struck and left to ring.","PING 7":"PING : a pinged resonator · a tuned body struck and left to ring.","PING 8":"PING : a pinged resonator · a tuned body struck and left to ring.","PING 9":"PING : a pinged resonator · a tuned body struck and left to ring." },
@@ -7914,8 +7910,7 @@ function openHelpOverlay(){
   ov.classList.add("on");
 }
 function closeHelpOverlay(){ const ov=document.getElementById("helpOv"); if(ov)ov.classList.remove("on"); }
-{ try{ if(!localStorage.getItem("brk_seen_map")){ localStorage.setItem("brk_seen_map","1"); setTimeout(openMap,400); } }catch(e){}   // once per browser :: clearing the cache brings it back
-  const _mg=document.getElementById("mapGo"); if(_mg)_mg.onclick=closeMap;
+{ const _mg=document.getElementById("mapGo"); if(_mg)_mg.onclick=closeMap;
   const _mh=document.getElementById("mapHow"); if(_mh)_mh.onclick=()=>{ closeMap(); openHelpOverlay(); };
   const _hb=document.getElementById("helpBtn"); if(_hb)_hb.onclick=openMap;
   const _hx=document.getElementById("helpX"); if(_hx)_hx.onclick=closeHelpOverlay;
