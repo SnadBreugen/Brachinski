@@ -351,6 +351,9 @@ html.mach .transport.deck .field label{color:#171205}
 .klock{width:6px;height:6px;border-radius:50%;margin:3px auto 0;background:#2a1c10;box-shadow:inset 0 0 2px #000;transition:.1s}
 .kmid{position:absolute;top:0;right:2px;width:5px;height:5px;border-radius:50%;background:var(--amber);box-shadow:0 0 4px var(--amber);display:none;pointer-events:none}
 .knob.midi-on .kmid{display:block}
+button.midiarm{outline:2px solid #fff;outline-offset:1px;animation:midiblink .8s ease-in-out infinite}
+button.midibound{outline:1px solid var(--amber);outline-offset:1px}
+@keyframes midiblink{0%,100%{outline-color:#fff}50%{outline-color:transparent}}
 .knob.midi-arm .kmid{display:block;background:#fff;box-shadow:0 0 6px #fff;animation:midiblink .5s steps(1) infinite}
 @keyframes midiblink{50%{opacity:0}}
 .klock.on{background:var(--signal);box-shadow:0 0 7px var(--signal),0 0 2px #fff}
@@ -1064,6 +1067,17 @@ html.mach{--bg:#2a2c2e;--chassis1:#9a9c9f;--chassis2:#5e5f63;--chassis-edge:#3a3
   --amber:#c9a83e;--amber-deep:#8a7838;--amber-glow:rgba(201,168,62,.35);--amber-hi:#c9a83e;--amber-lit:#c9a83e;
   --ink:#0c0f0e;--kitink:#d0dbdc;--signal:#c9a83e;--signal-rgb:216,196,122}
 html.mach body{background:radial-gradient(900px 500px at 50% -10%,#3a3c3f 0%,#232527 60%),#1e2022}
+/* the dark ink is meant for light keys :: on this skin most of these sit on dark surfaces */
+html.mach .lim-btn:hover{color:var(--dim)}
+html.mach .rev-name{color:var(--dim)}
+html.mach .exp-chk{color:var(--dim)}
+html.mach .sel .n{color:var(--kitink)}
+html.mach .wip-h{color:var(--dim)}
+html.mach .kit-field.kit-sel .cell-btn.sel-arrow:hover{color:var(--amber)}
+html.mach .lv-msb:hover{color:var(--dim)}
+html.mach .lv-purl{color:var(--dim)}
+html.mach .lv-addtrack:hover{color:var(--dim)}
+html.mach .lv-scene:hover{color:var(--dim)}
 html.mach .chassis{background:linear-gradient(168deg,rgba(158,160,163,.88) 0%,rgba(150,152,155,.88) 30%,rgba(140,142,146,.88) 70%,rgba(132,134,138,.88) 100%);
   border:1px solid #3a3b3e;border-radius:10px;
   box-shadow:0 1px 0 rgba(255,255,255,.42) inset, 0 -1px 0 rgba(0,0,0,.30) inset, 0 10px 26px rgba(0,0,0,.45)}
@@ -1242,7 +1256,7 @@ html.mach .island .screw,html.mach .lv-side .screw{background:radial-gradient(ci
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 866</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 868</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -2384,7 +2398,7 @@ registerProcessor("crush-fx", CrushFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="866";
+const REV="868";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -3138,6 +3152,19 @@ function keyFire(e){ const tag=keyTag(e);
   return hit; }
 function midiDisarm(){ const old=MIDI_ARM; MIDI_ARM=null; if(old)midiPaint(old); }
 function midiForget(id){ delete MIDI_MAP[id]; midiPaint(id); setStatus("MIDI // mapping removed"); }
+function midiButton(el,id,label,isOn,fire){                                    // a switch is a parameter too :: same registry, same learn, just no travel
+  if(!el||!id)return el;
+  const def={key:id.split(":").pop(),min:0,max:1,def:0,toggle:true,label:label||el.textContent||"BUTTON"};
+  const paint=()=>{ const on=(MIDI_ARM===id); el.classList.toggle("midiarm",on);
+    const lab=midiLabel(id); el.classList.toggle("midibound",!!lab&&!on); };
+  midiRegister(id,{wrap:el,def:def,get:()=>(isOn&&isOn()?1:0),set:(v)=>{ if(v>0.5)fire(); },render:()=>{},paint:paint});
+  paint();
+  el.addEventListener("contextmenu",(e)=>{ e.preventDefault(); e.stopPropagation();
+    const lab=midiLabel(id);
+    const it=[{label:lab?("BOUND \u00b7 "+lab+" \u00b7 RELEARN"):"LEARN MIDI OR KEY",run:()=>midiArm(id)}];
+    if(lab)it.push({label:"FORGET",run:()=>midiForget(id)});
+    openKnobMenu(e.clientX,e.clientY,it); });
+  return el; }
 function midiLabel(id){ const m=MIDI_MAP[id]; if(!m)return null;
   const bits=[]; if(m.cc!=null)bits.push("CC"+m.cc+" ch"+m.ch); if(m.key)bits.push(keyLabel(m.key));
   return bits.length?bits.join(" + "):null; }
@@ -4412,7 +4439,7 @@ function openLoopFXEditor(lti){                                              // 
   const rack=document.createElement("div"); rack.className="mfx-grid grp-rack"; rack.style.marginTop="12px";
   const rebuild=()=>{ rack.innerHTML="";
     const mods=loopModules(lti);
-    const ctx={list:mods,rebuild:()=>{ loopRewire(lti); buildLiveSide(); rebuild(); }};
+    const ctx={list:mods,midPrefix:"loopfx:"+lti+"#",rebuild:()=>{ loopRewire(lti); buildLiveSide(); rebuild(); }};
     mods.forEach((m,i)=>{ if(ac&&!m._nodes)buildModuleNodes(m); rack.appendChild(buildModule(m,i,ctx)); });
     const add=document.createElement("div"); add.className="mfx add";
     const lab=document.createElement("div"); lab.className="mfx-add"; lab.textContent="+ ADD FX"; add.appendChild(lab);
@@ -4440,7 +4467,7 @@ function openGroupFXEditor(gid){ const g=groupById(gid); if(!g)return;
   const rack=document.createElement("div"); rack.className="mfx-grid grp-rack"; rack.style.marginTop="12px";
   const rebuild=()=>{ rack.innerHTML="";                                        // the modules sit in the panel like a rack, not behind buttons that open windows elsewhere
     const mods=groupModules(gid);
-    const ctx={list:mods,rebuild:()=>{ if(typeof refreshGroupRouting==="function")refreshGroupRouting(); buildLiveSide(); rebuild(); }};
+    const ctx={list:mods,midPrefix:"grpfx:"+gid+"#",rebuild:()=>{ if(typeof refreshGroupRouting==="function")refreshGroupRouting(); buildLiveSide(); rebuild(); }};
     mods.forEach((m,i)=>{ if(ac&&!m._nodes)buildModuleNodes(m); rack.appendChild(buildModule(m,i,ctx)); });
     const add=document.createElement("div"); add.className="mfx add";
     const lab=document.createElement("div"); lab.className="mfx-add"; lab.textContent="+ ADD FX"; add.appendChild(lab);
@@ -5650,7 +5677,7 @@ function buildMaster(){
   const host=document.getElementById("sumfx");host.innerHTML="";
   { const isl=document.getElementById("masterFxIsland"); if(isl)isl.style.display=(state.kit===6)?"none":""; }
   const grid=document.createElement("div");grid.className="mfx-grid";
-  const mctx={list:state.master.modules,autoPrefix:"m"};
+  const mctx={list:state.master.modules,autoPrefix:"m",midPrefix:"mst"};
   state.master.modules.forEach((m,i)=>grid.appendChild(buildModule(m,i,mctx)));
   grid.appendChild(buildAddSlot());
   host.appendChild(grid);
@@ -5731,6 +5758,8 @@ function buildModule(m,i,ctx){
   return box;
 }
 function appendModuleKnobs(m,kc,ctx,idx){
+  const _midWas=_MID_CTX;                                                      // a module knob is a parameter like any other :: give it an address midi can find
+  if(ctx&&ctx.midPrefix&&idx!=null)_MID_CTX=ctx.autoPrefix?ctx.midPrefix:(ctx.midPrefix+idx);   // where an automation key already names the module, do not name it twice
   const K=(def,get,set,tgt)=>{ let ak=null;                                     // a module knob can be recorded too, once the chain says who it belongs to
     if(ctx&&ctx.autoPrefix&&idx!=null){ ak=ctx.autoPrefix+idx+":"+def.key; _modSet[ak]={set,def}; }
     return (tgt||kc).appendChild(makeKnob(def,get,set,null,false,ak)); };
@@ -5843,6 +5872,7 @@ function appendModuleKnobs(m,kc,ctx,idx){
     {const fd=d("flt",-1,1,0,0,"FILTER");fd.detent=0;K(fd,()=>(m.flt!=null?m.flt:0),(v)=>{m.flt=v;P("flt");});}
   }
   if(m.kind!=="dist"&&m.kind!=="glitch"&&m.kind!=="rumble"&&m.kind!=="trans"&&m.kind!=="reverb"){const md=d("mix",0,1,0.25,0);md.label="MIX";K(md,()=>(m.mix!=null?m.mix:0.25),(v)=>{m.mix=v;if(m._nodes){m._nodes.dry.gain.value=1-v;m._nodes.wet.gain.value=v;}});}
+  _MID_CTX=_midWas;                                                            // hand the context back, or the next thing built inherits it
 }
 
 function switchKit(i,force){
@@ -5889,6 +5919,7 @@ function buildKit(){
     kn.title=(window.TIP&&TIP.COPY)||"copy this pattern and its sounds into your rack";kn.dataset.desc=kn.title;
     kn.disabled=(state.kit===6);
     kn.onclick=()=>copyPatternToVoid();
+    midiButton(kn,"copy","COPY",()=>false,()=>copyPatternToVoid());
     ar.appendChild(kn);cb2.appendChild(ar);host.appendChild(cb2);
     const vb=document.createElement("div");vb.className="kit-block";
     const vh=document.createElement("div");vh.className="kit-hd";vh.textContent="RACK";
@@ -6028,10 +6059,10 @@ function buildStrip(){
   const strip=document.getElementById("strip");strip.innerHTML="";
   const gp=document.createElement("div");gp.className="grp";
   const gpl=document.createElement("span");gpl.className="gl";gpl.textContent="PATTERN //";gpl.title="right-click :: copy this pattern + sounds into your kit";gpl.style.padding="4px 10px";gpl.style.margin="-4px -6px";gpl.style.cursor="context-menu";gpl.oncontextmenu=(e)=>{e.preventDefault();openKnobMenu(e.clientX,e.clientY,[{label:"COPY TO YOUR KIT",run:()=>copyPatternToVoid()}]);};gp.appendChild(gpl);
-  gp.id="patgrp";for(let i=0;i<PATTERNS;i++){const b=document.createElement("button");b.className="cell-btn pat";b.dataset.p=i;b.textContent=(i+1);b.onclick=()=>queuePattern(i);gp.appendChild(b);}   // in VOID these address the selected group's own bank
+  gp.id="patgrp";for(let i=0;i<PATTERNS;i++){const b=document.createElement("button");b.className="cell-btn pat";b.dataset.p=i;b.textContent=(i+1);b.onclick=()=>queuePattern(i);midiButton(b,"pat:"+i,"PATTERN "+(i+1),()=>patIdx()===i,()=>queuePattern(i));gp.appendChild(b);}   // in VOID these address the selected group's own bank
   const gb=document.createElement("div");gb.className="grp";
   const gbl=document.createElement("span");gbl.className="gl";gbl.textContent="BARS //";gb.appendChild(gbl);
-  [1,2,4].forEach(n=>{const b=document.createElement("button");b.className="cell-btn bar";b.dataset.b=n;b.textContent=n;b.onclick=()=>setBars(n);gb.appendChild(b);});
+  [1,2,4].forEach(n=>{const b=document.createElement("button");b.className="cell-btn bar";b.dataset.b=n;b.textContent=n;b.onclick=()=>setBars(n);midiButton(b,"bars:"+n,n+" BARS",()=>curPat().bars===n,()=>setBars(n));gb.appendChild(b);});
   const gL=document.createElement("div");gL.className="grp";
   const gLl=document.createElement("span");gLl.className="gl";gLl.textContent="LENGTH //";gL.appendChild(gLl);
   const lMinus=document.createElement("button");lMinus.className="cell-btn";lMinus.textContent="\u2212";lMinus.title="halve the bar :: 16 -> 8 · stays grid-clean for export";lMinus.onclick=()=>setLength((curPat().length||STEPS_PER_BAR)/2);
@@ -6094,6 +6125,7 @@ function buildSeq(){
     attachSoundDrag(sel,vi);
     const mute=document.createElement("button");mute.className="mute";mute.textContent="M";
     mute.dataset.v=vi;mute.onclick=()=>{state.mute[vi]=!state.mute[vi];mute.classList.toggle("on",state.mute[vi]);if(typeof commit==="function")commit();};
+      midiButton(mute,"mute:"+vi,"MUTE "+(vi+1),()=>!!state.mute[vi],()=>mute.click());
     const BUSL=["F","D"],BUST=["through the master fx","dry: skips the master fx (finalizer still applies)"];
     const bus=document.createElement("button");bus.className="mute busbtn";bus.dataset.v=vi;
     const busPaint=()=>{
@@ -6200,7 +6232,11 @@ function setPattern(i){ const n=i%PATTERNS; const g=selGroupId();
 // (mute is read live in schedule via state.voices[v].mute)
 
 // ---- transport ----
-document.getElementById("play").onclick=()=>{state.playing?stopSeq():startSeq();};
+{ const _pb=document.getElementById("play");
+    _pb.onclick=()=>{state.playing?stopSeq():startSeq();};
+    midiButton(_pb,"tr:play","PLAY",()=>!!state.playing,()=>_pb.click());
+    const _lb=document.getElementById("liveBtn"); if(_lb)midiButton(_lb,"tr:live","LIVE",()=>!!state.liveOpen,()=>_lb.click());
+    const _ae=document.getElementById("autoed"); if(_ae)midiButton(_ae,"tr:autom","AUTOM.",()=>!!document.getElementById("autoEd"),()=>_ae.click()); }
 { const lb=document.getElementById("liveBtn"); if(lb)lb.onclick=()=>enterLive(); paintLiveBtn(); }
 document.getElementById("bpm").oninput=e=>{state.bpm=+e.target.value;document.getElementById("bpmval").textContent=state.bpm;updateDelayTimes();if(typeof loopSyncRates==="function")loopSyncRates();};
 document.getElementById("swing").oninput=e=>{state.swing=+e.target.value;document.getElementById("swingval").textContent=state.swing;};
@@ -6373,7 +6409,8 @@ function openKitFileDialog(){
   window.addEventListener("drop",(e)=>{ const f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];
     if(f&&/\.brk$/i.test(f.name)){ e.preventDefault(); if(typeof loadKitFile==="function")loadKitFile(f); } });
 })();
-(function(){ const pb=document.getElementById("play"); if(!pb)return; const rb=document.createElement("button"); rb.id="autorec"; rb.className="cell-btn"; rb.textContent="REC"; rb.style.marginLeft="8px"; rb.title="AUTOMATION REC \u00b7 arm, then turn any knob while the loop plays to record its motion \u00b7 right-click a knob to clear its automation"; rb.onclick=()=>{ state.autoRec=!state.autoRec; rb.classList.toggle("on",state.autoRec); setStatus(state.autoRec?"AUTO REC armed \u00b7 turn a knob while playing":"AUTO REC off"); }; pb.parentNode.insertBefore(rb,pb.nextSibling);
+(function(){ const pb=document.getElementById("play"); if(!pb)return; const rb=document.createElement("button"); rb.id="autorec"; rb.className="cell-btn"; rb.textContent="REC"; rb.style.marginLeft="8px"; rb.title="AUTOMATION REC \u00b7 arm, then turn any knob while the loop plays to record its motion \u00b7 right-click a knob to clear its automation"; midiButton(rb,"tr:rec","REC",()=>!!state.autoRec,()=>rb.click());
+    rb.onclick=()=>{ state.autoRec=!state.autoRec; rb.classList.toggle("on",state.autoRec); setStatus(state.autoRec?"AUTO REC armed \u00b7 turn a knob while playing":"AUTO REC off"); }; pb.parentNode.insertBefore(rb,pb.nextSibling);
   const sh=document.createElement("button"); sh.id="sharebtn"; sh.className="cell-btn"; sh.textContent="SAVE KIT"; sh.style.marginLeft="8px"; sh.title="save this kit as a .brk file \u00b7 sounds, all patterns, ratchets, automation and the master fx"; sh.onclick=()=>shareKitLink(); rb.parentNode.insertBefore(sh,rb.nextSibling);
   const ld=document.createElement("button"); ld.id="loadbtn"; ld.className="cell-btn"; ld.textContent="LOAD KIT"; ld.style.marginLeft="6px"; ld.title="load a .brk kit file \u00b7 you can also just drop one onto the window"; ld.onclick=()=>openKitFileDialog(); sh.parentNode.insertBefore(ld,sh.nextSibling);
     { const ae=document.createElement("button"); ae.id="autoed"; ae.className="cell-btn"; ae.textContent="AUTOM.";   // right after REC :: one records, the other shows what was recorded. inserted last, or save and load push in between
@@ -7582,7 +7619,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=866","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=868","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
@@ -7985,7 +8022,7 @@ skinApply();
 bgInit();document.getElementById("bgBtn").onclick=()=>bgCycle();document.getElementById("colBtn").onclick=()=>colCycle();
 (function(){var mv=document.getElementById("mvol");if(mv){mv.value=(state.master.vol!=null?state.master.vol:1);mv.oninput=function(){state.master.vol=parseFloat(mv.value);if(masterOut)masterOut.gain.value=state.master.vol;};mv.onchange=function(){if(typeof commit==="function")commit();};}})();
 (function(){var lb=document.getElementById("limitBtn");if(lb){var setL=function(){lb.classList.toggle("on",state.master.limit!==false);};setL();lb.onclick=function(){state.master.limit=(state.master.limit===false);setL();if(typeof wireMaster==="function")wireMaster();if(typeof commit==="function")commit();if(typeof setStatus==="function")setStatus("LIMITER // "+(state.master.limit!==false?"ON":"OFF"));};}})();
-function buildFinbar(){const bar=document.getElementById("finbar");if(!bar)return;bar.innerHTML="";const items=[["off","OFF"],["glue","GLUE"],["punch","PUNCH"],["loud","LOUD"],["air","AIR"],["warm","WARM"],["wide","WIDE"],["wdist","W.DIST"],["boombox","BOOMBOX"],["lofi","LOFI"]];items.forEach(function(it){const b=document.createElement("button");b.textContent=it[1];b.dataset.fin=it[0];if(state.fin.preset===it[0])b.classList.add("on");b.title=(window.TIP_FIN&&window.TIP_FIN[it[0]])||"";b.onclick=function(){state.fin.preset=it[0];var kids=bar.children;for(var i=0;i<kids.length;i++){if(kids[i].dataset&&kids[i].dataset.fin!==undefined)kids[i].classList.toggle("on",kids[i].dataset.fin===it[0]);}finSwap(function(){if(fin)applyFinalizer();wireMaster();});if(typeof commit==="function")commit();};bar.appendChild(b);});
+function buildFinbar(){const bar=document.getElementById("finbar");if(!bar)return;bar.innerHTML="";const items=[["off","OFF"],["glue","GLUE"],["punch","PUNCH"],["loud","LOUD"],["air","AIR"],["warm","WARM"],["wide","WIDE"],["wdist","W.DIST"],["boombox","BOOMBOX"],["lofi","LOFI"]];items.forEach(function(it){const b=document.createElement("button");b.textContent=it[1];b.dataset.fin=it[0];if(state.fin.preset===it[0])b.classList.add("on");b.title=(window.TIP_FIN&&window.TIP_FIN[it[0]])||"";midiButton(b,"fin:"+it[0],it[1],()=>state.fin.preset===it[0],()=>b.click());b.onclick=function(){state.fin.preset=it[0];var kids=bar.children;for(var i=0;i<kids.length;i++){if(kids[i].dataset&&kids[i].dataset.fin!==undefined)kids[i].classList.toggle("on",kids[i].dataset.fin===it[0]);}finSwap(function(){if(fin)applyFinalizer();wireMaster();});if(typeof commit==="function")commit();};bar.appendChild(b);});
   const wrap=document.createElement("span");wrap.className="finmix";
   const lab=document.createElement("span");lab.className="finmixlab";lab.textContent="AMOUNT";
   const sl=document.createElement("input");sl.type="range";sl.min="0";sl.max="1";sl.step="0.01";sl.value=String(state.fin.amount!=null?state.fin.amount:1);sl.className="mvol";sl.title="finalizer amount: morphs the whole chain, phase-clean";
