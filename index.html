@@ -899,6 +899,7 @@ html.black .lv-pad.filled{background:#26262c;border-color:#8e8e98;color:rgba(255
 .sound-picker .sp-item:hover{background:var(--amber);color:#12100e;}
 .sound-picker .sp-close{position:absolute;top:6px;right:10px;background:transparent;border:none;color:inherit;font-size:20px;line-height:1;cursor:pointer;}
 
+.auto-bank{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--dimmer);margin:6px 0 -4px 2px}
 .auto-list{display:flex;flex-direction:column;gap:12px;max-height:62vh;overflow-y:auto;padding-right:4px;margin-top:10px}
 .auto-lane{border:1px solid var(--line);border-radius:6px;padding:8px 9px 10px;background:rgba(0,0,0,.22)}
 .auto-lane.orphan{opacity:.55}
@@ -1241,7 +1242,7 @@ html.mach .island .screw,html.mach .lv-side .screw{background:radial-gradient(ci
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 865</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 866</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -2383,7 +2384,7 @@ registerProcessor("crush-fx", CrushFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="865";
+const REV="866";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -2845,7 +2846,10 @@ function sendParam(vid,key,val){if(engineNode)engineNode.port.postMessage({type:
 function sendSum(key,val){if(engineNode)engineNode.port.postMessage({type:"sum",key:key,value:val});}
 // effective vals: the inactive of the drive/crush pair is forced to 0 (only one flavour sounds)
 function effVals(vo){const v=Object.assign({},vo.vals);if(vo.fxMode&&("crush" in v)){if(vo.fxMode==="crush")v.drive=0;else v.crush=0;}return v;}
-function sendBus(v){if(engineNode)engineNode.port.postMessage({type:"bus",voice:v,value:state.bus[v]|0});}
+function sendBus(v){ if(!engineNode)return;
+    let b=state.bus[v]|0;
+    if(state.kit===6){ const vo=state.kits[6][v]; if(vo&&vo.group&&groupById(vo.group))b=groupBusIndex(vo.group); }   // a grouped voice belongs on its group bus, whatever F says
+    engineNode.port.postMessage({type:"bus",voice:v,value:b}); }
 function syncAll(){state.voices.forEach((vo,i)=>{const ev=effVals(vo);for(const k in ev)sendParam(i,k,ev[k]);});sendSum("dist",0);for(let v=0;v<VOICES;v++)sendBus(v);}   // engine dist retired :: DIST lives in the chain now
 async function audition(i){
   try{await ensureAudio();}catch(e){return;}
@@ -5918,14 +5922,22 @@ function autoLaneAlive(key){ const ci=key.indexOf(":"), vid=+key.slice(0,ci);
   return !!_modSet[key]; }
 
 function closeAutoEditor(){ const o=document.getElementById("autoEd"); if(o)o.remove(); }
+function autoEditPats(){                                                       // in the rack every group keeps its own bank :: show them all, or half the lanes look lost
+  if(state.kit!==6)return [{label:"",pat:curPat()}];
+  const out=[], seen=new Set();
+  const push=(label,p)=>{ if(p&&!seen.has(p)){ seen.add(p); out.push({label,pat:p}); } };
+  const pn=((state.curPattern%PATTERNS)+PATTERNS)%PATTERNS;
+  push("UNGROUPED",state.patterns[pn]);
+  voidGroups().forEach(g=>{ if(!g)return; push(g.name||("GROUP "+g.id),state.patterns[groupBank(g.id)+groupEditOf(g.id)]); });
+  return out; }
 function openAutoEditor(){
   closeAutoEditor();
-  const pat=curPat(), auto=pat.auto||{};
-  const keys=Object.keys(auto).sort();
+  const banks=autoEditPats().map(b=>({label:b.label,pat:b.pat,keys:Object.keys(b.pat.auto||{}).sort()})).filter(b=>b.keys.length);
+  const keys=banks.flatMap(b=>b.keys);
   const ov=document.createElement("div"); ov.className="kbd-overlay"; ov.id="autoEd";
   const pop=document.createElement("div"); pop.className="kbd-pop"; pop.style.maxWidth="1000px"; pop.style.width="92vw";
   const t=document.createElement("div"); t.className="kbd-title";
-  const ts=document.createElement("span"); ts.textContent="// AUTOMATION \u00b7 PATTERN "+(state.curPattern+1);
+  const ts=document.createElement("span"); ts.textContent="// AUTOMATION \u00b7 PATTERN "+(((state.curPattern%PATTERNS)+PATTERNS)%PATTERNS+1);
   const cl=document.createElement("button"); cl.className="mfx-b"; cl.textContent="\u2715 CLOSE"; cl.onclick=closeAutoEditor;
   t.append(ts,cl); pop.appendChild(t);
 
@@ -5934,7 +5946,10 @@ function openAutoEditor(){
     pop.appendChild(e); }
 
   const body=document.createElement("div"); body.className="auto-list";
-  keys.forEach(key=>{
+  banks.forEach(bank=>{
+   const auto=bank.pat.auto;
+   if(banks.length>1){ const bh=document.createElement("div"); bh.className="auto-bank"; bh.textContent="// "+bank.label; body.appendChild(bh); }
+   bank.keys.forEach(key=>{
     const curve=auto[key], def=autoLaneDef(key), alive=autoLaneAlive(key);
     const lane=document.createElement("div"); lane.className="auto-lane"+(alive?"":" orphan");
     const hd=document.createElement("div"); hd.className="auto-hd";
@@ -5953,7 +5968,7 @@ function openAutoEditor(){
       const line=cs.getPropertyValue("--auto-line").trim()||"#ffb43d";
       const grid=cs.getPropertyValue("--auto-grid").trim()||"rgba(255,255,255,.12)";
       const barc=cs.getPropertyValue("--auto-bar").trim()||"rgba(255,255,255,.30)";
-      const bars=Math.max(1,curPat().bars||1), steps=bars*STEPS_PER_BAR;   // the grid follows the pattern, so the eye can find the beat
+      const bars=Math.max(1,bank.pat.bars||1), steps=bars*STEPS_PER_BAR;   // the grid follows the pattern, so the eye can find the beat
       g.lineWidth=2;
       for(let s2=0;s2<=steps;s2++){ const x=Math.round(s2*W/steps)+0.5;
         const onBar=(s2%STEPS_PER_BAR===0), onBeat=(s2%4===0);
@@ -5998,6 +6013,7 @@ function openAutoEditor(){
     flat.onclick=()=>{ const v=curve[0]; for(let i=0;i<AUTO_RES;i++)curve[i]=v; draw(); if(typeof commit==="function")commit(); };
     lane.appendChild(cv);
     body.appendChild(lane);
+   });
   });
   pop.appendChild(body);
   ov.appendChild(pop);
@@ -6080,9 +6096,14 @@ function buildSeq(){
     mute.dataset.v=vi;mute.onclick=()=>{state.mute[vi]=!state.mute[vi];mute.classList.toggle("on",state.mute[vi]);if(typeof commit==="function")commit();};
     const BUSL=["F","D"],BUST=["through the master fx","dry: skips the master fx (finalizer still applies)"];
     const bus=document.createElement("button");bus.className="mute busbtn";bus.dataset.v=vi;
-    const busPaint=()=>{const bv=state.bus[vi]|0;bus.textContent=BUSL[bv];bus.title="bus: "+BUST[bv]+" \u00b7 click to toggle";bus.classList.toggle("bd",bv===1);};
+    const busPaint=()=>{
+        const _g=(state.kit===6)?((state.kits[6][vi]||{}).group):null;
+        if(_g&&groupById(_g)){ bus.textContent="G"; bus.title="this voice runs through its group, so the master bus does not apply to it";   // no dead switch: say why it cannot be toggled
+          bus.classList.remove("bd"); bus.disabled=true; return; }
+        bus.disabled=false;
+        const bv=state.bus[vi]|0;bus.textContent=BUSL[bv];bus.title="bus: "+BUST[bv]+" \u00b7 click to toggle";bus.classList.toggle("bd",bv===1);};
     busPaint();
-    bus.onclick=()=>{state.bus[vi]=((state.bus[vi]|0)+1)%2;busPaint();sendBus(vi);if(typeof commit==="function")commit();};
+    bus.onclick=()=>{ if(bus.disabled)return; state.bus[vi]=((state.bus[vi]|0)+1)%2;busPaint();sendBus(vi);if(typeof commit==="function")commit();};
     head.append(sel,mute,bus);
     const steps=document.createElement("div");steps.className="steps";
     let sdrag=false,sSY=0,sSV=0,sMoved=false,sAbs=0,cdrag=false;
@@ -7561,7 +7582,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=865","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=866","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
