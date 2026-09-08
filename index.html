@@ -94,7 +94,7 @@ body{
 .bars-ico i:nth-child(3){height:7px}.bars-ico i:nth-child(4){height:11px}
 .eyebrow span{font-size:10px;letter-spacing:5px;color:var(--ink);opacity:.85}
 .wordmark{font-family:var(--wordmark);font-size:47px;letter-spacing:0;color:#fff;line-height:.8;text-transform:uppercase;text-shadow:0 2px 0 rgba(0,0,0,.3),0 0 18px rgba(255,255,255,.22)}
-.subtitle{font-size:9px;letter-spacing:5px;color:rgba(255,255,255,.55);margin-top:8px}
+.subtitle{color:rgba(255,255,255,.75);font-size:9px;letter-spacing:5px;color:rgba(255,255,255,.55);margin-top:8px}
 
 .statuswrap{margin-left:auto;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
 .status{
@@ -127,7 +127,7 @@ body{
 .finmix{display:inline-flex;align-items:center;gap:6px;margin-left:8px}
 .finmix .mvol{width:90px}
 .finmixlab{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--dim)}
-.meter .ml{font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.6)}
+.meter .ml{color:rgba(255,255,255,.75);font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.6)}
 .meter .leds{display:flex;gap:2px}
 .meter .led{width:9px;height:13px;border-radius:1px;background:#1c1330;box-shadow:inset 0 1px 1px rgba(0,0,0,.6)}
 .meter .led.on{background:var(--amber);box-shadow:0 0 5px var(--amber-glow)}
@@ -160,7 +160,7 @@ body{
 .field{display:flex;align-items:center;gap:8px}
 .field label{font-size:9px;letter-spacing:2px;color:var(--dim)}
 .transport.deck .field label{color:#14100a}
-html.black .transport.deck .field label{color:#f2f4f8}
+html.black .transport.deck .field label{color:#14100a}   /* the housing is light in this skin too */
 html.mach .transport.deck .field label{color:#171205}
 .readout{min-width:50px;text-align:center;background:#0a0612;border:1px solid #060309;border-radius:4px;padding:5px 8px;color:var(--amber);font-family:var(--pixel);font-size:18px;letter-spacing:1px;text-shadow:0 0 8px var(--amber-glow);box-shadow:inset 0 2px 6px rgba(0,0,0,.7)}
 .slider{-webkit-appearance:none;appearance:none;width:90px;height:5px;border-radius:3px;background:#1c1330;outline:none;box-shadow:inset 0 1px 2px rgba(0,0,0,.7)}
@@ -361,7 +361,7 @@ button.midibound{outline:1px solid var(--amber);outline-offset:1px}
 .step.plockon{box-shadow:inset 0 0 0 1px var(--signal),0 0 7px rgba(var(--signal-rgb,255,92,200),.4)}
 .step.copysrc{box-shadow:inset 0 0 0 2px var(--info),0 0 8px rgba(255,106,0,.5)}
 .step.copytarget{box-shadow:inset 0 0 0 2px #fff,0 0 9px rgba(255,255,255,.55)}
-.slotmenu{position:fixed;z-index:9999;background:#12100e;border:1px solid var(--amber);border-radius:6px;padding:4px;display:flex;flex-direction:column;gap:2px;box-shadow:0 6px 20px rgba(0,0,0,.6)}
+.slotmenu{color:#e8e2d8;position:fixed;z-index:9999;background:#12100e;border:1px solid var(--amber);border-radius:6px;padding:4px;display:flex;flex-direction:column;gap:2px;box-shadow:0 6px 20px rgba(0,0,0,.6)}
 .slotmenu button{background:transparent;color:#e8e2d8;border:0;padding:6px 14px;text-align:left;font:inherit;font-size:11px;letter-spacing:.08em;cursor:pointer;border-radius:4px;white-space:nowrap}
 .slotmenu button:hover{background:var(--amber);color:#12100e}
 .steps{display:grid;grid-template-columns:repeat(16,1fr);gap:5px}
@@ -509,9 +509,14 @@ html.zen #snadlink,html.zen #langbar,html.zen #fbBtn,html.zen #fbPanel{display:n
 html.inv{--panel:#0e0a16;--panel2:#140d20;--dim:#e8d9ae;--dimmer:#cbb676;--chassis1:#ffc900;--chassis2:#ffbe1a;--chassis-edge:#e0991a;--amber:#f2a81e;--amber-deep:#b8760c;--amber-glow:rgba(242,168,30,.5);--line:#caa24e;--line-hi:#e6bf6a}
 html.inv .disp,html.inv .kit-disp,html.inv .voice-name{color:#fff;text-shadow:0 0 6px rgba(255,255,255,.4)}
 html.inv .kit-hd,html.inv .eyebrow,html.inv .eyebrow span,html.inv .subtitle,html.inv .foot,html.inv .meter .ml{color:#2a1400}
-html.skin-shadow .kit-hd,html.skin-shadow .eyebrow,html.skin-shadow .eyebrow span,
-html.skin-shadow .subtitle,html.skin-shadow .foot,html.skin-shadow .meter .ml{color:var(--amber)}
-html.mach .kit-hd{color:#c2cfd0}   /* these sit on the yellow chassis, not on a dark panel */
+html.skin-shadow .kit-hd{color:var(--amber)}   /* the kit row sits on a dark island, so the accent reads there */
+html.skin-shadow .eyebrow,html.skin-shadow .eyebrow span,
+html.skin-shadow .subtitle,html.skin-shadow .foot,html.skin-shadow .meter .ml{color:#2a1400}   /* these sit on the amber chassis :: dark ink, not more amber */
+html.mach .kit-hd{color:#c2cfd0}
+/* text that sits on the grey chassis :: the gold reads at 1.2 to 1 there, the key face colour at 6.8 */
+html.mach .eyebrow,html.mach .eyebrow span,html.mach .subtitle,html.mach .foot,
+html.mach .rev,html.mach .meter .ml,html.mach .lim-btn,html.mach .lim-btn.on,
+html.mach .wordmark{color:#101314}   /* these sit on the yellow chassis, not on a dark panel */
 html.inv .btn.play.on{background:linear-gradient(180deg,#ffc869,#d6891c);color:#180826}
 html.inv .step.on{background:linear-gradient(180deg,#ffc869,#d6891c);border-color:#ffd591}
 html.inv .step.acc{background:linear-gradient(180deg,#fff,#ffc869);border-color:#fff}
@@ -837,7 +842,7 @@ html.black .lv-pad.filled{background:#26262c;border-color:#8e8e98;color:rgba(255
 .lv-purl{width:100%;box-sizing:border-box;padding:9px 10px;border-radius:9px;border:1px solid var(--line);background:#100b1c;color:var(--ink);font-family:inherit;font-size:10px;letter-spacing:1px;outline:none}
 .lv-purl:focus{border-color:var(--amber)}
 .lv-fxbtn:hover{background:rgba(255,255,255,.06)}
-.fx-window{position:fixed;right:436px;top:180px;z-index:9500;max-width:min(760px,58vw);max-height:76vh;overflow:auto;background:#100c1a;border:1px solid var(--gc,var(--line));border-radius:12px;box-shadow:0 20px 70px rgba(0,0,0,.7);padding:14px 16px 18px}
+.fx-window{color:#e8e2d8;position:fixed;right:436px;top:180px;z-index:9500;max-width:min(760px,58vw);max-height:76vh;overflow:auto;background:#100c1a;border:1px solid var(--gc,var(--line));border-radius:12px;box-shadow:0 20px 70px rgba(0,0,0,.7);padding:14px 16px 18px}
 .fxw-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .fxw-title{font-size:13px;letter-spacing:2px;font-weight:700;color:var(--gc,var(--amber))}
 .fxw-close{background:transparent;border:none;color:var(--dim);font-size:22px;line-height:1;cursor:pointer;padding:0 4px}
@@ -896,7 +901,12 @@ html.black .lv-pad.filled{background:#26262c;border-color:#8e8e98;color:rgba(255
 .modelmenu button.on{color:var(--amber)}
 .void-addrow{display:flex;align-items:center;gap:8px;padding:8px 0 2px}
 .void-count{font-size:9px;letter-spacing:1px;color:var(--dim)}
-.sound-picker{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);max-height:72vh;overflow-y:auto;background:#12101a;border:1px solid var(--amber);border-radius:8px;padding:14px 18px 16px;z-index:9999;box-shadow:0 8px 40px rgba(0,0,0,.6);min-width:230px;}
+/* only these two stay dark whatever the skin :: they state their own text colour */
+#psWarn,#psWarn .ps-box,#psWarn .ps-t,#psWarn .ps-ok,#helpOv .help-x{color:#e8e2d8}
+html.paper #psWarn,html.paper #psWarn .ps-box,html.paper #psWarn .ps-t,
+html.paper #psWarn .ps-ok,html.paper #helpOv .help-x{color:#e8e2d8}
+html.paper .transport.deck .field label{color:#e8e2d8}   /* the housing is dark in this skin */
+.sound-picker{color:#e8e2d8;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);max-height:72vh;overflow-y:auto;background:#12101a;border:1px solid var(--amber);border-radius:8px;padding:14px 18px 16px;z-index:9999;box-shadow:0 8px 40px rgba(0,0,0,.6);min-width:230px;}
 .sound-picker .sp-head{font-size:11px;letter-spacing:1px;opacity:.55;margin:12px 0 4px;text-transform:uppercase;}
 .sound-picker .sp-item{display:block;width:100%;text-align:left;background:transparent;border:none;color:inherit;padding:5px 8px;cursor:pointer;font-family:inherit;font-size:13px;border-radius:4px;}
 .sound-picker .sp-item:hover{background:var(--amber);color:#12100e;}
@@ -1143,6 +1153,35 @@ html.mach #snadlink .sl-s{color:#8fa3a4}
 html.mach .eyebrow span,html.mach .subtitle,html.mach .foot{color:#2e3133}
 html.mach .bars-ico i{background:#101314}html.mach .lv-bolt,
 html.mach .island .screw,html.mach .lv-side .screw{background:radial-gradient(circle at 35% 30%,#d2d4d6,#6e7073 70%)}
+
+/* text on the chassis, stated last so nothing earlier can undo it */
+html.mach .eyebrow,html.mach .eyebrow span,html.mach .subtitle,html.mach .foot,
+html.mach .foot .rev,html.mach .meter .ml,html.mach .lim-btn,html.mach .lim-btn.on,
+html.mach .wordmark{color:#101314}
+html.skin-shadow .foot .rev{color:#2a1400}
+html.skin-shadow .subtitle{color:rgba(42,20,0,.82)}
+
+/* the live case takes the chassis colour, so its text follows the same rule as the studio */
+html.mach .lv-brand,html.mach .lv-brand span,html.mach .lv-lbl,html.mach .lv-val,
+html.mach .lv-pos,html.mach .lv-sclab,html.mach .lv-msg{color:#101314}
+html.skin-shadow .lv-msg,html.inv .lv-msg{color:#2a1400}
+
+/* the version number and the live readouts sit on the chassis :: the plain accent lands just under the mark */
+.foot .rev{color:#ffd48a}
+html.ghost .foot .rev,html.ghost .lv-val,html.ghost .lv-pos,html.ghost .eyebrow span{color:#7ee9bf}
+
+/* the last few, each measured against the surface it actually sits on */
+html.mach .f-p,html.mach .feat-p{color:#8fa3a4}
+html.paper #fbPanel .fb-row button{color:#e8e2d8}
+html.inv .eyebrow span,html.skin-shadow .eyebrow span{color:rgba(34,16,0,.86)}
+.eyebrow span{color:rgba(255,255,255,.78)}
+html.ghost .eyebrow span,html.ghost .lv-msg{color:#7ee9bf}
+.foot .rev,.lv-val,.lv-pos{color:#ffd48a}
+html.mach .foot .rev{color:#101314}
+html.mach .lv-val,html.mach .lv-pos{color:#101314}
+html.paper .foot .rev{color:#050504}
+html.paper .lv-val,html.paper .lv-pos{color:#0a0908}
+html.inv .lv-val,html.inv .lv-pos,html.skin-shadow .lv-val,html.skin-shadow .lv-pos{color:#2a1400}
 </style>
 </head>
 <body>
@@ -1256,7 +1295,7 @@ html.mach .island .screw,html.mach .lv-side .screw{background:radial-gradient(ci
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 868</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 870</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -2398,7 +2437,7 @@ registerProcessor("crush-fx", CrushFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="868";
+const REV="870";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -7619,7 +7658,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=868","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=870","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
