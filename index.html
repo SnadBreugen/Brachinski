@@ -346,6 +346,8 @@ html.mach .transport.deck .field label{color:#171205}
 .sel.active .n{color:var(--bg)}
 .mute{font-size:9px;color:var(--dim);background:#0c0814;border:1px solid var(--line);border-radius:3px;padding:8px;cursor:pointer;letter-spacing:1px}
 .mute.on{color:var(--signal);border-color:var(--signal);box-shadow:0 0 9px rgba(var(--signal-rgb,255,92,200),.45)}
+.msbtn.so{color:var(--bg);background:var(--amber);border-color:var(--amber);box-shadow:0 0 9px var(--amber-glow)}
+.msbtn.dimmed{opacity:.55}
 .busbtn.bd{color:var(--amber);border-color:var(--amber)}
 .busbtn.br{color:var(--signal);border-color:var(--signal)}
 .klock{width:6px;height:6px;border-radius:50%;margin:3px auto 0;background:var(--led-off,#2a1c10);box-shadow:inset 0 0 2px #000;transition:.1s}
@@ -1378,8 +1380,7 @@ html.inv .transport.deck .field label{color:#e8d9ae}
     border-color:var(--amber-hi);filter:brightness(1.12)}
   #leftCase button.lit,#leftCase #ctrlbar button.lit,#leftCase #ctrlbarL button.lit,#leftCase #hidebar button.lit{
     background:radial-gradient(circle at 38% 30%,var(--amber-lit),var(--amber-deep))}
-  #leftCase button.hasdot::after{content:"";position:absolute;right:-2px;top:-2px;width:10px;height:10px;
-    border-radius:50%;background:var(--dot,var(--amber));border:1.5px solid #0d0904}
+  #leftCase button.hasmark::before{background-image:var(--mark)!important}      /* the chosen colour is the mark now :: nothing hangs off the edge any more */
 
   #leftCase #textBtn{grid-area:1 / 1}                                         /* every key has its own cell :: if one is hidden, nothing else moves */
   #leftCase #hideBtn{grid-area:1 / 2}
@@ -1397,8 +1398,8 @@ html.inv .transport.deck .field label{color:#e8d9ae}
   #leftCase #hideBtn.struck::before{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Crect%20x%3D%2210.5%22%20y%3D%2212.5%22%20width%3D%2223%22%20height%3D%2219%22%20rx%3D%222.5%22%20fill%3D%22none%22%20stroke%3D%22%235f5643%22%20stroke-width%3D%221.8%22%2F%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2218%22%20r%3D%222.1%22%20fill%3D%22%235f5643%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2218%22%20r%3D%222.1%22%20fill%3D%22%235f5643%22%2F%3E%3Ccircle%20cx%3D%2228%22%20cy%3D%2218%22%20r%3D%222.1%22%20fill%3D%22%235f5643%22%2F%3E%3Crect%20x%3D%2213.5%22%20y%3D%2224.5%22%20width%3D%2217%22%20height%3D%224%22%20fill%3D%22%235f5643%22%20opacity%3D%22.5%22%2F%3E%3C%2Fsvg%3E")}
   #leftCase #hideBtn.struck::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
     width:44px;height:44px;border:0;right:auto;background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Cline%20x1%3D%2211%22%20y1%3D%2232%22%20x2%3D%2233%22%20y2%3D%2212%22%20stroke%3D%22%23ff5c5c%22%20stroke-width%3D%222.2%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E") center/44px 44px no-repeat}
-  #leftCase #bgBtn::before{width:44px;height:44px;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Cpath%20d%3D%22M10%2024%20Q15%2014%2020%2024%20T30%2024%20T34%2020%22%20fill%3D%22none%22%20stroke%3D%22%23e8d9ae%22%20stroke-width%3D%222.2%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
-  #leftCase #bgBtn.lit::before{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Cpath%20d%3D%22M10%2024%20Q15%2014%2020%2024%20T30%2024%20T34%2020%22%20fill%3D%22none%22%20stroke%3D%22%23171208%22%20stroke-width%3D%222.2%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+  #leftCase #bgBtn::before{width:44px;height:44px;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%226%22%20fill%3D%22%23e8d9ae%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2212%22%20fill%3D%22none%22%20stroke%3D%22%23e8d9ae%22%20stroke-width%3D%221.6%22%20opacity%3D%220.6%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2217.5%22%20fill%3D%22none%22%20stroke%3D%22%23e8d9ae%22%20stroke-width%3D%221.6%22%20opacity%3D%220.3%22%2F%3E%3C%2Fsvg%3E")}
+  #leftCase #bgBtn.lit::before{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%226%22%20fill%3D%22%23171208%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2212%22%20fill%3D%22none%22%20stroke%3D%22%23171208%22%20stroke-width%3D%221.6%22%20opacity%3D%220.6%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2217.5%22%20fill%3D%22none%22%20stroke%3D%22%23171208%22%20stroke-width%3D%221.6%22%20opacity%3D%220.3%22%2F%3E%3C%2Fsvg%3E")}
   #leftCase #colBtn::before{width:44px;height:44px;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Ccircle%20cx%3D%2217%22%20cy%3D%2218%22%20r%3D%225%22%20fill%3D%22%23ffb43d%22%2F%3E%3Ccircle%20cx%3D%2227%22%20cy%3D%2219%22%20r%3D%225%22%20fill%3D%22%2335d592%22%20opacity%3D%22.85%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2228%22%20r%3D%225%22%20fill%3D%22%23ff6a1e%22%20opacity%3D%22.85%22%2F%3E%3C%2Fsvg%3E")}
   #leftCase #skinBtn::before{width:44px;height:44px;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Cpath%20d%3D%22M22%2010%20A12%2012%200%200%201%2022%2034%20Z%22%20fill%3D%22%23e8d9ae%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2212%22%20fill%3D%22none%22%20stroke%3D%22%23e8d9ae%22%20stroke-width%3D%221.8%22%2F%3E%3C%2Fsvg%3E")}
   #leftCase button::before{background-size:44px 44px;background-position:center}
@@ -1561,7 +1562,7 @@ html.mach{--ghost-set:#57cfe0;--ghost-voice:#cf8ff0}
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 934</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 938</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -2703,7 +2704,7 @@ registerProcessor("crush-fx", CrushFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="934";
+const REV="938";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -2794,6 +2795,8 @@ const KITRIMV=[]; for(let _i=0;_i<9;_i++)KITRIMV.push({name:"RIM A",defs:[d("tun
 KITRIMV[1]={name:"RIM B",defs:[d("tune",0.5,2,0.98,1,"TUNE"),d("decay",0.15,3,0.412,1,"DECAY"),d("tone",0,1,1,0,"TONE"),d("fmAmt",0,1,0.2,0,"FM.AMT"),d("fmRatio",0.5,4,1.5,1,"FM.RAT"),d("noise",0,1,0.07,0,"NOISE"),d("drive",0,1,0.4,0,"DRIVE"),d("pan",-1,1,0),d("level",0,1.5,0.9,0,"LEVEL")]};   // 909 rimshot :: real schematic freqs, short envelopes
 const KITVOIDV=[]; for(let _i=0;_i<9;_i++)KITVOIDV.push({name:"SLOT "+(_i+1),defs:[],empty:true});
 const KITS=[{name:"DRUM 2",voices:KIT1V},{name:"DRUM 1",voices:KIT2V},{name:"PERC 2",voices:KIT3V},{name:"SAMPLES",voices:KIT4V},{name:"PERC 1",voices:KITPERCV},{name:"KICK LAB",voices:KITLABV},{name:"YOUR KIT",voices:KITVOIDV},{name:"RIM LAB",voices:KITRIMV}];
+const FXMARK={"amber":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2211%22%20fill%3D%22%23ffb43d%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2211%22%20fill%3D%22none%22%20stroke%3D%22%23171208%22%20stroke-width%3D%221.2%22%2F%3E%3C%2Fsvg%3E\")","orange":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2211%22%20fill%3D%22%23ff6a1e%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2211%22%20fill%3D%22none%22%20stroke%3D%22%23171208%22%20stroke-width%3D%221.2%22%2F%3E%3C%2Fsvg%3E\")","green":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2211%22%20fill%3D%22%2335d592%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2211%22%20fill%3D%22none%22%20stroke%3D%22%23171208%22%20stroke-width%3D%221.2%22%2F%3E%3C%2Fsvg%3E\")","white":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2211%22%20fill%3D%22%23eef1f6%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2211%22%20fill%3D%22none%22%20stroke%3D%22%23171208%22%20stroke-width%3D%221.2%22%2F%3E%3C%2Fsvg%3E\")","multi":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Cdefs%3E%3CclipPath%20id%3D%22d%22%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2211%22%2F%3E%3C%2FclipPath%3E%3C%2Fdefs%3E%3Cg%20clip-path%3D%22url%28%23d%29%22%3E%3Crect%20x%3D%2211%22%20y%3D%2211%22%20width%3D%2222%22%20height%3D%227.34%22%20fill%3D%22%23f37149%22%2F%3E%3Crect%20x%3D%2211%22%20y%3D%2218.34%22%20width%3D%2222%22%20height%3D%227.33%22%20fill%3D%22%2349c6f3%22%2F%3E%3Crect%20x%3D%2211%22%20y%3D%2225.67%22%20width%3D%2222%22%20height%3D%227.33%22%20fill%3D%22%238df349%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E\")"};
+const SKMARK={"shadow":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Cpath%20d%3D%22M22%2010%20A12%2012%200%200%201%2022%2034%20Z%22%20fill%3D%22%23ffc900%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2212%22%20fill%3D%22none%22%20stroke%3D%22%23ffc900%22%20stroke-width%3D%221.8%22%2F%3E%3C%2Fsvg%3E\")","invert":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Cpath%20d%3D%22M22%2010%20A12%2012%200%200%201%2022%2034%20Z%22%20fill%3D%22%2335d592%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2212%22%20fill%3D%22none%22%20stroke%3D%22%2335d592%22%20stroke-width%3D%221.8%22%2F%3E%3C%2Fsvg%3E\")","ghost":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Cpath%20d%3D%22M22%2010%20A12%2012%200%200%201%2022%2034%20Z%22%20fill%3D%22%23ff6a1e%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2212%22%20fill%3D%22none%22%20stroke%3D%22%23ff6a1e%22%20stroke-width%3D%221.8%22%2F%3E%3C%2Fsvg%3E\")","black":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Cpath%20d%3D%22M22%2010%20A12%2012%200%200%201%2022%2034%20Z%22%20fill%3D%22%23f2f4f8%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2212%22%20fill%3D%22none%22%20stroke%3D%22%23f2f4f8%22%20stroke-width%3D%221.8%22%2F%3E%3C%2Fsvg%3E\")","mach":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Cpath%20d%3D%22M22%2010%20A12%2012%200%200%201%2022%2034%20Z%22%20fill%3D%22%239a9c9f%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2212%22%20fill%3D%22none%22%20stroke%3D%22%239a9c9f%22%20stroke-width%3D%221.8%22%2F%3E%3C%2Fsvg%3E\")","paper":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Cpath%20d%3D%22M22%2010%20A12%2012%200%200%201%2022%2034%20Z%22%20fill%3D%22%23c14a18%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2212%22%20fill%3D%22none%22%20stroke%3D%22%23c14a18%22%20stroke-width%3D%221.8%22%2F%3E%3C%2Fsvg%3E\")"};
 const KIT_ORDER=[1,0,4,2,5,7]   // DRUM 1, DRUM 2, PERC 1, PERC 2, then the two labs   // sumad's two labs are sound sets as well :: the rack is the only thing that is not;   // display order (pos->internal index) :: samples stays internal 3, VOID appended
 const KITKEYS=["raw","pckrt","subs","samples","resonant","kicklab","void","rimlab"];   // internal index -> tutorial key
 const userSamples=Array(9).fill(null);   // {data:Float32Array, sr, name} · session store, re-sent to worklet on engine start
@@ -3058,6 +3061,7 @@ function mkVoices(arr){return arr.map(v=>({name:v.name,defs:v.defs,fxMode:v.fxMo
 const state={
   bpm:120,swing:0,playing:false,selected:0,curPattern:0,page:0,kit:1,autoRec:false,lang:"en",
   mute:Array(VOICES).fill(false),
+  solo:Array(VOICES).fill(false),
   bus:Array(VOICES).fill(0),
   plock:null,
   sum:{dist:0},
@@ -3075,7 +3079,7 @@ let history=[], hidx=-1, restoring=false;
 function snapshot(){
   return {
     bpm:state.bpm, swing:state.swing, selected:state.selected, curPattern:state.curPattern, page:state.page, kit:state.kit,
-    mute:state.mute.slice(), bus:state.bus.slice(), sum:{dist:state.sum.dist}, masterVol:state.master.vol, masterLimit:state.master.limit, masterRoll:state.master.roll, finPreset:state.fin.preset, finAmt:state.fin.amount,
+    mute:state.mute.slice(), solo:state.solo.slice(), bus:state.bus.slice(), sum:{dist:state.sum.dist}, masterVol:state.master.vol, masterLimit:state.master.limit, masterRoll:state.master.roll, finPreset:state.fin.preset, finAmt:state.fin.amount,
     modules: JSON.parse(JSON.stringify(state.master.modules,(k,v)=>k==="_nodes"?undefined:v)),
     voidGroups: JSON.parse(JSON.stringify(state.voidGroups||[])),
     liveMacros: JSON.parse(JSON.stringify(state.liveMacros||{})),
@@ -3096,8 +3100,9 @@ function commit(){ if(restoring)return; history=history.slice(0,hidx+1); history
 function restore(snap){
   restoring=true;
   state.bpm=snap.bpm; state.swing=snap.swing; state.selected=snap.selected; state.curPattern=snap.curPattern; state.kit=snap.kit;
-  state.mute=snap.mute.slice(); state.bus=(snap.bus?snap.bus.map(x=>Math.min(1,x|0)):Array(VOICES).fill(0)); state.sum.dist=snap.sum.dist;
+  state.mute=snap.mute.slice(); state.solo=(snap.solo?snap.solo.slice():Array(VOICES).fill(false)); state.bus=(snap.bus?snap.bus.map(x=>Math.min(1,x|0)):Array(VOICES).fill(0)); state.sum.dist=snap.sum.dist;
   document.querySelectorAll(".busbtn").forEach(b=>{const vi=+b.dataset.v,bv=state.bus[vi]|0;b.textContent=["F","D"][bv];b.classList.toggle("bd",bv===1);});
+  if(typeof paintMuteBtns==="function")paintMuteBtns();
   if(snap.voidGroups)state.voidGroups=JSON.parse(JSON.stringify(snap.voidGroups));
   if(snap.liveMacros)state.liveMacros=JSON.parse(JSON.stringify(snap.liveMacros));
   if(snap.groupPat)state.groupPat=JSON.parse(JSON.stringify(snap.groupPat));
@@ -3299,8 +3304,20 @@ function voicePatMap(){ if(state.kit!==6)return null; const out=new Array(VOICES
     const pi=(vo.group&&groupById(vo.group))?(groupBank(vo.group)+groupPatOf(vo.group)):pn;   // ungrouped slots live in bank 0, never in a group bank
     out[i]=state.patterns[pi]||state.patterns[state.curPattern]; });
   return out; }   // VOID live :: every group can run its own pattern
+function seqSoloActive(){ for(let i=0;i<VOICES;i++)if(state.solo[i])return true; return false; }
+function seqSilent(v){ return seqSoloActive()? !state.solo[v] : !!state.mute[v]; }   // any solo anywhere outranks every mute
+function paintMuteBtns(){ const so=seqSoloActive();
+  document.querySelectorAll(".msbtn").forEach(b=>{ const v=+b.dataset.v; if(isNaN(v))return;
+    const sv=!!state.solo[v], mv=!!state.mute[v];
+    b.textContent=sv?"S":"M";
+    b.classList.toggle("on",mv&&!sv);
+    b.classList.toggle("so",sv);
+    b.classList.toggle("dimmed",so&&!sv);
+    b.title=sv?"solo \u00b7 click or ctrl-click to clear"
+              :(mv?"muted \u00b7 click to unmute \u00b7 ctrl-click for solo"
+                 :"click to mute \u00b7 ctrl-click for solo"); }); }
 function applyGroupMute(gid,on){ const idx=groupVoiceIdx(gid); idx.forEach(i=>{ state.mute[i]=on; });
-  document.querySelectorAll(".mute").forEach(b=>{ const v=+b.dataset.v; if(!isNaN(v))b.classList.toggle("on",!!state.mute[v]); });
+  paintMuteBtns();
   if(typeof commit==="function")commit(); }
 function lvMidiBind(el,id,def,get,set,render){   // live rows are rebuilt constantly, so the mapping hangs on the id, same as the knobs
   const paint=()=>{ el.classList.toggle("midi",!!MIDI_MAP[id]); el.classList.toggle("arm",MIDI_ARM===id); };
@@ -3391,7 +3408,7 @@ function schedule(){
     if(curStep===0){ applyPendingPats(); applyPendingPattern(); resoStep(); if(typeof loopApplyPending==="function")loopApplyPending(t); }   // queued pattern + group changes land on the bar
     const vpm=voicePatMap();
     for(let v=0;v<VOICES;v++){
-      if(state.mute[v])continue;
+      if(seqSilent(v))continue;
       if(vpm&&vpm[v]===null)continue;   // stopped group
       const pv=(vpm&&vpm[v])||pat;
       const s=pv.steps[v][curStep]; if(!s)continue;
@@ -6545,6 +6562,8 @@ function appendModuleKnobs(m,kc,ctx,idx){
 function switchKit(i,force){
   if(i===state.kit&&!force)return;
   state.plock=null;
+  state.solo.fill(false);   // solo is a listening state, never carried into another kit where its button is out of sight
+
   setTimeout(()=>{ if(typeof paintLiveBtn==="function")paintLiveBtn(); },0);   // the LIVE button follows the kit
   if(KIT_ORDER.indexOf(i)>=0)state.lastSet=i;                                // remember where to come back to
   state.kit=i; state.voices=state.kits[i]; if(state.selected>=state.voices.length)state.selected=0;
@@ -6793,9 +6812,13 @@ function buildSeq(){
       if(state.kit===6){ sel.title="click to select \u00b7 double-click to pick a sound \u00b7 right-click to copy / paste"; sel.ondblclick=()=>{ state.selected=vi; refreshSel(); buildEditor(); openSoundPicker(vi); }; }
     }
     attachSoundDrag(sel,vi);
-    const mute=document.createElement("button");mute.className="mute";mute.textContent="M";
-    mute.dataset.v=vi;mute.onclick=()=>{state.mute[vi]=!state.mute[vi];mute.classList.toggle("on",state.mute[vi]);if(typeof commit==="function")commit();};
-      midiButton(mute,"mute:"+vi,"MUTE "+(vi+1),()=>!!state.mute[vi],()=>mute.click());
+    const mute=document.createElement("button");mute.className="mute msbtn";mute.textContent="M";
+    mute.dataset.v=vi;mute.onclick=(e)=>{
+      if(e&&(e.ctrlKey||e.metaKey)){ state.solo[vi]=!state.solo[vi]; }   // ctrl-click drives solo, plain click drives mute
+      else if(state.solo[vi]){ state.solo[vi]=false; }                   // a plain click always clears back to off
+      else { state.mute[vi]=!state.mute[vi]; }
+      paintMuteBtns(); if(typeof commit==="function")commit();};
+      midiButton(mute,"mute:"+vi,"MUTE "+(vi+1),()=>!!state.mute[vi],()=>{state.mute[vi]=!state.mute[vi];paintMuteBtns();if(typeof commit==="function")commit();});
     const BUSL=["F","D"],BUST=["through the master fx","dry: skips the master fx (finalizer still applies)"];
     const bus=document.createElement("button");bus.className="mute busbtn";bus.dataset.v=vi;
     const busPaint=()=>{
@@ -6877,7 +6900,7 @@ function buildSeq(){
     const rm=mk("\u2212 REMOVE",removeVoidSlot,"remove the last slot"); if(n<=1)rm.classList.add("off");
     const cnt=document.createElement("span"); cnt.className="void-count"; cnt.textContent=n+" / "+VOID_MAX;
     bar.append(add,rm,cnt); rows.appendChild(bar); }
-  refreshSel();setPage(0);
+  refreshSel();setPage(0);paintMuteBtns();
 }
 function drawStep(el,v,sub){el.classList.toggle("on",v===1);el.classList.toggle("acc",v===2);const s=v?(sub||1):1;el.dataset.sub=s;el.style.setProperty("--sub",s);el.style.setProperty("--dots",s>1?s*2:1);}
 function drawStepLock(el,vi,abs){const pl=state.plock;let armedLocked=false;if(pl){const lv=getLock(vi,pl.key,abs);armedLocked=(lv!==undefined);}el.classList.toggle("plockon",!!armedLocked);el.classList.toggle("haslock",stepHasAnyLock(vi,abs));}
@@ -8368,7 +8391,7 @@ function drawSphere(c,x,y,r,hue,struct,L,rot){
   hg.addColorStop(0,"hsla(0,0%,100%,"+(0.75*L)+")");hg.addColorStop(1,"hsla(0,0%,100%,0)");
   c.fillStyle=hg;c.beginPath();c.arc(gx,gy,r*0.55,0,PI2);c.fill();
 }
-const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=934","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
+const IMPACT_CODE=["bgImpact(c,W,H,dt)","const ax=o.horiz?1:0","drawBrick(cx,cy,bw)","state.voices[v]","o.squash*=Math.exp(-dt*13)","reso-svf","M/S width","masterOut.gain.value","AudioWorkletNode(ac)","comp.threshold.value","tanh(k*x)/tanh(k)","sec16()=(60/bpm)/4","0x30d4 0x2588","BG.impacts.push({})","fin.sideW.gain","for(let k=0;k<sub;k++)","port.postMessage","cursor.connect(masterOut)","const REV=937","if(!o.hit){o.hit=true}","engineNode.port","revCombLevel(cdecay)","x*(27+x*x)","kits.worklet.js","=> { return }","0b1010 0xFF","glitch.port","Math.hypot(dx,dy)","phase+=inc","buf[i]=Math.random()*2-1"];
 function drawCodeFillClip(c,kx,ky,kw,kh,rx,ry,rw,rh,hue,L,seed){
   if(kw<=0||kh<=0)return;
   c.save();c.beginPath();c.rect(kx,ky,kw,kh);c.clip();
@@ -8739,7 +8762,7 @@ function bgSet(m){BG.mode=m;const b=document.getElementById("bgBtn");if(b)ctrlSt
 function bgCycle(){const o=["off","logo","liquid","scope","wave","bubbles","microbe","cube","fracture","datamosh","seq","horizon","impact","laser","glyphs","credits"];bgSet(o[(o.indexOf(BG.mode)+1)%o.length]);}
 function fxLabel(c){ const lab={amber:"AMBER",orange:"ORANGE",green:"GREEN",white:"WHITE",black:"BLACK",multi:"MULTI"};
   return lab[c]||String(c).toUpperCase(); }
-function paintColBtn(){ const b=document.getElementById("colBtn"); if(b)ctrlState(b,"FX",fxLabel(BG.fxColor),false,fxDotColour()); }
+function paintColBtn(){ const b=document.getElementById("colBtn"); if(b)ctrlState(b,"FX",fxLabel(BG.fxColor),false,FXMARK[BG.fxColor]||FXMARK.amber); }
 function colCycle(){const o=["amber","orange","green","white","multi"];BG.fxColor=o[(o.indexOf(BG.fxColor)+1)%o.length];paintColBtn();}
 
 // ---- boot ----
@@ -8763,7 +8786,7 @@ function skinApply(){const root=document.documentElement,lab={ghost:"TRANSPARENT
   if(document.getElementById("pagegrp")&&typeof refreshStrip==="function")refreshStrip();   // inline group colour on the pattern strip :: only once the strip exists, skinApply also runs at boot
   if(document.getElementById("editor")&&typeof buildEditor==="function")buildEditor();      // knob colours are inline too
   if(typeof state!=="undefined"&&state.liveOpen&&typeof buildLiveScreen==="function")buildLiveScreen();
-  const b=document.getElementById("skinBtn");if(b)ctrlState(b,"SKIN",lab[skinState],false,skinDotColour());}
+  const b=document.getElementById("skinBtn");if(b)ctrlState(b,"SKIN",lab[skinState],false,SKMARK[skinState]||SKMARK.shadow);}
 function skinCycle(){const o=["shadow","invert","ghost","black","mach"];skinState=o[(o.indexOf(skinState)+1)%o.length];skinApply();}
 document.getElementById("skinBtn").onclick=()=>skinCycle();
 skinApply();
@@ -8989,8 +9012,8 @@ function ctrlState(btn,name,value,lit,dot){                                    /
   const base=btn.dataset.tipbase;
   btn.title=(base?base+"  \u00b7  ":"")+name+": "+value;
   btn.classList.toggle("lit",!!lit);
-  if(dot){ btn.style.setProperty("--dot",dot); btn.classList.add("hasdot"); }
-  else btn.classList.remove("hasdot");
+  if(dot){ btn.style.setProperty("--mark",dot); btn.classList.add("hasmark"); }   // the chosen colour now lives in the mark itself, not on a dot outside
+  else btn.classList.remove("hasmark");
 }
 function ctrlRetitle(){                                                        // the tip system rewrites titles :: put the state back afterwards
   ["textBtn","hideBtn","bgBtn","colBtn","skinBtn"].forEach(id=>{
