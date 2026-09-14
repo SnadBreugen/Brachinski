@@ -231,6 +231,9 @@ html.mach .transport.deck .field label{color:#171205}
 .mfx.add{align-items:center;justify-content:center;border-style:dashed;border-color:var(--dimmer);cursor:pointer;gap:6px;min-width:118px}
 .mfx.add:hover{opacity:.9;border-color:var(--line-hi)}
 .mfx.add.open{flex-direction:column;opacity:1;justify-content:flex-start;align-items:stretch}
+.mfx.add.nogrp{justify-content:center;gap:7px;border-color:var(--signal);border-style:solid}
+.mfx.add.nogrp .nogrp-t{color:var(--signal);font-size:10px;letter-spacing:1.5px}
+.mfx.add.nogrp .nogrp-b{color:var(--dim);font-size:9px;letter-spacing:1.5px}
 .mfx.add .mfx-add{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--dim);text-align:center}
 .mfx.add:hover{border-color:var(--amber)}
 .mfx.add:hover .mfx-add{color:var(--amber)}
@@ -343,6 +346,9 @@ html.mach .transport.deck .field label{color:#171205}
 .sel{flex:1;text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--dim);background:#0c0814;border:1px solid var(--line);border-radius:3px;padding:8px 9px;cursor:pointer;overflow:hidden;white-space:nowrap;box-shadow:inset 0 1px 2px rgba(0,0,0,.5)}
 .sel .n{color:var(--ink)}
 .sel.active{background:var(--amber);border-color:var(--amber);color:var(--bg);box-shadow:0 0 11px var(--amber-glow)}
+.sel.msel{border-color:var(--signal);box-shadow:inset 0 0 0 1px var(--signal)}   /* picked for grouping :: without a mark nobody can tell what CTRL+G will take */
+.sel.msel::after{content:"\u25a0";position:absolute;right:7px;top:50%;transform:translateY(-50%);font-size:8px;color:var(--signal);pointer-events:none}
+.sel{position:relative}
 .sel.active .n{color:var(--bg)}
 .mute{font-size:9px;color:var(--dim);background:#0c0814;border:1px solid var(--line);border-radius:3px;padding:8px;cursor:pointer;letter-spacing:1px}
 .mute.on{color:var(--signal);border-color:var(--signal);box-shadow:0 0 9px rgba(var(--signal-rgb,255,92,200),.45)}
@@ -371,10 +377,10 @@ button.midibound{outline:1px solid var(--amber);outline-offset:1px}
 .step:nth-child(4n+1){border-color:#6f5a9c}
 .step.on{background:linear-gradient(180deg,var(--amber-hi),var(--amber-deep));border-color:var(--amber-lit);box-shadow:0 0 10px var(--amber-glow),inset 0 1px 0 rgba(255,255,255,.45)}
 .step.acc{background:linear-gradient(180deg,#fff,var(--amber-hi));border-color:#fff;box-shadow:0 0 16px var(--amber-glow),inset 0 1px 0 rgba(255,255,255,.6)}
-.step[data-sub="2"].on::before,.step[data-sub="2"].acc::before,.step[data-sub="4"].on::before,.step[data-sub="4"].acc::before{content:"";position:absolute;inset:0;border-radius:3px;pointer-events:none;background-image:radial-gradient(circle,rgba(8,3,1,.72) 1.5px,transparent 2.1px);background-size:calc(100%/var(--dots)) 100%;background-repeat:repeat-x;background-position:center}
+.step[data-rt].on::before,.step[data-rt].acc::before{content:attr(data-rt);position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.5px;color:rgba(10,4,14,.7)}   /* ratchet :: the division printed on the lens, like a marking on the part itself */
 .cell-btn.clr{width:auto;padding:0 12px;letter-spacing:1px}
 #bgfx{position:fixed;inset:0;z-index:0;pointer-events:none}
-html.zen .chassis,html.zen .feat-panel,html.zen #ctrlbarL{display:none!important}
+html.zen .chassis{display:none!important}   /* DEVICE hides the device :: text is the TEXT button's job */
 #psWarn{position:fixed;inset:0;z-index:9999;background:rgba(4,2,10,.94);display:none;align-items:center;justify-content:center;padding:24px}
 #psWarn.show{display:flex}
 #psWarn .ps-box{max-width:520px;border:1px solid var(--line);background:#0c0814;padding:26px 28px;font-family:var(--mono);text-align:left;box-shadow:0 0 0 1px rgba(255,188,58,.12),0 20px 60px rgba(0,0,0,.6)}
@@ -398,7 +404,7 @@ html.zen .chassis,html.zen .feat-panel,html.zen #ctrlbarL{display:none!important
   background:rgba(0,0,0,.32);border:1px solid var(--line-hi);color:var(--amber);display:block}
 #helpBtn:hover{border-color:var(--amber);color:var(--amber-hi)}
 /* the map lives behind this mark, so it stays reachable at every size */
-html.zen #helpBtn,body.text-off #helpBtn{display:none!important}
+body.text-off #helpBtn{display:none!important}
 #mapOv{position:fixed;inset:0;z-index:9800;display:none;background:var(--bg);overflow-y:auto}
 #mapOv.on{display:flex;align-items:center;justify-content:center;padding:28px}
 .map-wrap{width:100%;max-width:1040px}
@@ -430,7 +436,7 @@ html.zen #helpBtn,body.text-off #helpBtn{display:none!important}
 #hoverBar.on{display:block}
 #hoverBar b{color:var(--amber);font-weight:700}
 @media (min-width:1890px){#hoverBar{display:none!important}}
-html.zen #hoverBar,body.text-off #hoverBar{display:none!important}
+body.text-off #hoverBar{display:none!important}
 #helpOv{position:fixed;inset:0;z-index:9700;display:none;background:rgba(0,0,0,.62);
   backdrop-filter:blur(3px);overflow-y:auto;padding:48px 18px}
 #helpOv.on{display:block}
@@ -470,7 +476,7 @@ html.zen #hoverBar,body.text-off #hoverBar{display:none!important}
 body.text-off .feat-panel{display:none!important}
 #wipBox{position:fixed;top:560px;left:calc(50% - 924px);width:320px;display:none;z-index:5;font-family:var(--mono);max-height:calc(100vh - 150px);overflow-y:auto;overflow-x:hidden}
 @media (min-width:1890px){#wipBox{display:block}}
-html.zen #wipBox,body.text-off #wipBox{display:none!important}
+body.text-off #wipBox{display:none!important}
 .wip-card{border:1px solid var(--line-hi);border-radius:10px;background:linear-gradient(180deg,rgba(255,180,61,.035),rgba(0,0,0,0));padding:14px 15px}
 .wip-tag{font-size:11px;letter-spacing:3px;color:var(--amber);font-weight:700;margin-bottom:8px}
 .wip-body{font-size:11px;line-height:1.7;color:var(--dim);margin-bottom:12px}
@@ -496,7 +502,7 @@ html.zen #wipBox,body.text-off #wipBox{display:none!important}
 #langbar .flag svg{width:22px;height:14px;display:block;border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.4)}
 #langbar .flag:hover{opacity:.85;filter:none}
 #langbar .flag.on{opacity:1;filter:none;background:rgba(255,180,61,.15);box-shadow:inset 0 0 0 1px var(--amber)}
-html.zen #snadlink,html.zen #langbar,html.zen #fbBtn,html.zen #fbPanel{display:none!important}
+body.text-off #snadlink,body.text-off #fbBtn,body.text-off #fbPanel{display:none!important}
 #fbBtn{position:fixed;bottom:112px;right:16px;z-index:60;font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--amber);background:rgba(0,0,0,.4);border:1px solid var(--line-hi);border-radius:7px;padding:7px 12px;cursor:pointer;transition:.12s}
 #fbBtn:hover{border-color:var(--amber);background:rgba(255,180,61,.1);color:#fff}
 #fbPanel{position:fixed;bottom:104px;left:16px;z-index:61;width:min(320px,90vw);background:linear-gradient(180deg,var(--panel2,#140d24),var(--panel,#0d0918));border:1.5px solid var(--line-hi);border-radius:9px;padding:14px;display:flex;flex-direction:column;gap:8px;box-shadow:0 12px 40px rgba(0,0,0,.6);font-family:var(--mono)}
@@ -608,6 +614,7 @@ html.paper .bars-ico i{background:#14130f}
 html.paper .knob .kv,html.paper .kit-disp-v,html.paper .voice-name,html.paper .readout{color:#14141a;text-shadow:none}
 html.paper .voice-idx{background:#14141a;color:#f2f2f6;box-shadow:none}
 html.paper .mute.on{color:#000;border-color:#000;box-shadow:0 0 0 1px #000}
+html.paper .msbtn.so{background:#14141a;color:#fff;border-color:#14141a;box-shadow:none}   /* solo has to read on the light machine too */
 html.paper .wordmark{color:#14141a;text-shadow:0 1px 0 rgba(255,255,255,.8)}
 html.paper .subtitle,html.paper .eyebrow span,html.paper .foot,html.paper .meter .ml{color:rgba(20,20,26,.62)}
 html.paper .bars-ico i{background:#14141a}
@@ -1291,7 +1298,9 @@ html.ghost .kit-disp{background:#140a03}
 html.skin-invert .slider,html.skin-invert .meter .led,html.skin-invert #finbar button.on{background:#13301f}
 html.ghost .slider,html.ghost .meter .led,html.ghost #finbar button.on{background:#2a1a0c}
 html.skin-invert .lv-pad.on,html.skin-invert .live-name,html.skin-invert #patgrp.grouped .pat.on{background:#081a11}
+html.skin-invert #patgrp.grouped .pat.on{color:var(--gc)}   /* the housing went dark here :: the digit has to come back up with it */
 html.ghost .lv-pad.on,html.ghost .live-name,html.ghost #patgrp.grouped .pat.on{background:#170d05}
+html.ghost #patgrp.grouped .pat.on{color:var(--gc)}   /* the housing went dark here :: the digit has to come back up with it */
 html.skin-invert .lv-pad.hollow{background:#08190f}
 html.ghost .lv-pad.hollow{background:#160c04}
 
@@ -1320,6 +1329,7 @@ html.inv .kit-disp{background:#140d05}
 html.inv .status,html.inv .island > .tag{background:#150e06}
 html.inv .slider,html.inv .meter .led,html.inv #finbar button.on{background:#2a2010}
 html.inv .lv-pad.on,html.inv .live-name,html.inv #patgrp.grouped .pat.on{background:#170f06}
+html.inv #patgrp.grouped .pat.on{color:var(--gc)}   /* the housing went dark here :: the digit has to come back up with it */
 html.inv .lv-pad,html.inv .lv-purl,html.inv .rev-play,html.inv .rev-name{background:#180f06}
 html.inv .lv-pad.hollow{background:#150d05}
 html.inv .lim-btn:not(.on){background:#140c04}
@@ -1531,10 +1541,10 @@ html.mach{--ghost-set:#57cfe0;--ghost-voice:#cf8ff0}
   </div>
     <div class="workside">
     <div class="island" id="masterFxIsland">
-    <span class="tag">// MASTER FX</span>
+    <span class="tag" id="sumfxTag">// MASTER FX</span>
     <span class="screw tl"></span><span class="screw bl"></span><span class="screw br"></span>
     <div id="sumfx"></div>
-    <div class="hint">// chain runs on the summed mix · drag the grip to reorder · bypass dot · INS keeps signal inline, SND mixes the effect on top</div>
+    <div class="hint" id="sumfxHint">// chain runs on the summed mix · drag the grip to reorder · bypass dot · INS keeps signal inline, SND mixes the effect on top</div>
   </div>
 
   <div class="island">
@@ -1562,7 +1572,7 @@ html.mach{--ghost-set:#57cfe0;--ghost-voice:#cf8ff0}
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 939</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 953</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -1624,6 +1634,8 @@ function fx(kind,x,amt){ return amt<0.001?x:shapeFn(kind,x,amt)*makeup(kind,amt)
 
 function eCoef(t){ return Math.exp(-1/(Math.max(0.0002,t)*sampleRate)); }      // one-pole approach coef
 function dCoef(t){ return Math.exp(-6.908/(Math.max(0.0005,t)*sampleRate)); }  // exp decay to ~0.1% after t
+const LVK=1-Math.exp(-1/(0.005*sampleRate));   // 5ms glide on output level :: a level that jumps mid ring steps the waveform and clicks
+function lvGlide(cur,tgt){ return cur==null?tgt:cur+(tgt-cur)*LVK; }
 
 // ═══════════════════════════════════════════════════════════════
 // KIT 1 :: ported original uTonic voice (osc + filtered noise + punch/drive/sat/crush/body/tone)
@@ -1728,7 +1740,8 @@ function makeKit1(){ return KIT1_PRESETS.map(p=>p.clap?new ClapVoice(p):new GenV
 class KickVoice {
   constructor(soft){ this.phase=0;this.ampEnv=0;this.amp=0;this.pitchEv=0;this.nz=0;this.active=false;
     this.decay=soft?0.35:0.10;this.tune=soft?0.3:0.28;this.tone=0.05;this.gain=soft?0.7:0.9;this.soft=soft;this.pan=0;this.olvl=1;this.fmRatio=1;this.fmAmt=0;this.fmDecay=0.3;this.phaseDrift=0; }
-  trigger(vel){ this.ampEnv=vel;this.pitchEv=1;this.phase=(this.phaseDrift>0.0001?Math.random()*this.phaseDrift:0);this.active=true; this.fmPh=0;this.fmDecEnv=1;this.fmDecA=dCoef(Math.max(0.003,this.fmDecay||0.3)); this.aE=0; { const _a=(this.attack||0); this.aOn=_a>0.0012; this.aInc=this.aOn?(1/(_a*sampleRate)):1; } }                 // phase reset on trigger :: consistent punch like the other models (amp env starts at 0 -> no click)
+  trigger(vel){ this._lv=(this.active&&this._lv!=null)?this._lv:this.gain;   // snap on a fresh hit, keep gliding into a ringing tail
+    this.ampEnv=vel;this.pitchEv=1;this.phase=(this.phaseDrift>0.0001?Math.random()*this.phaseDrift:0);this.active=true; this.fmPh=0;this.fmDecEnv=1;this.fmDecA=dCoef(Math.max(0.003,this.fmDecay||0.3)); this.aE=0; { const _a=(this.attack||0); this.aOn=_a>0.0012; this.aInc=this.aOn?(1/(_a*sampleRate)):1; } }                 // phase reset on trigger :: consistent punch like the other models (amp env starts at 0 -> no click)
   tick(){ if(!this.active)return 0;
     const baseFreq=this.soft?20+this.tune*60:30+this.tune*90;
     const freq=baseFreq+this.pitchEv*baseFreq*(this.soft?2:3.5);
@@ -1740,7 +1753,8 @@ class KickVoice {
     this.amp+=(this.ampEnv-this.amp)*0.06;                                          // ~0.4ms attack smoother :: declick onset/retrigger
     if(this.ampEnv<0.0001&&this.amp<0.0001){this.active=false;return 0;}
     if(this.aOn){this.aE+=this.aInc;if(this.aE>=1){this.aE=1;this.aOn=false;}}
-    return (osc*(1-this.tone)+noise*this.tone)*this.amp*this.gain*(this.aOn?this.aE:1); }
+    this._lv=lvGlide(this._lv,this.gain);
+    return (osc*(1-this.tone)+noise*this.tone)*this.amp*this._lv*(this.aOn?this.aE:1); }
 }
 class SnareVoice {
   constructor(){ this.env=0;this.envPhase=0;this.envPeak=0;this.lpZ=0;this.hpZ=0;this.hpZ2=0;this.active=false;
@@ -1866,6 +1880,8 @@ class PingVoice {                                                   // pinged re
   set(k,v){ this.p[k]=v; if(k==="pan")this.pan=v; }
   trigger(vel,seed){ const p=this.p, lf=p.life||0, rnd=this._rnd=(seed!=null?seededRng(seed):Math.random), R=()=>(rnd()*2-1);   // seed => deterministic (export); live => random
     const _wa=this.active; this.active=true; this.vel=vel; this.pan=p.pan;
+    this._lv=(_wa&&this._lv!=null)?this._lv:p.level;   // snap on a fresh hit, keep gliding into a hit that lands on a ringing tail
+
     this.f0=Math.max(20,p.tune)*(1+R()*lf*0.05);
     this.q=Math.max(2,p.reso*(1+R()*lf*0.30));
     const baseLen=0.04+(p.reso/40)*0.85;                                  // RESO -> ring length (0.08..0.9s)
@@ -1891,7 +1907,8 @@ class PingVoice {                                                   // pinged re
     sig=this.tn.proc(sig); if(this.env<0.0002)this.active=false;
     if(this.aOn){this.aE+=this.aInc;if(this.aE>=1){this.aE=1;this.aOn=false;}}
     if(this._dc<1){this._dc+=1/(0.0006*sampleRate);if(this._dc>1)this._dc=1;}   // 0.6ms declick :: kills the onset click without touching the ping transient
-    return sig*p.level*this.vel*(this.jLev||1)*(this.aOn?this.aE:1)*this._dc; }
+    this._lv=lvGlide(this._lv,p.level);
+    return sig*this._lv*this.vel*(this.jLev||1)*(this.aOn?this.aE:1)*this._dc; }
 }
 const PING_PRESETS=[
   {tune:50, reso:20,decay:0.60,fmRatio:1.00,fmAmt:0.088,sweep:0.50,drive:0.42,saturate:0.30,tone:4200,level:0.92,pan:0,    life:0.10},
@@ -2088,7 +2105,8 @@ class Rimshot909Voice {   // Sumad's 909 rimshot :: 4 bandpass resonators (share
     this.active=false; this.makeup=6.5;
   }
   set(k,v){ if(k in this)this[k]=v; }
-  trigger(vel){ this.active=true; this.vel=vel||1; this.t=0;
+  trigger(vel){ this._lv=(this.active&&this._lv!=null)?this._lv:this.level;   // snap on a fresh hit, keep gliding into a ringing tail
+    this.active=true; this.vel=vel||1; this.t=0;
     const rF=1+(Math.random()-0.5)*0.04, rD=1+(Math.random()-0.5)*0.06;
     this.bp.forEach((b,i)=>{ b.reset(); b.set("bandpass",this._R[i].f*this.tune*rF,this.res); });
     this.hpf.reset(); this.hpf.set("highpass",350,0.707);
@@ -2104,7 +2122,8 @@ class Rimshot909Voice {   // Sumad's 909 rimshot :: 4 bandpass resonators (share
     for(let i=0;i<4;i++){ const b=this.bp[i].proc(n); sig+=b*this.env[i].v*this.toneW[i]; this.env[i].v*=this.env[i].k; }
     if(this.clickLeft>0){ const cn=(Math.random()*2-1); const cb=this.cbp.proc(cn); sig+=cb*this.cenv; this.cenv*=this.cenvK; this.clickLeft--; }
     let out=Math.atan(sig*this.dg*this.makeup)/(Math.PI/2);
-    out=this.hpf.proc(out); out*=this.level*this.vel;
+    this._lv=lvGlide(this._lv,this.level);
+    out=this.hpf.proc(out); out*=this._lv*this.vel;
     this.t++; if(this.t>sampleRate*0.4)this.active=false;
     return out;
   }
@@ -2119,7 +2138,8 @@ class RimFMVoice {   // 909 rimshot :: three damped-sine T-bridge resonators (49
     this._O=[{f:495,a:0.9,d:20},{f:219,a:0.6,d:25},{f:1053,a:1.0,d:5}]; this.active=false; this.makeup=2.2;
   }
   set(k,v){ if(k in this)this[k]=v; }
-  trigger(vel){ this.active=true; this.vel=vel||1; this.t=0;
+  trigger(vel){ this._lv=(this.active&&this._lv!=null)?this._lv:this.level;   // snap on a fresh hit, keep gliding into a ringing tail
+    this.active=true; this.vel=vel||1; this.t=0;
     const rF=1+(Math.random()-0.5)*0.03;
     this.osc=this._O.map((o,i)=>{ const hi=i/(this._O.length-1); const toneW=1+(this.tone-0.5)*1.4*(hi-0.5);
       return { ph:0, f:o.f*this.tune*rF, amp:o.a*toneW, env:1, envK:Math.exp(-1/((o.d/1000)*this.decay*sampleRate)) }; });
@@ -2136,7 +2156,8 @@ class RimFMVoice {   // 909 rimshot :: three damped-sine T-bridge resonators (49
     if(this.noiseLeft>0){ sig+=(Math.random()*2-1)*this.noise*this.noiseEnv; this.noiseEnv*=this.noiseEnvK; this.noiseLeft--; }
     let out=Math.tanh(sig*this.dg*this.makeup);
     const a=0.95; const hp=a*(this.hp+out-this.hpPrev); this.hpPrev=out; this.hp=hp; out=hp;
-    out*=this.level*this.vel*0.5;
+    this._lv=lvGlide(this._lv,this.level);
+    out*=this._lv*this.vel*0.5;
     this.t++; if(this.t>sampleRate*0.2)this.active=false;
     return out;
   }
@@ -2292,7 +2313,8 @@ class BrachinisteEngine extends AudioWorkletProcessor {
     else if(m.type==="bus"){ this.bus[m.voice|0]=Math.max(0,Math.min(7,m.value|0)); }   // 0 master, 1 dry, 3..7 group buses
     else if(m.type==="reset"){ for(const v of this.voices())v.active=false; this.queue.length=0; }
   }
-  _snap(v,k,val){ if(v.set)v.set(k,val); if(v._t&&(k in v._t))v[k]=val; }
+  _read(v,k){ if(v._t&&v._t[k]!==undefined)return v._t[k]; if(v.p&&v.p[k]!==undefined)return v.p[k]; return v[k]; }   // some voices keep their params in .p, some in ._t, some on the instance
+  _snap(v,k,val){ if(val===undefined)return; if(v.set)v.set(k,val); if(v._t&&(k in v._t))v[k]=val; }   // never write undefined into a voice :: it turns the whole output into NaN
   process(inputs,outputs){
     const o0=outputs[0],L0=o0[0],R0=o0[1],o1=outputs[1],o2=outputs[2];
     const L1=o1&&o1[0],R1=o1&&o1[1],L2=o2&&o2[0],R2=o2&&o2[1];
@@ -2300,14 +2322,20 @@ class BrachinisteEngine extends AudioWorkletProcessor {
     for(let i=0;i<n;i++){
       const f=this.frame+i;
       while(this.queue.length&&this.queue[0].atFrame<=f){ const ev=this.queue.shift(); const v=vs[ev.voice]; if(v){
-          if(v._lockedKeys){ for(const k in v._lockedKeys){ this._snap(v,k,(v._base&&v._base[k]!==undefined)?v._base[k]:v[k]); } }   // p-locks: restore base for previously locked params
-          if(ev.locks){ v._lockedKeys=v._lockedKeys||{}; for(const k in ev.locks){ this._snap(v,k,ev.locks[k]); v._lockedKeys[k]=1; } }
-          v.trigger(ev.vel, ev.seed); v._gEnv=1; v._gCoef=(ev.gate&&ev.gate>0)?Math.exp(-4/(Math.max(0.002,ev.gate)*sampleRate)):1;   // roll gate :: each retrigger fades to ~2% by the next hit -> crisp rolls even on long decays
+          if(v._lockedKeys){ for(const k in v._lockedKeys){ this._snap(v,k,(v._base&&v._base[k]!==undefined)?v._base[k]:this._read(v,k)); } }   // p-locks: restore base for previously locked params
+          if(ev.locks){ v._lockedKeys=v._lockedKeys||{}; v._base=v._base||{};
+            for(const k in ev.locks){ if(v._base[k]===undefined)v._base[k]=this._read(v,k);   // the unlocked value, captured once before the first lock overwrites it
+              this._snap(v,k,ev.locks[k]); v._lockedKeys[k]=1; } }
+          v.trigger(ev.vel, ev.seed);
+          const _gt=(ev.gate&&ev.gate>0)?ev.gate:0;
+          v._gRise=_gt?1:0; v._gEnv=_gt?0:1; v._gAtk=_gt?(1/(Math.min(0.0018,_gt*0.12)*sampleRate)):1;   // a ratchet hit opens over ~1.8ms instead of instantly :: a 1ms attack against a hard edge is what reads as a plastic click
+          v._gCoef=_gt?Math.exp(-1.4/(Math.max(0.002,_gt)*sampleRate)):1;   // and fades to ~25% by the next hit :: enough to articulate a roll, not so much that a 1/64 leaves only the attack
         } }
       const NB=outputs.length; if(!this._accL||this._accL.length<NB){this._accL=new Float32Array(NB);this._accR=new Float32Array(NB);}
       const accL=this._accL, accR=this._accR; accL.fill(0); accR.fill(0);
       let l0=0,r0=0,l1=0,r1=0,l2=0,r2=0;
-      for(let v=0;v<vs.length;v++){ const vo=vs[v]; if(!vo||!vo.active)continue; const ok=(vo._srcKit!=null?vo._srcKit:this.kit); const k23=(ok===1||ok===3); if(k23)kit2Smooth(vo); let s=vo.tick(); if(vo._gCoef!==undefined&&vo._gCoef<1){ s*=(vo._gEnv||0); vo._gEnv*=vo._gCoef; } s=bipFilt(vo,s); if(ok===1){s=kit2Filt(vo,s);s=kit2FX(vo,s);} if(vo.olvl!==undefined){ vo._olvl=(vo._olvl===undefined?vo.olvl:vo._olvl+(vo.olvl-vo._olvl)*0.01); s*=vo._olvl; }
+      for(let v=0;v<vs.length;v++){ const vo=vs[v]; if(!vo||!vo.active)continue; const ok=(vo._srcKit!=null?vo._srcKit:this.kit); const k23=(ok===1||ok===3); if(k23)kit2Smooth(vo); let s=vo.tick(); if(vo._gCoef!==undefined&&vo._gCoef<1){ s*=(vo._gEnv||0);
+          if(vo._gRise){ vo._gEnv+=vo._gAtk; if(vo._gEnv>=1){vo._gEnv=1;vo._gRise=0;} } else vo._gEnv*=vo._gCoef; } s=bipFilt(vo,s); if(ok===1){s=kit2Filt(vo,s);s=kit2FX(vo,s);} if(vo.olvl!==undefined){ vo._olvl=(vo._olvl===undefined?vo.olvl:vo._olvl+(vo.olvl-vo._olvl)*0.01); s*=vo._olvl; }
         let pan=vo.pan||0;
         if(vo.smoothPan){ if(vo._panS===undefined)vo._panS=pan; vo._panS+=(pan-vo._panS)*0.002; pan=vo._panS; }   // live pan needs a glide, otherwise dragging zippers
         const pl=s*Math.cos((pan+1)*0.25*Math.PI), pr=s*Math.sin((pan+1)*0.25*Math.PI);
@@ -2704,7 +2732,7 @@ registerProcessor("crush-fx", CrushFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="939";
+const REV="953";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -2797,6 +2825,7 @@ const KITVOIDV=[]; for(let _i=0;_i<9;_i++)KITVOIDV.push({name:"SLOT "+(_i+1),def
 const KITS=[{name:"DRUM 2",voices:KIT1V},{name:"DRUM 1",voices:KIT2V},{name:"PERC 2",voices:KIT3V},{name:"SAMPLES",voices:KIT4V},{name:"PERC 1",voices:KITPERCV},{name:"KICK LAB",voices:KITLABV},{name:"YOUR KIT",voices:KITVOIDV},{name:"RIM LAB",voices:KITRIMV}];
 const FXMARK={"amber":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2211%22%20fill%3D%22%23ffb43d%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2211%22%20fill%3D%22none%22%20stroke%3D%22%23171208%22%20stroke-width%3D%221.2%22%2F%3E%3C%2Fsvg%3E\")","orange":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2211%22%20fill%3D%22%23ff6a1e%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2211%22%20fill%3D%22none%22%20stroke%3D%22%23171208%22%20stroke-width%3D%221.2%22%2F%3E%3C%2Fsvg%3E\")","green":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2211%22%20fill%3D%22%2335d592%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2211%22%20fill%3D%22none%22%20stroke%3D%22%23171208%22%20stroke-width%3D%221.2%22%2F%3E%3C%2Fsvg%3E\")","white":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2211%22%20fill%3D%22%23eef1f6%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2211%22%20fill%3D%22none%22%20stroke%3D%22%23171208%22%20stroke-width%3D%221.2%22%2F%3E%3C%2Fsvg%3E\")","multi":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Cdefs%3E%3CclipPath%20id%3D%22d%22%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2211%22%2F%3E%3C%2FclipPath%3E%3C%2Fdefs%3E%3Cg%20clip-path%3D%22url%28%23d%29%22%3E%3Crect%20x%3D%2211%22%20y%3D%2211%22%20width%3D%2222%22%20height%3D%227.34%22%20fill%3D%22%23f37149%22%2F%3E%3Crect%20x%3D%2211%22%20y%3D%2218.34%22%20width%3D%2222%22%20height%3D%227.33%22%20fill%3D%22%2349c6f3%22%2F%3E%3Crect%20x%3D%2211%22%20y%3D%2225.67%22%20width%3D%2222%22%20height%3D%227.33%22%20fill%3D%22%238df349%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E\")"};
 const SKMARK={"shadow":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Cpath%20d%3D%22M22%2010%20A12%2012%200%200%201%2022%2034%20Z%22%20fill%3D%22%23ffc900%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2212%22%20fill%3D%22none%22%20stroke%3D%22%23ffc900%22%20stroke-width%3D%221.8%22%2F%3E%3C%2Fsvg%3E\")","invert":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Cpath%20d%3D%22M22%2010%20A12%2012%200%200%201%2022%2034%20Z%22%20fill%3D%22%2335d592%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2212%22%20fill%3D%22none%22%20stroke%3D%22%2335d592%22%20stroke-width%3D%221.8%22%2F%3E%3C%2Fsvg%3E\")","ghost":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Cpath%20d%3D%22M22%2010%20A12%2012%200%200%201%2022%2034%20Z%22%20fill%3D%22%23ff6a1e%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2212%22%20fill%3D%22none%22%20stroke%3D%22%23ff6a1e%22%20stroke-width%3D%221.8%22%2F%3E%3C%2Fsvg%3E\")","black":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Cpath%20d%3D%22M22%2010%20A12%2012%200%200%201%2022%2034%20Z%22%20fill%3D%22%23f2f4f8%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2212%22%20fill%3D%22none%22%20stroke%3D%22%23f2f4f8%22%20stroke-width%3D%221.8%22%2F%3E%3C%2Fsvg%3E\")","mach":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Cpath%20d%3D%22M22%2010%20A12%2012%200%200%201%2022%2034%20Z%22%20fill%3D%22%239a9c9f%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2212%22%20fill%3D%22none%22%20stroke%3D%22%239a9c9f%22%20stroke-width%3D%221.8%22%2F%3E%3C%2Fsvg%3E\")","paper":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Cpath%20d%3D%22M22%2010%20A12%2012%200%200%201%2022%2034%20Z%22%20fill%3D%22%23c14a18%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2212%22%20fill%3D%22none%22%20stroke%3D%22%23c14a18%22%20stroke-width%3D%221.8%22%2F%3E%3C%2Fsvg%3E\")"};
+const KIT_SAMPLES=3;   // SAMPLES sits at internal index 3 :: never write the bare number, reordering KITS would break every site silently
 const KIT_ORDER=[1,0,4,2,5,7]   // DRUM 1, DRUM 2, PERC 1, PERC 2, then the two labs   // sumad's two labs are sound sets as well :: the rack is the only thing that is not;   // display order (pos->internal index) :: samples stays internal 3, VOID appended
 const KITKEYS=["raw","pckrt","subs","samples","resonant","kicklab","void","rimlab"];   // internal index -> tutorial key
 const userSamples=Array(9).fill(null);   // {data:Float32Array, sr, name} · session store, re-sent to worklet on engine start
@@ -2807,12 +2836,12 @@ function sdb(){ return new Promise((res)=>{ if(_sdb)return res(_sdb); try{ const
   rq.onsuccess=()=>{ _sdb=rq.result; res(_sdb); }; rq.onerror=()=>res(null); }catch(e){ res(null); } }); }
 async function saveSampleLocal(slot){ const u=userSamples[slot]; const db=await sdb(); if(!db)return;
   try{ const tx=db.transaction("slots","readwrite"), st=tx.objectStore("slots");
-    if(u)st.put({sr:u.sr,name:u.name,data:u.data.buffer,vname:state.kits[3][slot].name},slot); else st.delete(slot); }catch(e){} }
+    if(u)st.put({sr:u.sr,name:u.name,data:u.data.buffer,vname:state.kits[KIT_SAMPLES][slot].name},slot); else st.delete(slot); }catch(e){} }
 async function restoreSamplesLocal(){ const db=await sdb(); if(!db)return;
   try{ const tx=db.transaction("slots","readonly"), st=tx.objectStore("slots");
     for(let slot=0;slot<9;slot++){ await new Promise((res)=>{ const rq=st.get(slot); rq.onsuccess=()=>{ const r=rq.result;
-      if(r&&r.data){ userSamples[slot]={data:new Float32Array(r.data),sr:r.sr,name:r.name}; state.kits[3][slot].name=r.vname||("SLOT "+(slot+1)); sendSample(slot); } res(); }; rq.onerror=()=>res(); }); }
-    if(state.kit===3){ buildSeq(); buildEditor(); } }catch(e){} }
+      if(r&&r.data){ userSamples[slot]={data:new Float32Array(r.data),sr:r.sr,name:r.name}; state.kits[KIT_SAMPLES][slot].name=r.vname||("SLOT "+(slot+1)); sendSample(slot); } res(); }; rq.onerror=()=>res(); }); }
+    if(state.kit===KIT_SAMPLES){ buildSeq(); buildEditor(); } }catch(e){} }
 function sendSample(v,tgtKit,tgtVoice){ if(!engineNode||!userSamples[v])return; const u=userSamples[v]; const copy=new Float32Array(u.data); engineNode.port.postMessage({type:"sample",kit:(tgtKit!=null?tgtKit:3),voice:(tgtVoice!=null?tgtVoice:v),sr:u.sr,data:copy},[copy.buffer]); }
 const voidSamples={};   // VOID slots keep their own audio, independent of the SAMPLES kit
 function detectLoopBPM(seconds){   // a cut loop spans a whole number of bars :: try the usual ones and keep the musical answer
@@ -2857,22 +2886,22 @@ async function loadSampleFile(file,slot){
     userSamples[slot]={data:mono,sr:audio.sampleRate,name:file.name};
     sendSample(slot);
     const nm=(file.name||"SAMPLE").replace(/\.[^.]+$/,"").toUpperCase().slice(0,12);
-    state.kits[3][slot].name=nm||("SLOT "+(slot+1));
+    state.kits[KIT_SAMPLES][slot].name=nm||("SLOT "+(slot+1));
     saveSampleLocal(slot);                                                     // persist locally so it survives reloads
-    if(state.kit===3){ buildKit(); buildSeq(); buildEditor(); }
+    if(state.kit===KIT_SAMPLES){ buildKit(); buildSeq(); buildEditor(); }
     setStatus("KIT 4 // SLOT "+(slot+1)+" &larr; "+nm);
   }catch(e){ console.error(e); setStatus("DECODE failed :: "+(e&&e.message||"unsupported file")); }
 }
 function closeSlotMenu(){ const m=document.getElementById("slotmenu"); if(m)m.remove(); }
 function slotLoadNew(slot){ const fi=document.createElement("input"); fi.type="file"; fi.accept="audio/*"; fi.onchange=()=>{ if(fi.files&&fi.files[0])loadSampleFile(fi.files[0],slot); }; fi.click(); }
-function renameSlot(slot){ const cur=state.kits[3][slot].name||("SLOT "+(slot+1)); const nn=prompt("Sample name:",cur); if(nn==null)return; const nm=nn.trim().toUpperCase().slice(0,14)||("SLOT "+(slot+1)); state.kits[3][slot].name=nm; if(userSamples[slot])saveSampleLocal(slot); if(state.kit===3){ buildSeq(); buildEditor(); } setStatus("SLOT "+(slot+1)+" renamed // "+nm); }
-function clearSlot(slot){ userSamples[slot]=null; state.kits[3][slot].name="SLOT "+(slot+1); saveSampleLocal(slot); try{ if(engineNode)engineNode.port.postMessage({type:"sample",voice:slot,sr:44100,data:new Float32Array(1)}); }catch(e){} if(state.kit===3){ buildSeq(); buildEditor(); } setStatus("SLOT "+(slot+1)+" cleared"); }
+function renameSlot(slot){ const cur=state.kits[KIT_SAMPLES][slot].name||("SLOT "+(slot+1)); const nn=prompt("Sample name:",cur); if(nn==null)return; const nm=nn.trim().toUpperCase().slice(0,14)||("SLOT "+(slot+1)); state.kits[KIT_SAMPLES][slot].name=nm; if(userSamples[slot])saveSampleLocal(slot); if(state.kit===KIT_SAMPLES){ buildSeq(); buildEditor(); } setStatus("SLOT "+(slot+1)+" renamed // "+nm); }
+function clearSlot(slot){ userSamples[slot]=null; state.kits[KIT_SAMPLES][slot].name="SLOT "+(slot+1); saveSampleLocal(slot); try{ if(engineNode)engineNode.port.postMessage({type:"sample",voice:slot,sr:44100,data:new Float32Array(1)}); }catch(e){} if(state.kit===KIT_SAMPLES){ buildSeq(); buildEditor(); } setStatus("SLOT "+(slot+1)+" cleared"); }
 const PCKRT_TYPES=["kick","kick","snare","hat","hat","hat","tom","tom","wood"];   // PCKRT slot -> synth class (paste only within same type)
 let soundClip=null;                                                            // COPY SOUND :: knob values only, same-engine paste
 function voiceSig(vo){ return Object.keys(vo.vals).sort().join(","); }
 function copySound(vi){ const vo=state.voices[vi];
   soundClip={kit:state.kit,vi:vi,vals:Object.assign({},vo.vals),fxMode:vo.fxMode,name:vo.name};
-  if(state.kit===3&&userSamples[vi])soundClip.smp=userSamples[vi];                       // a sample without its audio is just settings, and nobody expects that
+  if(state.kit===KIT_SAMPLES&&userSamples[vi])soundClip.smp=userSamples[vi];                       // a sample without its audio is just settings, and nobody expects that
   else if(state.kit===6&&typeof voidSamples!=="undefined"&&voidSamples[vi])soundClip.smp=voidSamples[vi];
   else soundClip.smp=null;
   setStatus("SOUND copied // "+vo.name+(soundClip.smp?" (with audio)":"")); }
@@ -2881,7 +2910,7 @@ function pasteSound(vi){ if(!soundPasteOk(vi)){ setStatus(soundClip?"PASTE block
   const vo=state.voices[vi]; for(const k in soundClip.vals){ if(k in vo.vals)vo.vals[k]=soundClip.vals[k]; } if(soundClip.fxMode!==undefined)vo.fxMode=soundClip.fxMode;
   if(soundClip.smp&&soundClip.smp.data){                                 // carry the audio too :: settings alone on a different sample is not what anyone means by copy
     const src=soundClip.smp, cp={data:new Float32Array(src.data),sr:src.sr,name:src.name};
-    if(state.kit===3){ userSamples[vi]=cp; vo.name=soundClip.name||src.name; sendSample(vi); saveSampleLocal(vi); }
+    if(state.kit===KIT_SAMPLES){ userSamples[vi]=cp; vo.name=soundClip.name||src.name; sendSample(vi); saveSampleLocal(vi); }
     else if(state.kit===6&&typeof voidSamples!=="undefined"){ voidSamples[vi]=cp; vo.name=soundClip.name||src.name;
       if(engineNode){ const c2=new Float32Array(cp.data); engineNode.port.postMessage({type:"sample",kit:6,voice:vi,sr:cp.sr,data:c2},[c2.buffer]); } }
     buildSeq(); }
@@ -2911,6 +2940,9 @@ function soundMenu(x,y,vi){ closeSlotMenu(); const m=document.createElement("div
     if(vo&&vo.group&&groupById(vo.group)){
       mk("GROUP FX", ()=>openGroupFXEditor(vo.group));
       mk("REMOVE FROM GROUP", ()=>ungroupSlot(vi));
+      mk("DELETE GROUP", ()=>{ const g=groupById(vo.group); if(!g)return;
+        const n=groupVoiceIdx(vo.group).length;
+        if(confirm("Delete "+g.name+"?\n\n"+n+" slot"+(n===1?"":"s")+" will be emptied, with their patterns and effects."))deleteGroup(vo.group); });
     }
     if(vo&&vo.srcKit!=null){
       const others=gs.filter(g=>g.id!==vo.group);
@@ -3017,8 +3049,10 @@ function ghostOf(autoKey,def){                                                 /
 }
 function clearAuto(key){ const pat=curPat(); if(pat.auto&&pat.auto[key])delete pat.auto[key];
       if(key.indexOf(SETPRE)===0){ if(pat.setBase)delete pat.setBase[key.slice(SETPRE.length)]; delete _setPos[key.slice(SETPRE.length)]; } }
-function voiceDefsAll(vid){ if(state.kit===3)return k4editDefs().concat(k4filtDefs(),k4fxDefs()); const vo=state.voices[vid]; return (vo&&vo.defs)||[]; }
+function voiceDefsAll(vid){ if(state.kit===KIT_SAMPLES)return k4editDefs().concat(k4filtDefs(),k4fxDefs()); const vo=state.voices[vid]; return (vo&&vo.defs)||[]; }
 function voiceDefByKey(vid,pk){ const ds=voiceDefsAll(vid); for(const d of ds)if(d.key===pk)return d; return null; }
+const LEVEL_KEYS=["gain","level","olvl"];   // the same knob under three names :: DRUM 1 and SAMPLES say gain, PERC and RIM say level, the labs say olvl
+function voiceLevelKey(vid){ for(const k of LEVEL_KEYS)if(voiceDefByKey(vid,k))return k; return null; }
 function autoPlayingPats(){                                                   // every pattern that is sounding, not just the one you happen to look at
   if(state.kit!==6)return [curPat()];
   const out=[], seen=new Set();
@@ -3082,6 +3116,8 @@ function snapshot(){
     mute:state.mute.slice(), solo:state.solo.slice(), bus:state.bus.slice(), sum:{dist:state.sum.dist}, masterVol:state.master.vol, masterLimit:state.master.limit, masterRoll:state.master.roll, finPreset:state.fin.preset, finAmt:state.fin.amount,
     modules: JSON.parse(JSON.stringify(state.master.modules,(k,v)=>k==="_nodes"?undefined:v)),
     voidGroups: JSON.parse(JSON.stringify(state.voidGroups||[])),
+    voidSlots: (state.kits[6]||[]).length,   // the rack grows and shrinks :: without this an undo left the slot count wherever it happened to be
+    voidSrc: (state.kits[6]||[]).map(vo=>vo&&vo.srcKit!=null?{k:vo.srcKit,v:vo.srcVoice,n:vo.name}:null),
     liveMacros: JSON.parse(JSON.stringify(state.liveMacros||{})),
     groupPat: JSON.parse(JSON.stringify(state.groupPat||{})),
     groupEdit: JSON.parse(JSON.stringify(state.groupEdit||{})),
@@ -3099,6 +3135,11 @@ function histInit(){ history=[snapshot()]; hidx=0; }
 function commit(){ if(restoring)return; history=history.slice(0,hidx+1); history.push(snapshot()); if(history.length>HIST_MAX)history.shift(); hidx=history.length-1; }
 function restore(snap){
   restoring=true;
+  try{ restoreInner(snap); }
+  catch(e){ setStatus("UNDO FAILED // "+String(e&&e.message||e).slice(0,60)); }   // one throw used to leave the flag up and kill every later commit without a word
+  finally{ restoring=false; }
+}
+function restoreInner(snap){
   state.bpm=snap.bpm; state.swing=snap.swing; state.selected=snap.selected; state.curPattern=snap.curPattern; state.kit=snap.kit;
   state.mute=snap.mute.slice(); state.solo=(snap.solo?snap.solo.slice():Array(VOICES).fill(false)); state.bus=(snap.bus?snap.bus.map(x=>Math.min(1,x|0)):Array(VOICES).fill(0)); state.sum.dist=snap.sum.dist;
   document.querySelectorAll(".busbtn").forEach(b=>{const vi=+b.dataset.v,bv=state.bus[vi]|0;b.textContent=["F","D"][bv];b.classList.toggle("bd",bv===1);});
@@ -3111,6 +3152,15 @@ function restore(snap){
   if(typeof refreshGroupRouting==="function"){ try{ refreshGroupRouting(); }catch(e){} }
   if(snap.groupEdit)state.groupEdit=JSON.parse(JSON.stringify(snap.groupEdit));
   if(snap.groupFX){ state.groupFX=JSON.parse(JSON.stringify(snap.groupFX)); for(const gid in state.groupFX)applyGroupFX(gid); }
+  if(snap.voidSlots!=null){ const vs6=state.kits[6];
+    while(vs6.length<snap.voidSlots&&vs6.length<VOID_MAX){ const d=voidSlotDef(vs6.length); KITVOIDV.push(d); vs6.push({name:d.name,defs:d.defs,fxMode:undefined,vals:{},mute:false}); }
+    if(vs6.length>snap.voidSlots){ vs6.length=snap.voidSlots; KITVOIDV.length=snap.voidSlots; }
+    if(snap.voidSrc)snap.voidSrc.forEach((sv,i)=>{ const vo=vs6[i]; if(!vo)return;
+      if(sv){ if(vo.srcKit!==sv.k||vo.srcVoice!==sv.v)assignVoidSlot(i,sv.k,sv.v,true); if(sv.n)vo.name=sv.n; }
+      else if(vo.srcKit!=null){ const d=voidSlotDef(i); vo.name=d.name; vo.defs=[]; vo.srcKit=null; vo.srcVoice=null; vo.empty=true; } });
+    state.patterns.forEach(padPattern);
+    if(state.selected>=vs6.length)state.selected=0;
+    if(typeof resendVoidAssigns==="function")resendVoidAssigns(); }
   snap.kits.forEach((kit,ki)=>kit.forEach((vs,vi)=>{const vo=state.kits[ki]&&state.kits[ki][vi];if(vo){vo.vals=Object.assign({},vs.vals);vo.fxMode=vs.fxMode;vo.mute=vs.mute;if("group" in vs)vo.group=vs.group;}}));
   state.voices=state.kits[state.kit];
   state.patterns=snap.patterns.map(p=>padPattern({bars:p.bars,length:(p.length||STEPS_PER_BAR),steps:p.steps.map(r=>r.slice()),sub:p.sub.map(r=>r.slice()),locks:cloneLocks(p.locks),auto:cloneAuto(p.auto)}));
@@ -3118,13 +3168,12 @@ function restore(snap){
   state.master.modules=JSON.parse(JSON.stringify(snap.modules));
   state.master.vol=(snap.masterVol!=null?snap.masterVol:1);{const mv=document.getElementById("mvol");if(mv)mv.value=state.master.vol;if(masterOut)masterOut.gain.value=state.master.vol;}
   state.master.limit=(snap.masterLimit!=null?snap.masterLimit:true);{const lb=document.getElementById("limitBtn");if(lb)lb.classList.toggle("on",state.master.limit!==false);}
-  state.master.roll=(snap.masterRoll!=null?snap.masterRoll:0);{const rr=document.getElementById("roll");if(rr){rr.value=state.master.roll;var sN=rollSub(state.master.roll);const rv=document.getElementById("rollval");if(rv)rv.textContent=sN>1?"1/"+(16*sN):"OFF";}}
+  state.master.roll=(snap.masterRoll!=null?snap.masterRoll:0);   // the RATE/ROLL knob is gone :: the value still feeds playback and stays in saved sets
   state.fin.preset=(snap.finPreset!=null?snap.finPreset:"off");state.fin.amount=(snap.finAmt!=null?snap.finAmt:1);if(typeof buildFinbar==="function")buildFinbar();if(fin)applyFinalizer();
   // wiring waits until the nodes exist :: doing it here would skip every module and strand the side paths
   if(ac){ initMasterNodes(); wireMaster(); if(typeof rewireBusTargets==="function")rewireBusTargets(); syncAll(); resendVoidAssigns(); }
   buildKit(); buildEditor(); buildMaster(); buildStrip(); buildSeq();
   const pg=Math.min(snap.page,numPages()-1); state.page=pg<0?0:pg; setPage(state.page); refreshStrip();
-  restoring=false;
 }
 function undo(){ if(hidx>0){ hidx--; restore(history[hidx]); setStatus("UNDO // "+hidx); } }
 function redo(){ if(hidx<history.length-1){ hidx++; restore(history[hidx]); setStatus("REDO // "+hidx); } }
@@ -3750,7 +3799,7 @@ function nearestMidi(list,m){ let b=list[0],bd=1e9; for(const x of list){ const 
 function randomizeTuning(){
   const kit=state.kit; if(kit!==2&&kit!==3&&kit!==4)return;                     // SUBS(2) + SAMPLES(3) + RESONANT(4)
   const key=(kit===2)?"pitch":(kit===4)?"tune":"pitch";
-  if(kit===3){                                                                 // SAMPLES :: semitone scale-tune across all 9 slots
+  if(kit===KIT_SAMPLES){                                                                 // SAMPLES :: semitone scale-tune across all 9 slots
     const scS=RND_SCALES[(Math.random()*RND_SCALES.length)|0], rootS=((Math.random()*12)|0)-6;
     const smS=[]; for(let o=-2;o<=2;o++)for(const stp of scS.s)smS.push(rootS+o*12+stp);
     const candS=smS.filter(m=>m>=-24&&m<=24).sort((a,b)=>a-b);
@@ -3790,11 +3839,13 @@ function shade(hex,amt){ const n=parseInt(hex.slice(1),16); let r=(n>>16)+amt,g=
   r=Math.max(0,Math.min(255,r)); g=Math.max(0,Math.min(255,g)); b=Math.max(0,Math.min(255,b));
   return "#"+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1); }
 function selSlots(){ if(!state.selSlots)state.selSlots=new Set(); return state.selSlots; }
+function paintSlotSel(){ const S=(state.kit===6)?selSlots():null;
+  document.querySelectorAll(".sel").forEach(e=>{ const v=+e.dataset.v; e.classList.toggle("msel", !!(S&&!isNaN(v)&&S.has(v))); }); }
 function clearSlotSel(){ if(state.selSlots)state.selSlots.clear(); }
 function slotClick(vi,e){ const S=selSlots();
-  if(state.kit===6&&e&&e.shiftKey){ const a=Math.min(state.selected,vi), b=Math.max(state.selected,vi); S.clear(); for(let i=a;i<=b;i++)S.add(i); buildSeq(); setStatus("SELECTED "+S.size+" SLOTS \u00b7 CTRL+G to group"); return true; }
-  if(state.kit===6&&e&&(e.ctrlKey||e.metaKey)){ if(S.has(vi))S.delete(vi); else S.add(vi); S.add(state.selected); buildSeq(); setStatus("SELECTED "+S.size+" SLOTS \u00b7 CTRL+G to group"); return true; }
-  clearSlotSel(); return false; }
+  if(state.kit===6&&e&&e.shiftKey){ const a=Math.min(state.selected,vi), b=Math.max(state.selected,vi); S.clear(); for(let i=a;i<=b;i++)S.add(i); buildSeq(); paintSlotSel(); setStatus("SELECTED "+S.size+" SLOTS \u00b7 CTRL+G to group"); return true; }
+  if(state.kit===6&&e&&(e.ctrlKey||e.metaKey)){ if(S.has(vi))S.delete(vi); else S.add(vi); S.add(state.selected); buildSeq(); paintSlotSel(); setStatus("SELECTED "+S.size+" SLOTS \u00b7 CTRL+G to group"); return true; }
+  clearSlotSel(); paintSlotSel(); return false; }
 function moveVoiceRows(vi,fromBase,toBase){   // a slot keeps its notes when it changes group :: move its rows across all patterns
   if(fromBase===toBase)return;
   for(let n=0;n<PATTERNS;n++){ const a=state.patterns[fromBase+n], b=state.patterns[toBase+n]; if(!a||!b)continue;
@@ -4839,6 +4890,39 @@ function addSlotToGroup(vi,gid){
   refreshGroupRouting(); buildSeq(); buildEditor(); commit();
   setStatus((vo.name||"SLOT")+" \u2192 "+groupById(gid).name);
 }
+function clearVoidSlot(vi){ const vo=state.kits[6][vi]; if(!vo)return;
+  vo.name="SLOT "+(vi+1); vo.defs=[]; vo.vals={}; vo.fxMode="drive"; vo.empty=true;
+  vo.srcKit=null; vo.srcVoice=null; vo.group=null;
+  if(state.mute)state.mute[vi]=false; if(state.solo)state.solo[vi]=false; if(state.bus)state.bus[vi]=0;
+  if(typeof voidSamples!=="undefined"&&voidSamples)voidSamples[vi]=null; }
+function clearBankRows(base,vi){ for(let n=0;n<PATTERNS;n++){ const b=state.patterns[base+n]; if(!b)continue;
+    if(b.steps[vi])b.steps[vi].fill(0);
+    if(b.sub&&b.sub[vi])b.sub[vi].fill(1);
+    if(b.locks&&b.locks[vi])b.locks[vi]={};
+    if(b.auto)for(const k in b.auto){ const ci=k.indexOf(":"); if(ci>=0&&+k.slice(0,ci)===vi)delete b.auto[k]; } } }
+function moveBank(fromBase,toBase){ if(fromBase===toBase)return;
+  for(let n=0;n<PATTERNS;n++){ state.patterns[toBase+n]=state.patterns[fromBase+n]; state.patterns[fromBase+n]=emptyPattern(); } }
+function deleteGroup(gid){ const g=groupById(gid); if(!g)return;
+  const gs=voidGroups(), gi=gs.indexOf(g); if(gi<0)return;
+  const nm=g.name, idx=groupVoiceIdx(gid);
+  const bank=groupBank(gid);
+  idx.forEach(vi=>{ clearBankRows(bank,vi); clearBankRows(0,vi); clearVoidSlot(vi); });   // bank 0 too :: a slot can have left notes there before it joined
+  { const n=groupFX[gid]; if(n){ ["inp","filt","sh","out","send"].forEach(k=>{ try{n[k].disconnect();}catch(e){} }); delete groupFX[gid]; } }
+  { const gm=(state.groupModules||{})[gid]||[];
+    gm.forEach(mm=>{ if(mm&&mm._nodes){ try{ (mm._nodes.all||[]).forEach(x=>{try{x.disconnect();}catch(e){}}); }catch(e){} delete mm._nodes; } });
+    if(state.groupModules)delete state.groupModules[gid]; }
+  if(state.groupPat)delete state.groupPat[gid];
+  if(state.groupEdit)delete state.groupEdit[gid];
+  if(state.groupFX)delete state.groupFX[gid];
+  gs.splice(gi,1);
+  for(let k=gi;k<gs.length;k++)moveBank((k+2)*PATTERNS,(k+1)*PATTERNS);   // the bank follows the position in the list :: every group after this one slides down one block
+  { const freed=(gs.length+1)*PATTERNS; for(let n=0;n<PATTERNS;n++)state.patterns[freed+n]=emptyPattern(); }
+  if(state.selSlots)state.selSlots=new Set();
+  if(state.selected>=state.kits[6].length)state.selected=0;
+  resendVoidAssigns(); refreshGroupRouting(); syncPatternBank();
+  buildSeq(); buildEditor(); buildStrip(); buildMaster(); commit();
+  setStatus(nm+" deleted // "+idx.length+" slots cleared");
+}
 function ungroupSlot(vi){
   const vo=state.kits[6][vi]; if(!vo||!vo.group)return;
   const from=groupBank(vo.group), nm=groupById(vo.group)?groupById(vo.group).name:"";
@@ -5295,7 +5379,7 @@ function copyPatternToVoid(mode){
   setStatus("PATTERN copied // "+used.length+" sounds grouped");
 }
 function assignVoidSlot(slot,sk,sv,noAudio){ const src=KITS[sk].voices[sv]; const vo=state.kits[6][slot]; if(sk===3&&userSamples[sv]&&!noAudio)setTimeout(()=>sendSample(sv,6,slot),0);   // carry the audio into the VOID slot
-  vo.name=(sk===3?(state.kits[3][sv].name||src.name):src.name); vo.defs=src.defs; vo.fxMode=src.fxMode; vo.vals=Object.assign(Object.fromEntries(src.defs.map(x=>[x.key,x.def])),src.extra||{}); vo.srcKit=sk; vo.srcVoice=sv; if(engineNode)engineNode.port.postMessage({type:"assign",slot:slot,srcKit:sk,srcVoice:sv}); buildSeq(); buildEditor(); const ev=effVals(vo); for(const k in ev)sendParam(slot,k,ev[k]); commit(); }
+  vo.name=(sk===3?(state.kits[KIT_SAMPLES][sv].name||src.name):src.name); vo.defs=src.defs; vo.fxMode=src.fxMode; vo.vals=Object.assign(Object.fromEntries(src.defs.map(x=>[x.key,x.def])),src.extra||{}); vo.srcKit=sk; vo.srcVoice=sv; if(engineNode)engineNode.port.postMessage({type:"assign",slot:slot,srcKit:sk,srcVoice:sv}); buildSeq(); buildEditor(); const ev=effVals(vo); for(const k in ev)sendParam(slot,k,ev[k]); commit(); }
 function openSoundPicker(slot){ closeSoundPicker(); const ov=document.createElement("div"); ov.id="soundPicker"; ov.className="sound-picker";
   setTimeout(()=>{   // click anywhere outside, or Escape, closes it
     const away=(e)=>{ if(!ov.contains(e.target))shut(); };
@@ -5306,7 +5390,7 @@ function openSoundPicker(slot){ closeSoundPicker(); const ov=document.createElem
     const items=KITS[k].voices.slice(0,lim).map((v,vi)=>({v,vi})).filter(o=>k!==3||userSamples[o.vi]);   // SAMPLES :: only slots that actually hold audio
     if(!items.length)return;
     const h=document.createElement("div"); h.className="sp-head"; h.textContent=KITS[k].name; ov.append(h);
-    items.forEach(o=>{ const b=document.createElement("button"); b.className="sp-item"; b.textContent=(k===3?(state.kits[3][o.vi].name||("SLOT "+(o.vi+1))):o.v.name); b.onclick=()=>{ assignVoidSlot(slot,k,o.vi); closeSoundPicker(); }; ov.append(b); }); }); document.body.append(ov); }
+    items.forEach(o=>{ const b=document.createElement("button"); b.className="sp-item"; b.textContent=(k===3?(state.kits[KIT_SAMPLES][o.vi].name||("SLOT "+(o.vi+1))):o.v.name); b.onclick=()=>{ assignVoidSlot(slot,k,o.vi); closeSoundPicker(); }; ov.append(b); }); }); document.body.append(ov); }
 function buildEditor(){
   if(window.AUTO_KNOBS){ for(const k in window.AUTO_KNOBS){
     const ci=k.indexOf(":"); if(ci>0&&isFinite(+k.slice(0,ci)))delete window.AUTO_KNOBS[k]; } }
@@ -5322,7 +5406,7 @@ function buildEditor(){
     nm.textContent=setMode?("SET // ALL "+state.voices.length+" VOICES"):(state.voices[state.selected]?state.voices[state.selected].name:"");
     head.append(idx,nm); }   // rides in the frame head, so it costs no row of its own
   { const sb=document.createElement("button"); sb.className="cell-btn sndset"+(setMode?" on":""); sb.style.marginLeft="auto"; sb.textContent=setMode?"SET":"SOUND"; sb.title="SOUND: edit the picked voice \u00b7 SET: move params + fx on all 9 voices together"; sb.onclick=()=>{ state.setEditKit=state.setEditKit||{}; state.setEditKit[state.kit]=!setMode; buildEditor(); }; head.append(sb); }
-  if(state.kit===3){
+  if(state.kit===KIT_SAMPLES){
     ed.ondragover=(e)=>{e.preventDefault();};
     ed.ondrop=(e)=>{e.preventDefault();const df=e.dataTransfer;if(df&&df.files&&df.files[0])loadSampleFile(df.files[0],state.selected);};
   } else if(state.kit===6){                                   // VOID :: drop audio straight onto the selected slot
@@ -5330,7 +5414,7 @@ function buildEditor(){
     ed.ondrop=(e)=>{e.preventDefault();const df=e.dataTransfer;const f=df&&df.files&&df.files[0];
       if(f&&!/\.brk$/i.test(f.name))loadSampleIntoVoid(f,state.selected);};
   } else { ed.ondragover=null; ed.ondrop=null; }
-  if(state.kit===2||state.kit===3||state.kit===4){
+  if(state.kit===2||state.kit===KIT_SAMPLES||state.kit===4){
     const tonalKit=(state.kit===2||state.kit===4);
     const ts=tonalKit?tonalState(state.kit):null;
     if(tonalKit){
@@ -5358,7 +5442,7 @@ function buildEditor(){
   }
   ed.appendChild(head);
   const vo=state.voices[state.selected],vid=state.selected;
-  const K4=(state.kit===3), edefs=K4?k4editDefs():vo.defs;
+  const K4=(state.kit===KIT_SAMPLES), edefs=K4?k4editDefs():vo.defs;
   const filterDefs=K4?k4filtDefs():null;
   const params=K4?edefs:edefs.filter(df=>!FX_KEYS[df.key]);
   const fx=K4?k4fxDefs():edefs.filter(df=>FX_KEYS[df.key]);
@@ -5639,6 +5723,7 @@ function applyModFilter(m){ const fl=m._nodes&&m._nodes.flt; if(!fl)return; cons
   else { fl.type="highpass"; fl.frequency.value=20*Math.pow(6000/20,v); fl.Q.value=0.7; } }
 function distToneHz(v){ return 900*Math.pow(20000/900,Math.max(0,Math.min(1,v))); }   // 900 Hz to the top of hearing, even across the knob
 function sumDistCurve(d){ const n=2048,c=new Float32Array(n),drive=1+(d||0)*3;
+  if(!(d>0.001)){ for(let i=0;i<n;i++)c[i]=(i/(n-1))*2-1; return c; }   // zero means zero :: the engine skips the shaper below 0.001, the curve has to match or the module colours at rest
   for(let i=0;i<n;i++){ const x=((i/(n-1))*2-1)*drive; c[i]=x<-3?-1:x>3?1:x*(27+x*x)/(27+9*x*x); }
   return c; }   // verbatim the engine sum-dist :: same cubic soft clip, same drive law
 function buildModuleNodes(m){
@@ -6339,20 +6424,47 @@ let _wheelAt=0;
 const _modSet={};                                                            // autoKey -> the knob that owns it, refilled on every rebuild
 function buildMaster(){
   const host=document.getElementById("sumfx");host.innerHTML="";
-  { const isl=document.getElementById("masterFxIsland"); if(isl)isl.style.display=(state.kit===6)?"none":""; }
+  const isl=document.getElementById("masterFxIsland"), tag=document.getElementById("sumfxTag"), hint=document.getElementById("sumfxHint");
+  if(isl)isl.style.display="";
   const grid=document.createElement("div");grid.className="mfx-grid";
+  if(state.kit===6){                                                          // the rack has no sum :: the chain belongs to the group the selected slot sits in
+    const gid=selGroupId(), g=gid?groupById(gid):null;
+    if(isl){ if(g){ isl.style.setProperty("--amber",skinCol(g.color)); isl.style.setProperty("--amber-glow",skinCol(g.color)+"66"); }
+             else { isl.style.removeProperty("--amber"); isl.style.removeProperty("--amber-glow"); } }
+    if(tag)tag.textContent=g?("// GROUP FX \u00b7 "+g.name):"// GROUP FX";
+    if(hint)hint.textContent=g?("// chain runs on "+g.name+" \u00b7 drag the grip to reorder \u00b7 bypass dot \u00b7 INS keeps signal inline, SND mixes the effect on top")
+                              :"// effects belong to a group \u00b7 select slots and press CTRL+G to make one";
+    if(g){ const mods=groupModules(gid);
+      const gctx={list:mods,midPrefix:"grpfx:"+gid+"#",rebuild:()=>{ if(typeof refreshGroupRouting==="function")refreshGroupRouting(); if(typeof buildLiveSide==="function")buildLiveSide(); buildMaster(); }};
+      mods.forEach((m,i)=>{ if(ac&&!m._nodes)buildModuleNodes(m); grid.appendChild(buildModule(m,i,gctx)); }); }
+    grid.appendChild(buildAddSlot(gid));
+    host.appendChild(grid); return; }
+  if(isl){ isl.style.removeProperty("--amber"); isl.style.removeProperty("--amber-glow"); }
+  if(tag)tag.textContent="// MASTER FX";
+  if(hint)hint.textContent="// chain runs on the summed mix \u00b7 drag the grip to reorder \u00b7 bypass dot \u00b7 INS keeps signal inline, SND mixes the effect on top";
   const mctx={list:state.master.modules,autoPrefix:"m",midPrefix:"mst"};
   state.master.modules.forEach((m,i)=>grid.appendChild(buildModule(m,i,mctx)));
   grid.appendChild(buildAddSlot());
   host.appendChild(grid);
 }
-function buildAddSlot(){
+function buildAddSlot(gid){
   const box=document.createElement("div");box.className="mfx add";
   const lab=document.createElement("div");lab.className="mfx-add";lab.textContent="+ ADD FX";box.appendChild(lab);
   box.onclick=()=>{
+    if(state.kit===6&&!gid){                                                  // in the rack an effect hangs on a group, there is no sum to fall back on
+      box.innerHTML=""; box.classList.add("open","nogrp");
+      const a=document.createElement("div"); a.className="mfx-add nogrp-t"; a.textContent="NO GROUP \u00b7 NO GROUP FX";
+      const b=document.createElement("div"); b.className="mfx-add nogrp-b"; b.textContent="select slots \u00b7 CTRL+G";
+      box.append(a,b);
+      setStatus("NO GROUP // select slots and press CTRL+G");
+      const shut=()=>{ document.removeEventListener("pointerdown",away,true); buildMaster(); };
+      const away=(e)=>{ if(!box.contains(e.target))shut(); };
+      setTimeout(()=>document.addEventListener("pointerdown",away,true),0);
+      box.onclick=()=>shut();
+      return; }
     box.innerHTML="";box.classList.add("open");
     const t=document.createElement("div");t.className="mfx-add";t.textContent="ADD //";box.appendChild(t);
-    EFFECT_LIST.forEach(fx=>{const b=document.createElement("button");b.className="mfx-b";b.textContent=fx.label;b.onclick=(e)=>{e.stopPropagation();addModule(fx.kind);};box.appendChild(b);});
+    EFFECT_LIST.forEach(fx=>{const b=document.createElement("button");b.className="mfx-b";b.textContent=fx.label;b.onclick=(e)=>{e.stopPropagation();if(gid)addGroupModule(gid,fx.kind);else addModule(fx.kind);buildMaster();};box.appendChild(b);});
     const c=document.createElement("button");c.className="mfx-b";c.textContent="\u2715";c.title="cancel";c.onclick=(e)=>{e.stopPropagation();buildMaster();};box.appendChild(c);
   };
   return box;
@@ -6570,7 +6682,7 @@ function switchKit(i,force){
   if(i===5||i===6||i===7)syncPatternBank(); else state.curPattern=state.curPattern%PATTERNS;   // Labs + VOID use their own banks
   if(engineNode) engineNode.port.postMessage({type:"kit",index:i});
   syncAll(); if(typeof refreshGroupRouting==="function")refreshGroupRouting(); buildKit(); buildSeq(); buildStrip(); refreshStrip(); buildEditor();   // the header needs the rows to exist first
-  { const isl=document.getElementById("masterFxIsland"); if(isl)isl.style.display=(i===6)?"none":""; }
+  { const isl=document.getElementById("masterFxIsland"); if(isl)isl.style.display=""; }   // the island stays :: buildMaster decides what it shows
   {const pos=KIT_ORDER.indexOf(i);setStatus(pos>=0?("KIT "+(pos+1)+" // "+KITS[i].name):KITS[i].name);}
   commit();
 }
@@ -6794,7 +6906,7 @@ function buildSeq(){
     const head=document.createElement("div");head.className="rhead";
     const sel=document.createElement("button");sel.className="sel";sel.dataset.v=vi;
     sel.innerHTML='<span class="i">'+(vi+1)+'.</span><i class="vmark '+voiceMark(vo.name)+'" aria-hidden="true"></i> <span class="n">'+vo.name+'</span>';
-    if(state.kit===3){
+    if(state.kit===KIT_SAMPLES){
       const fi=document.createElement("input");fi.type="file";fi.accept="audio/*";fi.style.display="none";
       fi.onchange=()=>{ if(fi.files&&fi.files[0])loadSampleFile(fi.files[0],vi); };
       sel.title="click to select \u00b7 double-click to load \u00b7 right-click for options";
@@ -6842,12 +6954,13 @@ function buildSeq(){
         if(e.button!==0||e.ctrlKey||e.metaKey||state.plock)return;
         const g=state.page*STEPS_PER_BAR+i, _p=patOfVoice(vi);
         if(!_p.steps[vi][g])return;                                            // nothing to level on an empty step
-        const def=voiceDefByKey(vi,"gain"); if(!def)return;
-        const cur=getLock(vi,"gain",g);
+        const lk=voiceLevelKey(vi); if(!lk)return;
+        const def=voiceDefByKey(vi,lk); if(!def)return;
+        const cur=getLock(vi,lk,g);
         const vo=(state.kits[state.kit]||[])[vi];
-        const base=(cur!==undefined)?cur:((vo&&vo.vals)?vo.vals.gain:undefined);
+        const base=(cur!==undefined)?cur:((vo&&vo.vals)?vo.vals[lk]:undefined);
         if(base===undefined)return;
-        _stepDrag={vi,g,y0:e.clientY,base,def,el:st,moved:false};
+        _stepDrag={vi,g,y0:e.clientY,base,def,key:lk,el:st,moved:false};
         try{st.setPointerCapture(e.pointerId);}catch(_){}
       };
       st.onpointermove=(e)=>{ const d=_stepDrag; if(!d||d.el!==st)return;
@@ -6856,7 +6969,7 @@ function buildSeq(){
         const span=d.def.max-d.def.min;
         const floor=d.def.min+span*0.2;                                        // a lit step is always audible :: silence is what the click is for
         let v=Math.max(floor,Math.min(d.def.max,d.base+(dy/140)*span));
-        setLock(d.vi,"gain",d.g,v);
+        setLock(d.vi,d.key,d.g,v);
         drawStepLock(st,d.vi,d.g);
         setStatus("STEP "+(d.g+1)+" // LEVEL "+Math.round((v/d.def.max)*100));
       };
@@ -6902,9 +7015,12 @@ function buildSeq(){
     bar.append(add,rm,cnt); rows.appendChild(bar); }
   refreshSel();setPage(0);paintMuteBtns();
 }
-function drawStep(el,v,sub){el.classList.toggle("on",v===1);el.classList.toggle("acc",v===2);const s=v?(sub||1):1;el.dataset.sub=s;el.style.setProperty("--sub",s);el.style.setProperty("--dots",s>1?s*2:1);}
+function drawStep(el,v,sub){el.classList.toggle("on",v===1);el.classList.toggle("acc",v===2);const s=v?(sub||1):1;el.dataset.sub=s;el.style.setProperty("--sub",s);el.style.setProperty("--dots",s>1?s*2:1);
+  if(s>1)el.dataset.rt=(16*s); else delete el.dataset.rt;}   // 1/32 and 1/64 read as 32 and 64
 function drawStepLock(el,vi,abs){const pl=state.plock;let armedLocked=false;if(pl){const lv=getLock(vi,pl.key,abs);armedLocked=(lv!==undefined);}el.classList.toggle("plockon",!!armedLocked);el.classList.toggle("haslock",stepHasAnyLock(vi,abs));}
-function refreshSel(){document.querySelectorAll(".sel").forEach(s=>s.classList.toggle("active",+s.dataset.v===state.selected));}
+function refreshSel(){document.querySelectorAll(".sel").forEach(s=>s.classList.toggle("active",+s.dataset.v===state.selected));
+  paintSlotSel();
+  if(state.kit===6&&typeof buildMaster==="function")buildMaster();}   // another slot can mean another group :: the panel follows the selection
 function setPage(pg){
   state.page=Math.min(pg,numPages()-1);
   const base=state.page*STEPS_PER_BAR;
@@ -7001,7 +7117,7 @@ function kitSharePayload(){
 }
 
 async function shareKitLink(){
-  if(state.kit===3){ setStatus("SAMPLES kit cannot be shared (audio stays yours)"); return; }
+  if(state.kit===KIT_SAMPLES){ setStatus("SAMPLES kit cannot be shared (audio stays yours)"); return; }
   try{
     const payload=kitSharePayload();
     const nSmp=payload.smp?Object.keys(payload.smp).length:0;
@@ -7760,7 +7876,7 @@ function reviewSamples(items){
   });
 }
 async function runExport(){
-  if(state.kit===3){ atlog("SAMPLES export not wired yet :: sample kit exports come with the loop-export stage"); return; }
+  if(state.kit===KIT_SAMPLES){ atlog("SAMPLES export not wired yet :: sample kit exports come with the loop-export stage"); return; }
   const ex=document.getElementById("export"); ex.disabled=true;
   const rawSet=(document.getElementById("setname").value||"").trim();
   if(!rawSet){ atlog("STOP :: name the SET first \u00b7 audiotool uploads are permanent, they can't be deleted"); ex.disabled=false; return; }
