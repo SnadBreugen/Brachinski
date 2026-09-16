@@ -352,7 +352,7 @@ button.midibound{outline:1px solid var(--amber);outline-offset:1px}
 .step.acc{background:linear-gradient(180deg,#fff,var(--amber-hi));border-color:#fff;box-shadow:0 0 16px var(--amber-glow),inset 0 1px 0 rgba(255,255,255,.6)}
 .step[data-rt].on::before,.step[data-rt].acc::before{content:attr(data-rt);position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.5px;color:rgba(10,4,14,.7)}   /* ratchet :: the division printed on the lens, like a marking on the part itself */
 .cell-btn.clr{width:auto;padding:0 12px;letter-spacing:1px}
-#bgfx{position:fixed;inset:0;z-index:0;pointer-events:none}
+#bgfx{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}   /* a canvas is a replaced element :: inset alone leaves it at 300x150 */
 html.zen .chassis{display:none!important}   /* DEVICE hides the device :: text is the TEXT button's job */
 #psWarn{position:fixed;inset:0;z-index:9999;background:rgba(4,2,10,.94);display:none;align-items:center;justify-content:center;padding:24px}
 #psWarn.show{display:flex}
@@ -1408,6 +1408,9 @@ html.mach{--ghost-set:#57cfe0;--ghost-voice:#cf8ff0}
 
 html.inv .mvol::-webkit-slider-thumb{background:#2a1c0a}
 html.inv .mvol::-moz-range-thumb{background:#2a1c0a}
+
+#helpOv .help-item{padding:10px 14px;margin-bottom:6px;line-height:1.7}
+#helpOv .help-item b{margin-bottom:4px;letter-spacing:.08em}
 </style>
 </head>
 <body>
@@ -1527,7 +1530,7 @@ html.inv .mvol::-moz-range-thumb{background:#2a1c0a}
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 959</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 961</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -2687,7 +2690,7 @@ registerProcessor("crush-fx", CrushFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="959";
+const REV="961";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -7817,8 +7820,9 @@ function bgInitBlobs(){BG.blobs=[];for(let i=0;i<7;i++)BG.blobs.push({
   vx:(Math.random()-0.5)*0.3, vy:(Math.random()-0.5)*0.3, rb:0 });}
 function bgResize(){const cv=BG.canvas;BG.dpr=Math.min(2,window.devicePixelRatio||1);
   const ff=(typeof FITF==="number"&&FITF>0)?FITF:1;
-  BG.W=cv.clientWidth||Math.round(window.innerWidth/ff);                       // inset:0 already lays it out :: read that, never force a size
+  BG.W=cv.clientWidth||Math.round(window.innerWidth/ff);                       // the stylesheet stretches it :: read that, never force a size
   BG.H=cv.clientHeight||Math.round(window.innerHeight/ff);
+  if(!cv.clientWidth&&typeof requestAnimationFrame==="function")requestAnimationFrame(()=>bgResize());
   cv.width=BG.W*BG.dpr;cv.height=BG.H*BG.dpr;BG.c.setTransform(BG.dpr,0,0,BG.dpr,0,0);
   BG.bw=200;BG.bh=Math.max(48,Math.round(200*BG.H/BG.W));
   BG.buf=document.createElement("canvas");BG.buf.width=BG.bw;BG.buf.height=BG.bh;BG.bc=BG.buf.getContext("2d");BG.img=BG.bc.createImageData(BG.bw,BG.bh);
@@ -8846,19 +8850,13 @@ function openHelpOverlay(){
   head.appendChild(document.createTextNode(((window.TIP_WIP)||{}).planHead||"how it works"));
   inner.appendChild(head);
   const plan=(typeof PLAN!=="undefined"&&(PLAN[state.lang]||PLAN.en))||[];
-  const det=document.createElement("div"); det.className="help-det";
-  const hint=((window.TIP_WIP)||{}).planHint||"hover a point \u00b7 details appear below";
-  det.textContent=hint;
-  const show=(t)=>{ det.textContent=t; };
-  plan.forEach(([label,detail])=>{
-    const ln=document.createElement("div"); ln.className="feat-line help-pick"; ln.tabIndex=0;
-    ln.textContent=label;
-    const txt=label+" \u00b7 "+detail;
-    ln.onpointerenter=()=>show(txt); ln.onfocus=()=>show(txt);
-    ln.onclick=()=>{ show(txt); inner.querySelectorAll(".help-pick.on").forEach(x=>x.classList.remove("on")); ln.classList.add("on"); };
+  plan.forEach(([label,detail])=>{                                             // everything on the page at once :: nothing to hover for
+    const ln=document.createElement("div"); ln.className="feat-line help-item";
+    const b=document.createElement("b"); b.textContent=label;
+    const t=document.createElement("span"); t.textContent=detail;
+    ln.appendChild(b); ln.appendChild(t);
     inner.appendChild(ln);
   });
-  inner.appendChild(det);
   ov.classList.add("on");
 }
 function closeHelpOverlay(){ const ov=document.getElementById("helpOv"); if(ov)ov.classList.remove("on"); }
@@ -9009,10 +9007,12 @@ function buildHelpCase(){                                                      /
   document.body.appendChild(c);
 }
 let _caseTop=null;
+function zfac(){ return (typeof FITF==="number"&&FITF>0)?FITF:1; }              // fit zoom :: getBoundingClientRect returns zoomed pixels, style.top is read unzoomed
 function alignCases(){                                                         // both cases start where the machine starts, and the guide stacks under the buttons
   const ch=document.querySelector(".chassis"); if(!ch)return;
+  const z=zfac();
   const r0=ch.getBoundingClientRect();
-  if(r0.height>10)_caseTop=Math.round(r0.top+(window.scrollY||0));              // remember it while the machine is there :: hiding it must not move the cases
+  if(r0.height>10)_caseTop=Math.round((r0.top+(window.scrollY||0))/z);          // remember it while the machine is there :: hiding it must not move the cases
   const top=(_caseTop!=null)?_caseTop:130;
   const L=document.getElementById("leftCase"), R=document.querySelector(".workside"), H=document.getElementById("helpCase");
   const w=WIDE();
@@ -9020,7 +9020,7 @@ function alignCases(){                                                         /
   const pan=document.querySelector(".feat-panel");
   if(pan&&L&&w){
     const r=L.getBoundingClientRect();
-    if(r.height>10)pan.style.top=Math.round(r.bottom+12)+"px";
+    if(r.height>10)pan.style.top=Math.round(r.bottom/z+12)+"px";
   } else if(pan){ pan.style.top=""; }
   if(typeof placeWip==="function")placeWip();
 }
@@ -9035,7 +9035,7 @@ function placeWip(){
   if(!ref){ box.style.top=""; return; }
   const r=ref.getBoundingClientRect();
   if(r.height<10)return;
-  box.style.top=Math.round(r.bottom+12)+"px";
+  box.style.top=Math.round(r.bottom/zfac()+12)+"px";
 }
 window.addEventListener("resize",()=>{ if(typeof placeWip==="function")placeWip(); });
 (function(){
