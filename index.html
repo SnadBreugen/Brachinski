@@ -401,7 +401,6 @@ html.ghost #helpCase>.tag{background:#140b05;color:#e8ddd5}
   background:rgba(0,0,0,.32);border:1px solid var(--line-hi);color:var(--amber);display:block}
 #helpBtn:hover{border-color:var(--amber);color:var(--amber-hi)}
 /* the map lives behind this mark, so it stays reachable at every size */
-body.text-off #helpBtn{display:none!important}
 #hoverBar{position:fixed;left:0;right:0;bottom:0;z-index:68;display:none;
   font-family:var(--mono);font-size:11px;line-height:1.6;letter-spacing:.04em;
   padding:10px 16px;background:var(--panel2);border-top:1px solid var(--line);color:var(--dim);
@@ -1222,8 +1221,10 @@ html.skin-invert .kit-disp{background:#061309}
 html.ghost .kit-disp{background:#140a03}
 html.skin-invert .slider,html.skin-invert .meter .led,html.skin-invert #finbar button.on{background:#13301f}
 html.ghost .slider,html.ghost .meter .led,html.ghost #finbar button.on{background:#2a1a0c}
+html.skin-invert .lv-pad.on{color:var(--gc,#5ef0b0)}   /* this skin darkens the pad :: the near black label meant for a bright one would vanish */
 html.skin-invert .lv-pad.on,html.skin-invert .live-name,html.skin-invert #patgrp.grouped .pat.on{background:#081a11}
 html.skin-invert #patgrp.grouped .pat.on{color:var(--gc)}   /* the housing went dark here :: the digit has to come back up with it */
+html.ghost .lv-pad.on{color:var(--gc,#ff8340)}   /* this skin darkens the pad :: the near black label meant for a bright one would vanish */
 html.ghost .lv-pad.on,html.ghost .live-name,html.ghost #patgrp.grouped .pat.on{background:#170d05}
 html.ghost #patgrp.grouped .pat.on{color:var(--gc)}   /* the housing went dark here :: the digit has to come back up with it */
 html.skin-invert .lv-pad.hollow{background:#08190f}
@@ -1244,6 +1245,7 @@ html.inv .kit-field,html.inv .transport.deck{background:#221a10}
 html.inv .kit-disp{background:#140d05}
 html.inv .status,html.inv .island > .tag{background:#150e06}
 html.inv .slider,html.inv .meter .led,html.inv #finbar button.on{background:#2a2010}
+html.inv .lv-pad.on{color:var(--gc,#f2a81e)}   /* this skin darkens the pad :: the near black label meant for a bright one would vanish */
 html.inv .lv-pad.on,html.inv .live-name,html.inv #patgrp.grouped .pat.on{background:#170f06}
 html.inv #patgrp.grouped .pat.on{color:var(--gc)}   /* the housing went dark here :: the digit has to come back up with it */
 html.inv .lv-pad,html.inv .lv-purl,html.inv .rev-play,html.inv .rev-name{background:#180f06}
@@ -1373,10 +1375,10 @@ html.inv .mvol::-moz-range-thumb{background:#2a1c0a}
 
 :where(html:not(.wide)) #leftCase,:where(html:not(.wide)) #helpCase{display:none}
 html.viewpop #viewPopBk{display:block}
-html.viewpop #leftCase{display:grid;grid-template-columns:repeat(3,44px);grid-template-rows:44px;
-  top:90px;left:calc(50% - 90px);width:180px;height:82px;z-index:9610}
+html.viewpop #leftCase{display:grid;grid-template-columns:repeat(2,44px);grid-template-rows:repeat(2,44px);
+  top:90px;left:calc(50% - 63px);width:126px;height:136px;z-index:9610}
 html.viewpop #leftCase #bgBtn,html.viewpop #leftCase #colBtn,
-html.viewpop #leftCase #hideBtn,html.viewpop #leftCase #fitBtn{display:none}   /* no animation while stacked, nothing to hide the machine for, and the fit automation does not reach down here */
+html.viewpop #leftCase #hideBtn{display:none}                                  /* no animation while stacked, and nothing to hide the machine for */
 html.viewpop #leftCase>button,html.viewpop #leftCase #ctrlbar button,
 html.viewpop #leftCase #ctrlbarL button,html.viewpop #leftCase #hidebar button{grid-area:auto}
 #leftCase #helpBtn{position:relative;top:auto;left:auto;font-size:21px;line-height:1;color:var(--amber)}   /* its own fixed placement would offset it inside the grid */
@@ -1612,7 +1614,7 @@ body.copy-drag .pat,body.copy-drag .pg{cursor:copy}
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 990</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 992</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -2935,7 +2937,7 @@ registerProcessor("pitch-fx", PitchFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="990";
+const REV="992";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -3025,7 +3027,7 @@ KITLABV[0]={name:"KICK 1",defs:KITLABV[0].defs.filter(x=>["dtype","ddrive","dpre
 const KITRIMV=[]; for(let _i=0;_i<9;_i++)KITRIMV.push({name:"RIM A",defs:[d("tune",0.5,2,1,1,"TUNE"),d("decay",0.2,3,0.62,1,"DECAY"),d("tone",0,1,0.5,0,"TONE"),d("click",0,2,1,0,"CLICK"),d("res",3,30,10,1,"RES"),d("drive",0,1,0.5,0,"DRIVE"),d("pan",-1,1,0),d("level",0,1.5,0.9,0,"LEVEL")]});   // RIM LAB voices (kit 7)
 KITRIMV[1]={name:"RIM B",defs:[d("tune",0.5,2,0.98,1,"TUNE"),d("decay",0.15,3,0.412,1,"DECAY"),d("tone",0,1,1,0,"TONE"),d("fmAmt",0,1,0.2,0,"FM.AMT"),d("fmRatio",0.5,4,1.5,1,"FM.RAT"),d("noise",0,1,0.07,0,"NOISE"),d("drive",0,1,0.4,0,"DRIVE"),d("pan",-1,1,0),d("level",0,1.5,0.9,0,"LEVEL")]};   // 909 rimshot :: real schematic freqs, short envelopes
 const KITVOIDV=[]; for(let _i=0;_i<9;_i++)KITVOIDV.push({name:"SLOT "+(_i+1),defs:[],empty:true});
-const KITS=[{name:"DRUM 2",voices:KIT1V},{name:"DRUM 1",voices:KIT2V},{name:"PERC 2",voices:KIT3V},{name:"SAMPLES",voices:KIT4V},{name:"PERC 1",voices:KITPERCV},{name:"KICK LAB",voices:KITLABV},{name:"YOUR KIT",voices:KITVOIDV},{name:"RIM LAB",voices:KITRIMV}];
+const KITS=[{name:"DRUM 2",voices:KIT1V},{name:"DRUM 1",voices:KIT2V},{name:"PERC 2",voices:KIT3V},{name:"SAMPLES",voices:KIT4V},{name:"PERC 1",voices:KITPERCV},{name:"KICK LAB",voices:KITLABV},{name:"RACK",voices:KITVOIDV},{name:"RIM LAB",voices:KITRIMV}];
 const FXMARK={"amber":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2211%22%20fill%3D%22%23ffb43d%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2211%22%20fill%3D%22none%22%20stroke%3D%22%23171208%22%20stroke-width%3D%221.2%22%2F%3E%3C%2Fsvg%3E\")","orange":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2211%22%20fill%3D%22%23ff6a1e%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2211%22%20fill%3D%22none%22%20stroke%3D%22%23171208%22%20stroke-width%3D%221.2%22%2F%3E%3C%2Fsvg%3E\")","green":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2211%22%20fill%3D%22%2335d592%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2211%22%20fill%3D%22none%22%20stroke%3D%22%23171208%22%20stroke-width%3D%221.2%22%2F%3E%3C%2Fsvg%3E\")","white":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2211%22%20fill%3D%22%23eef1f6%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2211%22%20fill%3D%22none%22%20stroke%3D%22%23171208%22%20stroke-width%3D%221.2%22%2F%3E%3C%2Fsvg%3E\")","multi":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Cdefs%3E%3CclipPath%20id%3D%22d%22%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2211%22%2F%3E%3C%2FclipPath%3E%3C%2Fdefs%3E%3Cg%20clip-path%3D%22url%28%23d%29%22%3E%3Crect%20x%3D%2211%22%20y%3D%2211%22%20width%3D%2222%22%20height%3D%227.34%22%20fill%3D%22%23f37149%22%2F%3E%3Crect%20x%3D%2211%22%20y%3D%2218.34%22%20width%3D%2222%22%20height%3D%227.33%22%20fill%3D%22%2349c6f3%22%2F%3E%3Crect%20x%3D%2211%22%20y%3D%2225.67%22%20width%3D%2222%22%20height%3D%227.33%22%20fill%3D%22%238df349%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E\")"};
 const SKMARK={"shadow":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Cpath%20d%3D%22M22%2010%20A12%2012%200%200%201%2022%2034%20Z%22%20fill%3D%22%23ffc900%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2212%22%20fill%3D%22none%22%20stroke%3D%22%23ffc900%22%20stroke-width%3D%221.8%22%2F%3E%3C%2Fsvg%3E\")","invert":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Cpath%20d%3D%22M22%2010%20A12%2012%200%200%201%2022%2034%20Z%22%20fill%3D%22%2335d592%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2212%22%20fill%3D%22none%22%20stroke%3D%22%2335d592%22%20stroke-width%3D%221.8%22%2F%3E%3C%2Fsvg%3E\")","ghost":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Cpath%20d%3D%22M22%2010%20A12%2012%200%200%201%2022%2034%20Z%22%20fill%3D%22%23ff6a1e%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2212%22%20fill%3D%22none%22%20stroke%3D%22%23ff6a1e%22%20stroke-width%3D%221.8%22%2F%3E%3C%2Fsvg%3E\")","black":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Cpath%20d%3D%22M22%2010%20A12%2012%200%200%201%2022%2034%20Z%22%20fill%3D%22%23f2f4f8%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2212%22%20fill%3D%22none%22%20stroke%3D%22%23f2f4f8%22%20stroke-width%3D%221.8%22%2F%3E%3C%2Fsvg%3E\")","mach":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Cpath%20d%3D%22M22%2010%20A12%2012%200%200%201%2022%2034%20Z%22%20fill%3D%22%239a9c9f%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2212%22%20fill%3D%22none%22%20stroke%3D%22%239a9c9f%22%20stroke-width%3D%221.8%22%2F%3E%3C%2Fsvg%3E\")","paper":"url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Cpath%20d%3D%22M22%2010%20A12%2012%200%200%201%2022%2034%20Z%22%20fill%3D%22%23c14a18%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2212%22%20fill%3D%22none%22%20stroke%3D%22%23c14a18%22%20stroke-width%3D%221.8%22%2F%3E%3C%2Fsvg%3E\")"};
 const KIT_SAMPLES=3;   // SAMPLES sits at internal index 3 :: never write the bare number, reordering KITS would break every site silently
@@ -4107,7 +4109,7 @@ function renameVoidGroup(gid){ const g=voidGroups().find(x=>x.id===gid); if(!g)r
   if(typeof commit==="function")commit();
   setStatus("GROUP // renamed to "+g.name); }
 function voidSlotDef(i){ return {name:"SLOT "+(i+1),defs:[],empty:true}; }
-function addVoidSlot(){ const vs=state.kits[6]; if(vs.length>=VOID_MAX){ setStatus("YOUR KIT // MAX "+VOID_MAX+" SLOTS"); return; }
+function addVoidSlot(){ const vs=state.kits[6]; if(vs.length>=VOID_MAX){ setStatus("RACK // MAX "+VOID_MAX+" SLOTS"); return; }
   const idx=vs.length;
   const d=voidSlotDef(idx); KITVOIDV.push(d); vs.push({name:d.name,defs:d.defs,fxMode:undefined,vals:{},mute:false});
   if(engineNode)engineNode.port.postMessage({type:"voidSlots",n:vs.length});
@@ -4120,13 +4122,13 @@ function addVoidSlot(){ const vs=state.kits[6]; if(vs.length>=VOID_MAX){ setStat
   });
   if(state.mute)state.mute[idx]=false;
   if(state.bus)state.bus[idx]=0;
-  buildSeq(); buildEditor(); refreshStrip(); setStatus("YOUR KIT // "+vs.length+" SLOTS"); commit(); }
+  buildSeq(); buildEditor(); refreshStrip(); setStatus("RACK // "+vs.length+" SLOTS"); commit(); }
 function removeVoidSlot(){ const vs=state.kits[6]; if(vs.length<=1)return; const i=vs.length-1;
   vs.pop(); KITVOIDV.pop(); if(state.selected>=vs.length)state.selected=vs.length-1;
   state.patterns.forEach(p=>{ if(p.steps[i])p.steps[i].fill(0); if(p.sub&&p.sub[i])p.sub[i].fill(1); if(p.locks&&p.locks[i])p.locks[i]={};
     if(p.auto)for(const k in p.auto){ if(k.indexOf(i+":")===0)delete p.auto[k]; } });
   if(engineNode)engineNode.port.postMessage({type:"voidSlots",n:vs.length});
-  buildSeq(); buildEditor(); refreshStrip(); setStatus("YOUR KIT // "+vs.length+" SLOTS"); commit(); }
+  buildSeq(); buildEditor(); refreshStrip(); setStatus("RACK // "+vs.length+" SLOTS"); commit(); }
 const VOID_SEED=[
   {g:"DRUMS", slots:[[0,0],[0,2],[1,4]]},                 // RAW kick, RAW snare, PCKRT closed hat
   {g:"PERC",  slots:[[1,6],[1,7],[4,0]]},                 // PCKRT tom 1+2, RESONANT ping
@@ -4149,11 +4151,11 @@ function resendVoidAssigns(){ if(!engineNode)return;
 
 function paintLiveBtn(){ const b=document.getElementById("liveBtn"); if(!b)return;
   b.disabled=false;                                     // reachable from anywhere :: entering switches to VOID by itself
-  b.title=(state.kit===6)?"live performance screen \u00b7 ctrl+shift+L":"live performance screen \u00b7 switches to YOUR KIT on the way in \u00b7 ctrl+shift+L"; }
+  b.title=(state.kit===6)?"live performance screen \u00b7 ctrl+shift+L":"live performance screen \u00b7 switches to RACK on the way in \u00b7 ctrl+shift+L"; }
 function enterLive(){
   if(state.kit!==6)switchKit(6,true);   // live plays what VOID holds :: just go there instead of sending the person back
   const gs=(typeof voidGroups==="function")?voidGroups():[];
-  if(!gs.length){ setStatus("// LIVE \u00b7 nothing to play yet \u00b7 collect sounds in YOUR KIT, select them with shift and press CTRL+G to make a group"); }
+  if(!gs.length){ setStatus("// LIVE \u00b7 nothing to play yet \u00b7 collect sounds in RACK, select them with shift and press CTRL+G to make a group"); }
   openLive();
 }
 function openLive(){ const el=document.getElementById("liveScreen"); if(!el)return;
@@ -4873,7 +4875,7 @@ function buildLiveScreen(){ if(!state.liveOpen)return; buildLiveScenes();
   const host=document.getElementById("lvGroups"); if(!host)return; host.innerHTML="";
   const pl=document.getElementById("lvPlay"); if(pl){ pl.textContent=state.playing?"STOP":"PLAY"; pl.classList.toggle("on",!!state.playing); }
   const gs=voidGroups();
-  if(!gs.length){ const e=document.createElement("div"); e.className="lv-empty"; e.textContent="// NO GROUPS YET \u00b7 leave live, collect sounds in YOUR KIT, select them with shift and press CTRL+G \u00b7 loop tracks below work without a group"; host.appendChild(e); buildLiveLoops(); buildLiveSide(); return; }
+  if(!gs.length){ const e=document.createElement("div"); e.className="lv-empty"; e.textContent="// NO GROUPS YET \u00b7 leave live, collect sounds in RACK, select them with shift and press CTRL+G \u00b7 loop tracks below work without a group"; host.appendChild(e); buildLiveLoops(); buildLiveSide(); return; }
   gs.forEach((g,gi)=>{
     const tag=rowTag(gi);
     const row=document.createElement("div"); row.className="lv-grow"+(state.liveSel===g.id?" sel":"")+(groupStopped(g.id)?" stopped":"");
@@ -7120,7 +7122,7 @@ function dragCopyArm(el,kind,idx){                                           // 
 function buildStrip(){
   const strip=document.getElementById("strip");strip.innerHTML="";
   const gp=document.createElement("div");gp.className="grp";
-  const gpl=document.createElement("span");gpl.className="gl";gpl.textContent="PATTERN //";gpl.title="right-click :: copy this pattern + sounds into your kit";gpl.style.padding="4px 10px";gpl.style.margin="-4px -6px";gpl.style.cursor="context-menu";gpl.oncontextmenu=(e)=>{e.preventDefault();openKnobMenu(e.clientX,e.clientY,[{label:"COPY TO YOUR KIT",run:()=>copyPatternToVoid()}]);};gp.appendChild(gpl);
+  const gpl=document.createElement("span");gpl.className="gl";gpl.textContent="PATTERN //";gpl.title="right-click :: copy this pattern + sounds into your kit";gpl.style.padding="4px 10px";gpl.style.margin="-4px -6px";gpl.style.cursor="context-menu";gpl.oncontextmenu=(e)=>{e.preventDefault();openKnobMenu(e.clientX,e.clientY,[{label:"COPY TO RACK",run:()=>copyPatternToVoid()}]);};gp.appendChild(gpl);
   gp.id="patgrp";for(let i=0;i<PATTERNS;i++){const b=document.createElement("button");b.className="cell-btn pat";b.dataset.p=i;b.textContent=(i+1);b.onclick=()=>{ if(_dragCopy)return; queuePattern(i); };dragCopyArm(b,"pat",i);midiButton(b,"pat:"+i,"PATTERN "+(i+1),()=>patIdx()===i,()=>queuePattern(i));gp.appendChild(b);}   // in VOID these address the selected group's own bank
   const gb=document.createElement("div");gb.className="grp";
   const gbl=document.createElement("span");gbl.className="gl";gbl.textContent="BARS //";gb.appendChild(gbl);
@@ -9271,13 +9273,13 @@ function tagControls(){
 }
 const WIDE=()=>document.documentElement.classList.contains("wide");
 var FIT_BASE=1904, FIT_MIN=1180;                                               // 1904 is what the machine plus both cases actually need
-var FITF=1, fitAuto=true;
+var FITF=1, fitAuto=true, fitForced=false;                                   // pressed by hand :: then the floor does not apply
 try{ fitAuto=(localStorage.getItem("brch.fit")!=="off"); }catch(e){}
 function fitFactor(){
   if(!fitAuto)return 1;
   const w=window.innerWidth||FIT_BASE;
   if(w>=FIT_BASE)return 1;                                                     // already wide enough
-  if(w<FIT_MIN)return 1;                                                       // too small to be worth it :: fall back to the stacked layout
+  if(w<FIT_MIN&&!fitForced)return 1;                                           // below the floor it stacks, unless you asked for it by hand
   return w/FIT_BASE;
 }
 function applyFit(){
@@ -9466,7 +9468,11 @@ function placeWip(){
 (function(){ try{ if(typeof buildWip==="function")buildWip(); }catch(e){} })();
 // TEXT toggle in the ctrl-bar
 (function(){const fb=document.getElementById("fitBtn");if(!fb)return;
-  fb.onclick=()=>{ fitAuto=!fitAuto; try{localStorage.setItem("brch.fit",fitAuto?"auto":"off");}catch(e){} viewportPass(); };
+  fb.onclick=()=>{
+    const stuck=fitAuto&&!fitForced&&(window.innerWidth||FIT_BASE)<FIT_MIN;    // on, but the floor is holding it back
+    if(stuck)fitForced=true;                                                   // first press asks for it anyway :: that is the way out of the stacked view
+    else { fitAuto=!fitAuto; fitForced=fitAuto&&fitForced; }
+    try{localStorage.setItem("brch.fit",fitAuto?"auto":"off");}catch(e){} viewportPass(); };
   viewportPass();
 })();
 (function(){const tb=document.getElementById("textBtn");if(tb)tb.onclick=()=>{const off=document.body.classList.toggle("text-off");ctrlState(tb,"TEXT",(off?"OFF":"ON"),!off);if(0)tb.textContent=(off?"OFF":"ON");};})();
