@@ -1612,7 +1612,7 @@ body.copy-drag .pat,body.copy-drag .pg{cursor:copy}
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 989</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES · this is vibecoded</span><span class="rev" id="revfoot">REV 990</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -2935,7 +2935,7 @@ registerProcessor("pitch-fx", PitchFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="989";
+const REV="990";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -4134,9 +4134,10 @@ const VOID_SEED=[
 ];
 function resendVoidSamples(){                                                 // a rack slot can carry its own audio :: sendSample only knows the SAMPLES kit
   if(!engineNode||typeof voidSamples==="undefined"||!voidSamples)return;
-  voidSamples.forEach((sm,i)=>{ if(!sm||!sm.data)return;
+  for(const k in voidSamples){ const sm=voidSamples[k];                      // it is an object keyed by slot, not an array
+    if(!sm||!sm.data)continue;
     const copy=new Float32Array(sm.data);
-    engineNode.port.postMessage({type:"sample",kit:6,voice:i,sr:sm.sr||48000,data:copy},[copy.buffer]); });
+    engineNode.port.postMessage({type:"sample",kit:6,voice:+k,sr:sm.sr||48000,data:copy},[copy.buffer]); }
 }
 function resendVoidAssigns(){ if(!engineNode)return;
   const vs=state.kits[6]||[]; engineNode.port.postMessage({type:"voidSlots",n:vs.length});
