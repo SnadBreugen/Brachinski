@@ -1614,7 +1614,7 @@ body.copy-drag .pat,body.copy-drag .pg{cursor:copy}
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 992</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 994</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -2937,7 +2937,7 @@ registerProcessor("pitch-fx", PitchFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="992";
+const REV="994";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -3266,9 +3266,26 @@ function autoPlayingPats(){                                                   //
   voidGroups().forEach(g=>{ if(!g||groupStopped(g.id))return;
     push(state.patterns[groupBank(g.id)+groupPatOf(g.id)]); });
   return out; }
+var _autoHeldBase={}, _autoRanLast=new Set();
+function autoBaseRead(key){                                                  // what the knob stood at before a lane took it over
+  const ci=key.indexOf(":"), vid=+key.slice(0,ci), pk=key.slice(ci+1);
+  if(!isFinite(vid)){ const ms=_modSet[key]; return (ms&&ms.def&&typeof ms.def.get==="function")?null:null; }
+  const vo=state.voices[vid]; return (vo&&vo.vals&&vo.vals[pk]!==undefined)?vo.vals[pk]:null;
+}
+function autoBaseRestore(key){                                               // the lane stopped playing :: put it back where it was
+  const v=_autoHeldBase[key]; if(v==null)return; delete _autoHeldBase[key];
+  const ci=key.indexOf(":"), vid=+key.slice(0,ci), pk=key.slice(ci+1);
+  if(!isFinite(vid))return;
+  const vo=state.voices[vid]; if(!vo||!vo.vals||vo.vals[pk]===undefined)return;
+  vo.vals[pk]=v; sendParam(vid,pk,v);
+  if(window.AUTO_KNOBS&&window.AUTO_KNOBS[key])try{window.AUTO_KNOBS[key]();}catch(e){}
+}
 function autoPlay(){ if(!state.playing)return; const ph=loopPhase(); if(ph<0)return;
+  const ran=new Set();
   autoPlayingPats().forEach(pat=>{
   for(const key in pat.auto){ if(key===_autoDragKey||_autoHold.has(key))continue; const c=pat.auto[key],ci=key.indexOf(":"),vid=+key.slice(0,ci),pk=key.slice(ci+1),vo=state.voices[vid];
+    ran.add(key);
+    if(!_autoRanLast.has(key)&&_autoHeldBase[key]==null){ const b=autoBaseRead(key); if(b!=null)_autoHeldBase[key]=b; }
     if(key.indexOf(SETPRE)===0){ setLaneApply(pat,key,Math.max(0,Math.min(1,autoSample(c,ph))));
       if(window.AUTO_KNOBS&&window.AUTO_KNOBS[key])window.AUTO_KNOBS[key]();
       continue; }
@@ -3279,7 +3296,9 @@ function autoPlay(){ if(!state.playing)return; const ph=loopPhase(); if(ph<0)ret
     if(!vo||vo.vals[pk]===undefined)continue; const def=voiceDefByKey(vid,pk); if(!def)continue;
     const val=dnm(def,Math.max(0,Math.min(1,autoSample(c,ph)))); vo.vals[pk]=val; sendParam(vid,pk,val);
     if(vid===state.selected&&window.AUTO_KNOBS&&window.AUTO_KNOBS[key])window.AUTO_KNOBS[key]();
-    if(window.AUTO_KNOBS&&window.AUTO_KNOBS[SETPRE+pk]){try{window.AUTO_KNOBS[SETPRE+pk]();}catch(e){}} } }); }
+    if(window.AUTO_KNOBS&&window.AUTO_KNOBS[SETPRE+pk]){try{window.AUTO_KNOBS[SETPRE+pk]();}catch(e){}} } });
+  _autoRanLast.forEach(k=>{ if(!ran.has(k))autoBaseRestore(k); });             // a pattern without that lane must not keep the value it left behind
+  _autoRanLast=ran; }
 function emptyPattern(){return {bars:1,length:STEPS_PER_BAR,steps:Array.from({length:VOICES},()=>new Array(MAX_STEPS).fill(0)),sub:Array.from({length:VOICES},()=>new Array(MAX_STEPS).fill(1)),locks:Array.from({length:VOICES},()=>({})),auto:{},setBase:{}};}
 function padPattern(p){ if(!p)return p; const W=()=>new Array(MAX_STEPS).fill(0), U=()=>new Array(MAX_STEPS).fill(1);
   if(!p.steps)p.steps=[]; if(!p.sub)p.sub=[]; if(!p.locks)p.locks=[];
@@ -3697,9 +3716,10 @@ function schedule(){
       }
     }
     const sec16s=ac.sampleRate*(60/state.bpm)/4;
-    state.master.modules.forEach(m=>{
-      if(m.kind==="glitch"&&m._nodes&&m._nodes.glitch&&Array.isArray(m.gblocks)){
-        for(const b of m.gblocks){
+    state.master.modules.forEach((m,mi)=>{
+      if(m.kind==="glitch"&&m._nodes&&m._nodes.glitch){
+        for(const b of glitchBlocksOf(patOfVoice(0),m,mi)){                    // only where this pattern was marked
+
           if(b.start===curStep){
             const sd=GLITCH_DIVS[Math.max(0,Math.min(GLITCH_DIVS.length-1,m.sizeIdx|0))].b;
             const grain=Math.floor(ac.sampleRate*60/state.bpm*sd);
@@ -5549,14 +5569,15 @@ function copyPatternToVoid(mode){
       const sa=savedAuto[j]; for(const pk in sa)b.auto[dst+":"+pk]=sa[pk]; }
   }
   if(g){ const gm=groupModules(g.id);
-    const base=gm.length;                                                       // the chain is appended, so the module numbers shift by whatever was already there
-    (state.master.modules||[]).forEach(mm=>{ if(!mm||mm.kind==="empty")return;   // a bypassed module is switched off, not deleted :: it travels with the rest and stays off
-      const clone=JSON.parse(JSON.stringify(mm,(k,v)=>k==="_nodes"?undefined:v)); delete clone._nodes; gm.push(clone); });
+    const moved={};                                                             // old position in the master chain -> new position in the group
+    (state.master.modules||[]).forEach((mm,oi)=>{ if(!mm||mm.kind==="empty")return;   // a bypassed module is switched off, not deleted :: it travels with the rest and stays off
+      const clone=JSON.parse(JSON.stringify(mm,(k,v)=>k==="_nodes"?undefined:v)); delete clone._nodes;
+      moved[oi]=gm.length; gm.push(clone); });                                  // empty slots are skipped, so counting along would land on the wrong module
     { const bank=state.patterns[groupBank(g.id)];                                // the recorded moves follow the chain into the group's own bank
       if(bank){ if(!bank.auto)bank.auto={};
         for(const k in savedFx){ const ci=k.indexOf(":"), n=+k.slice(1,ci);
-          bank.auto["g"+g.id+"#"+(base+n)+":"+k.slice(ci+1)]=savedFx[k].slice();
-          if(pat.auto)delete pat.auto[k]; } } }
+          if(moved[n]==null)continue;                                            // that module did not travel, so neither does its lane
+          bank.auto["g"+g.id+"#"+moved[n]+":"+k.slice(ci+1)]=savedFx[k].slice(); } } }
     (state.master.modules||[]).forEach(mm=>{ if(!mm||mm.kind==="empty")return;
       mm.kind="empty"; mm.bypass=false; if(mm._nodes){ try{ (mm._nodes.all||[]).forEach(x=>{try{x.disconnect();}catch(e){}}); }catch(e){} delete mm._nodes; } });
     if(ac){ initMasterNodes(); wireMaster(); if(typeof rewireBusTargets==="function")rewireBusTargets(); }   // the chain moved into the group :: leaving a copy on the sum means every ungrouped sound runs through it twice over
@@ -5889,6 +5910,20 @@ function glitchSend(m){
   g.postMessage({type:"wetonly",value:m.mode==="send"});
   g.postMessage({type:"sharpness",value:m.gsharpness!=null?m.gsharpness:1});
   g.postMessage({type:"shape",value:m.shape!=null?m.shape:0.5});
+}
+function glitchKey(m,idx){ return "g"+(idx!=null?idx:(state.master.modules||[]).indexOf(m)); }
+function glitchBlocks(m,idx){                                                // the marks belong to the pattern, the way the steps do
+  const pat=curPat(); if(!pat)return (m.gblocks=m.gblocks||[]);
+  if(!pat.gfx)pat.gfx={};
+  const k=glitchKey(m,idx);
+  if(!pat.gfx[k]){ pat.gfx[k]=Array.isArray(m.gblocks)?m.gblocks.slice():[];   // what was drawn before the split moves into the pattern you are on
+    if(Array.isArray(m.gblocks))m.gblocks=[]; }
+  return pat.gfx[k];
+}
+function glitchBlocksOf(pat,m,idx){                                          // for the scheduler, which knows which pattern is sounding
+  if(!pat)return [];
+  const k=glitchKey(m,idx);
+  return (pat.gfx&&pat.gfx[k])||[];
 }
 function glitchClearAll(){state.master.modules.forEach(m=>{if(m.kind==="glitch"&&m._nodes&&m._nodes.glitch)m._nodes.glitch.port.postMessage({type:"clear"});});}
 
@@ -6523,7 +6558,7 @@ function openModulePopup(m,i,anchorEl,ctx){   // the chain it belongs to, so the
   }
 }
 function openGlitchGrid(m){
-  if(!Array.isArray(m.gblocks))m.gblocks=[];
+  const GB=()=>glitchBlocks(m,idx);                                           // one place to ask, so the grid and the sequencer agree
   const bars=curPat().bars, CW=30;
   const ov=document.createElement("div");ov.className="kbd-overlay";
   const pop=document.createElement("div");pop.className="kbd-pop";
@@ -6540,7 +6575,7 @@ function openGlitchGrid(m){
     const theBar=bar;
     function render(){
       lane.querySelectorAll(".gg-block").forEach(e=>e.remove());
-      m.gblocks.filter(b=>Math.floor(b.start/16)===theBar).forEach(b=>{
+      GB().filter(b=>Math.floor(b.start/16)===theBar).forEach(b=>{
         const sIn=b.start-theBar*16;
         const blk=document.createElement("div");blk.className="gg-block";blk.style.left=(sIn*CW)+"px";blk.style.width=(b.len*CW-3)+"px";blk._b=b;
         const grip=document.createElement("div");grip.className="gg-grip";blk.appendChild(grip);
@@ -6561,7 +6596,7 @@ function openGlitchGrid(m){
         } else {
           let moved=false; const sx=e.clientX;
           const onMove=(ev)=>{if(Math.abs(ev.clientX-sx)>4)moved=true;};
-          const onUp=()=>{document.removeEventListener("mousemove",onMove);document.removeEventListener("mouseup",onUp);if(!moved){const i=m.gblocks.indexOf(b);if(i>=0)m.gblocks.splice(i,1);render();if(typeof commit==="function")commit();}};
+          const onUp=()=>{document.removeEventListener("mousemove",onMove);document.removeEventListener("mouseup",onUp);if(!moved){const g=GB(),i=g.indexOf(b);if(i>=0)g.splice(i,1);render();if(typeof commit==="function")commit();}};
           document.addEventListener("mousemove",onMove);document.addEventListener("mouseup",onUp);
         }
         return;
@@ -6573,15 +6608,15 @@ function openGlitchGrid(m){
       const onMove=(ev)=>{let q=Math.floor((ev.clientX-r.left)/CW);q=Math.max(s0,Math.min(15,q));len=q-s0+1;tmp.style.width=(len*CW-3)+"px";};
       const onUp=()=>{document.removeEventListener("mousemove",onMove);document.removeEventListener("mouseup",onUp);tmp.remove();
         const start=theBar*16+s0, ne=start+len;
-        m.gblocks=m.gblocks.filter(bb=>{const bs=bb.start,be=bb.start+bb.len;return !(Math.floor(bs/16)===theBar&&bs<ne&&be>start);});
-        m.gblocks.push({start,len});render();if(typeof commit==="function")commit();
+        { const g=GB(), keep=g.filter(bb=>{const bs=bb.start,be=bb.start+bb.len;return !(Math.floor(bs/16)===theBar&&bs<ne&&be>start);});
+          g.length=0; keep.forEach(x=>g.push(x)); g.push({start,len}); }render();if(typeof commit==="function")commit();
       };
       document.addEventListener("mousemove",onMove);document.addEventListener("mouseup",onUp);
     });
     row.appendChild(lane);grid.appendChild(row);
   }
   pop.appendChild(grid);
-  const clr=document.createElement("button");clr.className="mfx-b";clr.textContent="CLEAR";clr.style.marginTop="12px";clr.onclick=()=>{m.gblocks=[];pop.querySelectorAll(".gg-block").forEach(e=>e.remove());if(typeof commit==="function")commit();};
+  const clr=document.createElement("button");clr.className="mfx-b";clr.textContent="CLEAR";clr.style.marginTop="12px";clr.onclick=()=>{const g=GB(); g.length=0;pop.querySelectorAll(".gg-block").forEach(e=>e.remove());if(typeof commit==="function")commit();};
   pop.appendChild(clr);
   ov.appendChild(pop);ov.onclick=(e)=>{if(e.target===ov)ov.remove();};
   document.body.appendChild(ov);
@@ -7073,12 +7108,16 @@ function copyPatternInto(from,to){                                           // 
   const base=bankBase(), src=state.patterns[base+from], dst=state.patterns[base+to];
   if(!src||!dst)return false;
   dst.bars=src.bars; dst.length=src.length;
+  dst.locks={};                                                              // the target keeps nothing of its own, or the two get mixed
   for(let v=0;v<VOICES;v++){
     if(src.steps&&src.steps[v])dst.steps[v]=src.steps[v].slice();
     if(src.sub&&src.sub[v])(dst.sub||(dst.sub=[]))[v]=src.sub[v].slice();
     if(src.locks&&src.locks[v]){ const L={}; for(const k in src.locks[v])L[k]=src.locks[v][k].slice();
-      (dst.locks||(dst.locks={}))[v]=L; }
+      dst.locks[v]=L; }
   }
+  dst.auto={};                                                               // recorded moves belong to the pattern, so they travel and nothing foreign stays
+  if(src.auto)for(const k in src.auto)dst.auto[k]=JSON.parse(JSON.stringify(src.auto[k]));
+  if(src.setBase)dst.setBase=JSON.parse(JSON.stringify(src.setBase)); else delete dst.setBase;
   return true; }
 function copyPageInto(from,to){                                              // one bar onto another, inside the pattern you are on
   if(from===to)return false;
