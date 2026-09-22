@@ -314,9 +314,9 @@ html.mach .transport.deck .field label{color:#171205}
 .col-nums{display:grid;grid-template-columns:repeat(16,1fr);gap:5px}
 .col-nums span{text-align:center;font-size:8px;color:var(--dimmer);letter-spacing:1px}
 .col-nums span:nth-child(4n+1){color:var(--amber);opacity:.7}
-.row{display:grid;grid-template-columns:184px 1fr;align-items:center;gap:10px;padding:4px 0;border-top:1px solid #3a2c54}
+.row{display:grid;grid-template-columns:216px 1fr;align-items:center;gap:10px;padding:4px 0;border-top:1px solid #3a2c54}
 .row:first-child{border-top:none}
-.rhead{display:grid;grid-template-columns:1fr auto auto 20px;align-items:center;gap:8px}
+.rhead{display:grid;grid-template-columns:1fr auto auto 24px 20px;align-items:center;gap:8px}
 /* the fourth column holds the group's pattern number :: it stays reserved when there is none,
    so a grouped row and a loose one give their name button exactly the same width */
 .sel .n{color:var(--ink)}
@@ -1498,6 +1498,10 @@ html.black body.rack-flip .workside>.island+.island{background:#0e0a16;border-co
 body.copy-drag{cursor:copy}
 body.copy-drag .pat,body.copy-drag .pg{cursor:copy}
 .cell-btn.copy-target{outline:2px solid var(--amber);outline-offset:2px;filter:brightness(1.25)}
+
+.chkbtn{width:24px;padding:8px 0;text-align:center;color:var(--dimmer)}
+.chkbtn.on{color:var(--amber);border-color:var(--amber)}
+.chkbtn.peer{box-shadow:0 0 0 1px var(--amber) inset}
 </style>
 </head>
 <body>
@@ -1614,7 +1618,7 @@ body.copy-drag .pat,body.copy-drag .pg{cursor:copy}
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 994</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 996</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -2352,7 +2356,8 @@ class BrachinisteEngine extends AudioWorkletProcessor {
     else if(m.type==="voidSlots"){ const n=Math.max(1,Math.min(15,m.n|0)); const a=this.kits[6]; while(a.length<n)a.push(new VoidVoice()); if(a.length>n)a.length=n; }   // VOID :: grow/shrink the slot count at runtime
     else if(m.type==="assign"){ const B=[makeKit1,makeKit2,makeKit3,makeKit4,makeKitPerc,makeKitLab,null,makeKitRim]; const sk=m.srcKit|0, sl=m.slot|0; if(B[sk]&&m.srcVoice!=null&&sl>=0&&sl<this.kits[6].length){ const nv=B[sk]()[m.srcVoice|0]; if(nv)nv._srcKit=sk; this.kits[6][sl]=nv; } }   // VOID :: rebuild the picked source voice into the slot (any class, correct preset)
     else if(m.type==="sample"){ const kk=(m.kit!=null?m.kit|0:3); const kt=this.kits[kk]; const v=kt&&kt[m.voice|0]; if(v&&v.setSample)v.setSample(m.data,m.sr); }   // kit defaults to SAMPLES, VOID passes its own index
-    else if(m.type==="bus"){ this.bus[m.voice|0]=Math.max(0,Math.min(7,m.value|0)); }   // 0 master, 1 dry, 3..7 group buses
+    else if(m.type==="bus"){ this.bus[m.voice|0]=Math.max(0,Math.min(7,m.value|0)); }
+    else if(m.type==="choke"){ if(!this.choke)this.choke=[]; this.choke[m.voice|0]=Math.max(0,Math.min(3,m.value|0)); }   // 0 off, 1..3 a group whose members cut each other   // 0 master, 1 dry, 3..7 group buses
     else if(m.type==="reset"){ for(const v of this.voices())v.active=false; this.queue.length=0; }
   }
   _read(v,k){ if(v._t&&v._t[k]!==undefined)return v._t[k]; if(v.p&&v.p[k]!==undefined)return v.p[k]; return v[k]; }   // some voices keep their params in .p, some in ._t, some on the instance
@@ -2368,6 +2373,10 @@ class BrachinisteEngine extends AudioWorkletProcessor {
           if(ev.locks){ v._lockedKeys=v._lockedKeys||{}; v._base=v._base||{};
             for(const k in ev.locks){ if(v._base[k]===undefined)v._base[k]=this._read(v,k);   // the unlocked value, captured once before the first lock overwrites it
               this._snap(v,k,ev.locks[k]); v._lockedKeys[k]=1; } }
+          const _cg=this.choke?(this.choke[ev.voice]|0):0;
+          if(_cg){ for(let u=0;u<vs.length;u++){ if(u===ev.voice)continue;       // a hit in a choke group ends the others in it
+            const o=vs[u]; if(o&&o.active&&(this.choke[u]|0)===_cg){ o._chk=1; o._chkCoef=Math.exp(-1/(0.001*sampleRate)); } } }   // 1 ms time constant :: -40 dB after about 4.5 ms, fast enough to cut, soft enough not to click
+          v._chk=0;                                                            // the one that hits is never cut by its own group
           v.trigger(ev.vel, ev.seed);
           const _gt=(ev.gate&&ev.gate>0)?ev.gate:0;
           v._gRise=_gt?1:0; v._gEnv=_gt?0:1; v._gAtk=_gt?(1/(Math.min(0.0018,_gt*0.12)*sampleRate)):1;   // a ratchet hit opens over ~1.8ms instead of instantly :: a 1ms attack against a hard edge is what reads as a plastic click
@@ -2377,7 +2386,9 @@ class BrachinisteEngine extends AudioWorkletProcessor {
       const accL=this._accL, accR=this._accR; accL.fill(0); accR.fill(0);
       let l0=0,r0=0,l1=0,r1=0,l2=0,r2=0;
       for(let v=0;v<vs.length;v++){ const vo=vs[v]; if(!vo||!vo.active)continue; const ok=(vo._srcKit!=null?vo._srcKit:this.kit); const k23=(ok===1||ok===3); if(k23)kit2Smooth(vo); let s=vo.tick(); if(vo._gCoef!==undefined&&vo._gCoef<1){ s*=(vo._gEnv||0);
-          if(vo._gRise){ vo._gEnv+=vo._gAtk; if(vo._gEnv>=1){vo._gEnv=1;vo._gRise=0;} } else vo._gEnv*=vo._gCoef; } s=bipFilt(vo,s); if(ok===1){s=kit2Filt(vo,s);s=kit2FX(vo,s);} if(vo.olvl!==undefined){ vo._olvl=(vo._olvl===undefined?vo.olvl:vo._olvl+(vo.olvl-vo._olvl)*0.01); s*=vo._olvl; }
+          if(vo._gRise){ vo._gEnv+=vo._gAtk; if(vo._gEnv>=1){vo._gEnv=1;vo._gRise=0;} } else vo._gEnv*=vo._gCoef; }
+          if(vo._chk>0){ s*=vo._chk; vo._chk*=vo._chkCoef; if(vo._chk<1e-4){ vo._chk=0; vo.active=false; } }   // choked :: fade out, then stop for good
+          s=bipFilt(vo,s); if(ok===1){s=kit2Filt(vo,s);s=kit2FX(vo,s);} if(vo.olvl!==undefined){ vo._olvl=(vo._olvl===undefined?vo.olvl:vo._olvl+(vo.olvl-vo._olvl)*0.01); s*=vo._olvl; }
         let pan=vo.pan||0;
         if(vo.smoothPan){ if(vo._panS===undefined)vo._panS=pan; vo._panS+=(pan-vo._panS)*0.002; pan=vo._panS; }   // live pan needs a glide, otherwise dragging zippers
         const pl=s*Math.cos((pan+1)*0.25*Math.PI), pr=s*Math.sin((pan+1)*0.25*Math.PI);
@@ -2937,7 +2948,7 @@ registerProcessor("pitch-fx", PitchFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="994";
+const REV="996";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -3320,6 +3331,7 @@ const state={
   mute:Array(VOICES).fill(false),
   solo:Array(VOICES).fill(false),
   bus:Array(VOICES).fill(0),
+  choke:Array(VOICES),                                                          // choke group per voice :: undefined means never set, so the default by name applies
   plock:null,
   sum:{dist:0},
   master:{vol:0.8,limit:true,roll:0,modules:[]},   // starts empty :: dist is an ordinary effect you add when you want it
@@ -3336,7 +3348,7 @@ let history=[], hidx=-1, restoring=false;
 function snapshot(){
   return {
     bpm:state.bpm, swing:state.swing, selected:state.selected, curPattern:state.curPattern, page:state.page, kit:state.kit,
-    mute:state.mute.slice(), solo:state.solo.slice(), bus:state.bus.slice(), sum:{dist:state.sum.dist}, masterVol:state.master.vol, masterLimit:state.master.limit, masterRoll:state.master.roll, finPreset:state.fin.preset, finAmt:state.fin.amount,
+    mute:state.mute.slice(), solo:state.solo.slice(), bus:state.bus.slice(), choke:(state.choke||[]).slice(), sum:{dist:state.sum.dist}, masterVol:state.master.vol, masterLimit:state.master.limit, masterRoll:state.master.roll, finPreset:state.fin.preset, finAmt:state.fin.amount,
     modules: JSON.parse(JSON.stringify(state.master.modules,(k,v)=>k==="_nodes"?undefined:v)),
     voidGroups: JSON.parse(JSON.stringify(state.voidGroups||[])),
     voidSlots: (state.kits[6]||[]).length,   // the rack grows and shrinks :: without this an undo left the slot count wherever it happened to be
@@ -3364,7 +3376,7 @@ function restore(snap){
 }
 function restoreInner(snap){
   state.bpm=snap.bpm; state.swing=snap.swing; state.selected=snap.selected; state.curPattern=snap.curPattern; state.kit=snap.kit;
-  state.mute=snap.mute.slice(); state.solo=(snap.solo?snap.solo.slice():Array(VOICES).fill(false)); state.bus=(snap.bus?snap.bus.map(x=>Math.min(1,x|0)):Array(VOICES).fill(0)); state.sum.dist=snap.sum.dist;
+  state.mute=snap.mute.slice(); state.solo=(snap.solo?snap.solo.slice():Array(VOICES).fill(false)); state.bus=(snap.bus?snap.bus.map(x=>Math.min(1,x|0)):Array(VOICES).fill(0)); state.choke=(snap.choke?snap.choke.slice():Array(VOICES)); state.sum.dist=snap.sum.dist;
   document.querySelectorAll(".busbtn").forEach(b=>{const vi=+b.dataset.v,bv=state.bus[vi]|0;b.textContent=["F","D"][bv];b.classList.toggle("bd",bv===1);});
   if(typeof paintMuteBtns==="function")paintMuteBtns();
   if(snap.voidGroups)state.voidGroups=JSON.parse(JSON.stringify(snap.voidGroups));
@@ -3524,7 +3536,7 @@ async function ensureAudio(){
     wireMaster();
     engineNode.port.postMessage({type:"kit",index:state.kit});
     for(let v=0;v<9;v++)sendSample(v);   // re-send user samples after engine (re)start
-    syncAll(); resendVoidAssigns();
+    syncAll(); resendVoidAssigns(); sendAllChoke();
     requestAnimationFrame(meterLoop);
   }catch(err){
     setStatus("ENGINE FAIL // "+((err&&err.name)||"ERROR"));
@@ -3537,6 +3549,14 @@ function sendParam(vid,key,val){if(engineNode)engineNode.port.postMessage({type:
 function sendSum(key,val){if(engineNode)engineNode.port.postMessage({type:"sum",key:key,value:val});}
 // effective vals: the inactive of the drive/crush pair is forced to 0 (only one flavour sounds)
 function effVals(vo){const v=Object.assign({},vo.vals);if(vo.fxMode&&("crush" in v)){if(vo.fxMode==="crush")v.drive=0;else v.crush=0;}return v;}
+const CHOKE_DEFAULT={"CL HAT":1,"OP HAT":1};                                 // the two hats cut each other out of the box
+function chokeOf(vi){
+  const c=state.choke&&state.choke[vi];
+  if(typeof c==="number")return c?1:0;                                         // set by hand, even to off :: an old file with 2 or 3 counts as on
+  const vo=state.voices[vi]; return (vo&&CHOKE_DEFAULT[vo.name])?1:0;
+}
+function sendChoke(vi){ if(engineNode)engineNode.port.postMessage({type:"choke",voice:vi,value:chokeOf(vi)}); }
+function sendAllChoke(){ for(let v=0;v<VOICES;v++)sendChoke(v); }
 function sendBus(v){ if(!engineNode)return;
     engineNode.port.postMessage({type:"bus",voice:v,value:busOf(v)}); }
 function syncAll(){state.voices.forEach((vo,i)=>{const ev=effVals(vo);for(const k in ev)sendParam(i,k,ev[k]);});sendSum("dist",0);for(let v=0;v<VOICES;v++)sendBus(v);}   // engine dist retired :: DIST lives in the chain now
@@ -6907,6 +6927,7 @@ function switchKit(i,force){
   { const isl=document.getElementById("masterFxIsland"); if(isl)isl.style.display=""; }   // the island stays :: buildMaster decides what it shows
   {const pos=KIT_ORDER.indexOf(i);setStatus(pos>=0?("KIT "+(pos+1)+" // "+KITS[i].name):KITS[i].name);}
   if(typeof rackSkinSync==="function")rackSkinSync();
+  if(typeof sendAllChoke==="function")sendAllChoke();                         // other names, other defaults
   commit();
 }
 // ---- kit row (3 kits) ----
@@ -7247,7 +7268,21 @@ function buildSeq(){
     busPaint();
     bus.onclick=()=>{ if(bus.disabled)return;
         state.bus[vi]=((state.bus[vi]|0)+1)%2;busPaint();sendBus(vi);if(typeof commit==="function")commit();};
-    head.append(sel,mute,bus);
+    const chk=document.createElement("button");chk.className="mute chkbtn";chk.dataset.v=vi;
+    const chkPaint=()=>{ const c=chokeOf(vi);
+      chk.textContent=c?"C":"\u00b7";                                          // a dot when off, C when it is on
+      chk.classList.toggle("on",!!c);
+      chk.title=c?"CHOKE : on \u00b7 a hit here cuts every other voice that has choke on, and they cut this one"
+                 :"CHOKE : off \u00b7 click so this voice and every other one with choke on cut each other off";
+      chk.dataset.desc=chk.title; };
+    chkPaint();
+    chk.onclick=()=>{ if(!state.choke)state.choke=Array(VOICES);
+      state.choke[vi]=chokeOf(vi)?0:1;                                          // on or off, one group for all of them
+      chkPaint(); sendChoke(vi);
+      document.querySelectorAll(".chkbtn").forEach(b=>{ const u=+b.dataset.v;  // everything it now cuts lights up with it
+        if(u!==vi)b.classList.toggle("peer",!!chokeOf(vi)&&!!chokeOf(u)); });
+      if(typeof commit==="function")commit(); };
+    head.append(sel,mute,bus,chk);
     const steps=document.createElement("div");steps.className="steps";
     let sdrag=false,sSY=0,sSV=0,sMoved=false,sAbs=0,cdrag=false;
     for(let i=0;i<STEPS_PER_BAR;i++){
@@ -7414,7 +7449,7 @@ function kitSharePayload(){
   out.look={ bg:(typeof BG!=="undefined"?BG.mode:"off"), col:(typeof BG!=="undefined"?BG.fxColor:"amber"), skin:(typeof skinState!=="undefined"?skinState:"invert") };
   out.snd={ fin:(state.fin?state.fin.preset:"off"), finAmt:(state.fin&&state.fin.amount!=null?state.fin.amount:1),
             vol:state.master.vol, limit:state.master.limit, dist:(state.sum?state.sum.dist:0),
-            mute:(state.mute||[]).slice(), bus:(state.bus||[]).slice() };
+            mute:(state.mute||[]).slice(), bus:(state.bus||[]).slice(), choke:(state.choke||[]).slice() };
   if(kit===6){   // VOID :: slots are references, so carry where each sound came from + the groups
     out.slots=state.kits[6].map(vo=>vo&&vo.srcKit!=null?{sk:vo.srcKit,sv:vo.srcVoice,g:vo.group||0}:0);
     out.smp={};   // whole samples travel with the file so the receiver can still re-trim them
@@ -7527,6 +7562,9 @@ function _applySharedKit(d){
     if(d.snd.dist!=null&&state.sum)state.sum.dist=d.snd.dist;
     if(Array.isArray(d.snd.mute))d.snd.mute.forEach((m,i)=>{ if(state.mute)state.mute[i]=m; });
     if(Array.isArray(d.snd.bus))d.snd.bus.forEach((b,i)=>{ if(state.bus)state.bus[i]=b; });
+    state.choke=Array(VOICES);                                                 // an older file has none, then the defaults by name apply again
+    if(Array.isArray(d.snd.choke))d.snd.choke.forEach((c,i)=>{ if(typeof c==="number")state.choke[i]=c; });
+    if(typeof sendAllChoke==="function")sendAllChoke();
     if(typeof syncAll==="function")syncAll();
   }
   if(d.look){   // look :: background animation, fx colour, chassis skin
