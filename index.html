@@ -1502,6 +1502,30 @@ body.copy-drag .pat,body.copy-drag .pg{cursor:copy}
 .chkbtn{width:24px;padding:8px 0;text-align:center;color:var(--dimmer)}
 .chkbtn.on{color:var(--amber);border-color:var(--amber)}
 .chkbtn.peer{box-shadow:0 0 0 1px var(--amber) inset}
+
+.lv-fxbtn.lv-tempo{color:var(--amber);border-style:dashed;font-size:10px;letter-spacing:1.5px;margin:-2px 0 6px}
+.lv-fxbtn.lv-tempo:hover{border-style:solid}
+
+#loopstrip{margin:10px 0 4px;padding:8px 10px;border:1px dashed var(--line-hi);border-radius:4px}
+#loopstrip .ls-hd{font-size:9px;letter-spacing:2px;color:var(--dim);margin:0 0 6px}
+#loopstrip .ls-row{display:grid;grid-template-columns:10px 1fr auto 140px 34px;align-items:center;gap:10px;padding:3px 0}
+#loopstrip .ls-dot{width:8px;height:8px;border-radius:50%;background:var(--line-hi)}
+#loopstrip .ls-dot.on{background:var(--amber);box-shadow:0 0 6px var(--amber)}
+#loopstrip .ls-name{font-size:10px;letter-spacing:1px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#loopstrip .ls-m.on{color:var(--bg);background:var(--amber);border-color:var(--amber)}
+#loopstrip .ls-vol{width:100%}
+#loopstrip .ls-val{font-size:10px;color:var(--dim);text-align:right}
+
+#loopstrip .ls-hd{display:flex;align-items:center;justify-content:space-between}
+#loopstrip .ls-more{font:inherit;font-size:9px;letter-spacing:1.5px;color:var(--amber);background:none;
+  border:1px dashed var(--line-hi);border-radius:3px;padding:3px 8px;cursor:pointer}
+#loopstrip .ls-more:hover{border-style:solid;border-color:var(--amber)}
+
+/* the audiotool row :: buttons and status on one line, the status gives way instead of wrapping under the buttons */
+#atstatus{display:block;flex:1 1 220px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}
+#uplink,#export,#looptest,#fromtl{flex:0 0 auto}
+#atstatus{align-self:center}
+.transport:has(> #atstatus){display:flex;align-items:center;flex-wrap:wrap}   /* when space runs out the status moves down whole, it never splits */
 </style>
 </head>
 <body>
@@ -1551,6 +1575,7 @@ body.copy-drag .pat,body.copy-drag .pg{cursor:copy}
     <div class="strip" id="strip"></div>
     <div class="col-head"><div></div><div class="col-nums" id="colnums"></div></div>
     <div id="rows"></div>
+    <div id="loopstrip" hidden></div>
     <div class="hint">// step: off · on · accent  ::  drag dial up/down  ::  click name to edit  ::  patterns hold steps, sounds stay global</div>
   </div>
 
@@ -1613,12 +1638,13 @@ body.copy-drag .pat,body.copy-drag .pg{cursor:copy}
       <button class="btn" id="uplink" data-desc="">UPLINK</button>
       <button class="btn play" id="export" data-desc="" disabled>EXPORT &rarr; MACHINISTE</button>
       <button class="btn" id="looptest" data-desc="" title="export the loop / stems as wav">EXPORT WAV</button>
-      <span class="readout" id="atstatus" style="flex:1;min-width:200px;text-align:left">// standby</span>
+      <button class="btn" id="fromtl" data-desc="FROM TIMELINE : starts from a loop you like in your Audiotool project. Put the project link in the field above, press this, pick a region. If it is the first thing in the machine, the machine takes its tempo, then you build the beat around it.">&larr; LOOP FROM TIMELINE</button>
+      <span class="readout" id="atstatus">// standby</span>
     </div>
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 996</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 1001</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -2948,7 +2974,7 @@ registerProcessor("pitch-fx", PitchFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="996";
+const REV="1001";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -3764,6 +3790,7 @@ async function startSeq(){
   if(ac.state==="suspended")await ac.resume();
   state.playing=true;curStep=0;absStep=0;seqPos=0;nextTime=ac.currentTime+0.08;loop0Time=nextTime;lastLit=-1;
   const pb=document.getElementById("play");pb.classList.add("on");pb.textContent="STOP";
+  setTimeout(()=>{ if(typeof buildLoopStrip==="function")buildLoopStrip(); },0);   // the loops have just been started
   document.getElementById("status").classList.add("run");
   setStatus("RUN // PTN "+(patIdx()+1)+" · "+state.bpm+" BPM");
   if(typeof loopState!=="undefined"){   // pick the loops back up where the transport left them
@@ -3783,6 +3810,7 @@ function stopSeq(){
   if(engineNode)engineNode.port.postMessage({type:"reset"});
   glitchClearAll();
   const pb=document.getElementById("play");pb.classList.remove("on");pb.textContent="PLAY";
+  if(typeof buildLoopStrip==="function")buildLoopStrip();
   document.getElementById("status").classList.remove("run");
   setStatus("HALT // PTN "+(patIdx()+1));
   document.querySelectorAll(".step.play").forEach(e=>e.classList.remove("play"));
@@ -4207,13 +4235,13 @@ function openLive(){ const el=document.getElementById("liveScreen"); if(!el)retu
   state.liveOpen=true; document.documentElement.classList.add("live-on"); el.hidden=false;
   if(!state.liveSel&&voidGroups().length)state.liveSel=voidGroups()[0].id;
   const bp=document.getElementById("lvBpm"); if(bp){ bp.value=state.bpm; document.getElementById("lvBpmV").textContent=state.bpm;
-    bp.oninput=()=>{ state.bpm=+bp.value; document.getElementById("lvBpmV").textContent=state.bpm; const m=document.getElementById("bpm"); if(m)m.value=state.bpm; const mv=document.getElementById("bpmval"); if(mv)mv.textContent=state.bpm; loopSyncRates(); if(typeof updateDelayTimes==="function")updateDelayTimes(); }; }
+    bp.oninput=()=>{ state.bpmTouched=true; setBpm(+bp.value); }; }
   const pl=document.getElementById("lvPlay"); if(pl)pl.onclick=async()=>{ if(state.playing)stopSeq(); else await startSeq(); buildLiveScreen(); };
   const ex=document.getElementById("lvExit"); if(ex)ex.onclick=closeLive;
   { const sv=document.getElementById("lvSaveSet"); if(sv)sv.onclick=()=>{ if(typeof saveLiveSet==="function")saveLiveSet(); }; }
   { const ld=document.getElementById("lvLoadSet"); if(ld)ld.onclick=()=>{ if(typeof openSetPicker==="function")openSetPicker(); }; }
   buildLiveScreen(); }
-function closeLive(){ state.liveOpen=false; document.documentElement.classList.remove("live-on");
+function closeLive(){ state.liveOpen=false; document.documentElement.classList.remove("live-on"); if(typeof buildLoopStrip==="function")buildLoopStrip();
   const bx=document.getElementById("bgfx"); if(bx)document.body.insertBefore(bx,document.body.firstChild);
   const cb=document.getElementById("ctrlbar"); if(cb){ const lc=document.getElementById("leftCase"); (lc||document.body).appendChild(cb); }   // back into the VIEW case when there is one, otherwise to the studio
   const el=document.getElementById("liveScreen"); if(el)el.hidden=true; }
@@ -4299,6 +4327,42 @@ function loopStop(ti){
   if(tr.src){ try{tr.src.stop();}catch(e){} try{tr.src.disconnect();}catch(e){} tr.src=null; }
   tr.cur=-1;
 }
+function setBpm(v){                                                          // one way to change the tempo, so every place follows
+  const b=Math.max(60,Math.min(200,Math.round(v)));
+  state.bpm=b;
+  const m=document.getElementById("bpm"); if(m)m.value=b;
+  const mv=document.getElementById("bpmval"); if(mv)mv.textContent=b;
+  const l=document.getElementById("lvBpm"); if(l)l.value=b;
+  const lv=document.getElementById("lvBpmV"); if(lv)lv.textContent=b;
+  if(typeof updateDelayTimes==="function")updateDelayTimes();
+  if(typeof loopSyncRates==="function")loopSyncRates();
+  return b;
+}
+function tempoClaimed(ti,si){                                                 // has anything already decided the tempo?
+  if(state.bpmTouched)return true;                                             // moved by hand
+  for(const p of (state.patterns||[]))                                         // a beat exists somewhere
+    if(p&&p.steps&&p.steps.some(r=>r&&r.some(x=>x>0)))return true;
+  if(typeof loopState!=="undefined")                                           // another loop is already in
+    for(let t=0;t<loopState.tracks.length;t++){ const tr=loopState.tracks[t]; if(!tr)continue;
+      for(let k=0;k<tr.slots.length;k++)if(tr.slots[k]&&!(t===ti&&k===si))return true; }
+  return false;
+}
+function loopArrived(ti,si){                                                  // loop first sets the tempo, beat first keeps it
+  const sl=loopTrack(ti).slots[si];
+  if(!sl||!sl.bpm)return false;
+  if(tempoClaimed(ti,si))return false;
+  adoptLoopTempo(ti,si);
+  state.bpmTouched=true;                                                       // from here on the tempo is decided
+  return true;
+}
+function adoptLoopTempo(ti,si){                                               // loop first :: the machine takes the loop's tempo, the loop stays as it was
+  const tr=loopTrack(ti), sl=tr&&tr.slots[si];
+  if(!sl||!sl.bpm){ setStatus("TEMPO // this loop has no tempo to follow"); return; }
+  const was=state.bpm, now=setBpm(sl.bpm);
+  if(typeof buildLiveScreen==="function")buildLiveScreen();
+  if(typeof commit==="function")commit();
+  setStatus("TEMPO // "+was+" \u2192 "+now+" BPM \u00b7 following "+sl.name+(now!==Math.round(sl.bpm)?" (held at the range edge)":""));
+}
 function loopRate(sl){ if(!sl)return 1;
   if(sl.bpm)return (state.bpm||120)/sl.bpm;                  // detector knew the source tempo
   if(sl.baseBpm)return (sl.rate||1)*(state.bpm||120)/sl.baseBpm;   // it did not :: scale from whatever the project ran at on import
@@ -4365,6 +4429,7 @@ async function loopLoadFile(file,ti,si){
     const nm=(file.name||"LOOP").replace(/\.[^.]+$/,"").toUpperCase().slice(0,14)||"LOOP";
     const tr=loopTrack(ti);
     tr.slots[si]={buf:audio,name:nm,bpm:det?Math.round(det.bpm):null,rate:rate,secs:secs,baseBpm:state.bpm};
+    if(loopArrived(ti,si))return;                                              // it was the first thing, the machine follows it and says so
     buildLiveScreen(); if(typeof commit==="function")commit();
     setStatus("LOOP "+(ti+1)+"."+(si+1)+" \u00b7 "+nm+(det?(" \u00b7 "+Math.round(det.bpm)+" BPM \u2192 "+state.bpm):(" \u00b7 "+secs.toFixed(1)+"s")));
   }catch(e){ setStatus("DECODE failed :: "+(e&&e.message||"unsupported file")); }
@@ -4420,8 +4485,9 @@ async function atLoadRegion(client,rg,ti,si){
     tr.slots[si]={buf:audio,name:rg.label,bpm:det?Math.round(det.bpm):null,
       rate:det?(state.bpm/det.bpm):1,secs:secs,baseBpm:state.bpm};
     if(rg.semis&&typeof applyLoopPitch==="function"){ tr.slots[si].pitch=rg.semis; applyLoopPitch(ti,si,rg.semis); }
+    if(loopArrived(ti,si))return;                                              // it was the first thing, the machine follows it and says so
     buildLiveScreen(); if(typeof commit==="function")commit();
-    setStatus("TIMELINE // "+rg.label+" \u2192 LOOP "+(ti+1)+"."+(si+1)+" \u00b7 "+secs.toFixed(1)+"s");
+    setStatus("TIMELINE // "+rg.label+" \u2192 LOOP "+(ti+1)+"."+(si+1)+(det?(" \u00b7 "+Math.round(det.bpm)+" BPM, USE ITS TEMPO to follow it"):(" \u00b7 "+secs.toFixed(1)+"s")));
   }catch(e){ setStatus("TIMELINE // decode failed :: "+(e&&e.message||"")); }
 }
 async function openTimelinePicker(ti,si){
@@ -4910,6 +4976,48 @@ function buildLiveScenes(){
     host.appendChild(b);
   }
 }
+function startFromTimeline(){                                                 // loop first :: in from the studio, no detour through LIVE
+  if(typeof loopState==="undefined"||typeof openTimelinePicker!=="function")return;
+  let ti=-1, si=-1;
+  for(let t=0;t<Math.max(1,loopState.tracks.length);t++){                     // the first free place in any loop track
+    const tr=loopTrack(t); const f=tr.slots.findIndex(x=>!x);
+    if(f>=0){ ti=t; si=f; break; } }
+  if(ti<0){ ti=0; si=0; }
+  openTimelinePicker(ti,si);
+}
+function buildLoopStrip(){                                                    // the loops playing along, seen and handled from the studio
+  const host=document.getElementById("loopstrip"); if(!host)return;
+  if(typeof loopState==="undefined"){ host.hidden=true; return; }
+  const used=[]; loopState.tracks.forEach((tr,ti)=>{ if(tr&&tr.slots&&tr.slots.some(Boolean))used.push(ti); });
+  if(!used.length){ host.hidden=true; host.innerHTML=""; return; }            // nothing loaded :: the studio stays as it was
+  host.hidden=false; host.innerHTML="";
+  const hd=document.createElement("div"); hd.className="ls-hd"; hd.textContent="// LOOPS PLAYING ALONG";
+  const more=document.createElement("button"); more.className="ls-more"; more.textContent="+ FROM TIMELINE";
+  more.dataset.desc="pull another region out of your Audiotool project into a free loop place";
+  more.onclick=()=>startFromTimeline(); hd.appendChild(more);
+  host.appendChild(hd);
+  used.forEach(ti=>{
+    const tr=loopTrack(ti), k=lvKeyL(ti);
+    const si=(tr.cur!=null&&tr.cur>=0)?tr.cur:((tr.armed!=null)?tr.armed:tr.slots.findIndex(Boolean));
+    const sl=tr.slots[si];
+    const row=document.createElement("div"); row.className="ls-row";
+    const on=!!(state.playing&&tr.cur!=null&&tr.cur>=0);
+    const dot=document.createElement("span"); dot.className="ls-dot"+(on?" on":"");
+    const nm=document.createElement("span"); nm.className="ls-name";
+    nm.textContent="LOOP "+(ti+1)+" \u00b7 "+((sl&&sl.name)||"\u2013")+((sl&&sl.bpm)?(" \u00b7 "+sl.bpm+" BPM"):"");
+    nm.title=on?"playing along with the sequencer":"armed, starts with PLAY";
+    const m=document.createElement("button"); m.className="mute ls-m"+(liveMix().mute[k]?" on":"");
+    m.textContent="M"; m.title="mute this loop track :: same switch as in LIVE";
+    m.onclick=()=>{ lvToggleMute(k); m.classList.toggle("on",!!liveMix().mute[k]); };
+    const r=document.createElement("input"); r.type="range"; r.className="slider ls-vol";
+    r.min=0; r.max=1.5; r.step=0.01; r.value=(tr.gain!=null?tr.gain:1);
+    const v=document.createElement("span"); v.className="ls-val"; v.textContent=Math.round((tr.gain!=null?tr.gain:1)*100);
+    r.oninput=()=>{ tr.gain=+r.value; v.textContent=Math.round(tr.gain*100); loopApply(ti); };   // the same path the LIVE fader takes
+    r.onchange=()=>{ if(typeof commit==="function")commit(); };
+    r.title="level of this loop track :: same fader as in LIVE";
+    row.append(dot,nm,m,r,v); host.appendChild(row);
+  });
+}
 function buildLiveScreen(){ if(!state.liveOpen)return; buildLiveScenes();
   { const fb=document.getElementById("lvFxBar"); if(fb&&!fb.firstChild)buildLiveFxBar(); else paintLiveFxBar(); }   // built once, the rest of the screen is torn down constantly
   const host=document.getElementById("lvGroups"); if(!host)return; host.innerHTML="";
@@ -5024,7 +5132,13 @@ function buildLiveSide(){ const side=document.getElementById("lvSide"); if(!side
       b.textContent=(si+1)+" \u00b7 "+sl.name;
       b.title="open the loop editor";
       b.onclick=()=>openLoopEditor(lti,si);
-      list.appendChild(b); });
+      list.appendChild(b);
+      if(sl.bpm&&Math.round(sl.bpm)!==state.bpm){                               // only offered when it would change anything
+        const tb2=document.createElement("button"); tb2.className="lv-fxbtn lv-tempo";
+        tb2.textContent="\u21b3 USE ITS TEMPO \u00b7 "+Math.round(sl.bpm)+" BPM";
+        tb2.dataset.desc="TEMPO : sets the whole machine to "+Math.round(sl.bpm)+" BPM, so this loop plays exactly as it was recorded and the beat follows it";
+        tb2.onclick=(e)=>{ e.stopPropagation(); adoptLoopTempo(lti,si); };
+        list.appendChild(tb2); } });
     const ab=document.createElement("button"); ab.className="lv-fxbtn add"; ab.textContent="+ LOAD LOOP"; if(window.TIP&&TIP.LOADLOOP)ab.dataset.desc=TIP.LOADLOOP;
     ab.onclick=()=>{ const free=ltr.slots.findIndex(x=>!x); loopPickFile(lti,free<0?0:free); };
     list.appendChild(ab);
@@ -7218,7 +7332,7 @@ function refreshStrip(){
 }
 
 // ---- sequencer ----
-function buildSeq(){
+function buildSeq(){ if(typeof buildLoopStrip==="function")setTimeout(buildLoopStrip,0);
   const cn=document.getElementById("colnums");cn.innerHTML="";
   for(let i=0;i<STEPS_PER_BAR;i++){const s=document.createElement("span");s.textContent=i+1;cn.appendChild(s);}
   const rows=document.getElementById("rows");rows.innerHTML="";
@@ -7399,7 +7513,10 @@ function setPattern(i){ const n=i%PATTERNS; const g=selGroupId();
     const _lb=document.getElementById("liveBtn"); if(_lb)midiButton(_lb,"tr:live","LIVE",()=>!!state.liveOpen,()=>_lb.click());
     const _ae=document.getElementById("autoed"); if(_ae)midiButton(_ae,"tr:autom","AUTOM.",()=>!!document.getElementById("autoEd"),()=>_ae.click()); }
 { const lb=document.getElementById("liveBtn"); if(lb)lb.onclick=()=>enterLive(); paintLiveBtn(); }
-document.getElementById("bpm").oninput=e=>{state.bpm=+e.target.value;document.getElementById("bpmval").textContent=state.bpm;updateDelayTimes();if(typeof loopSyncRates==="function")loopSyncRates();};
+{ const ft=document.getElementById("fromtl"); if(ft)ft.onclick=()=>startFromTimeline(); }
+{ const st=document.getElementById("atstatus");                                 // cut off with dots when long :: the whole line on hover
+  if(st&&typeof MutationObserver!=="undefined")new MutationObserver(()=>{ st.title=st.textContent; }).observe(st,{childList:true,characterData:true,subtree:true}); }
+document.getElementById("bpm").oninput=e=>{ state.bpmTouched=true; setBpm(+e.target.value); };
 document.getElementById("swing").oninput=e=>{state.swing=+e.target.value;document.getElementById("swingval").textContent=state.swing;};
 
 /* ---- SHARE :: pack the current kit (9 voices + its 8 patterns) into a link ---- */
@@ -7562,6 +7679,7 @@ function _applySharedKit(d){
     if(d.snd.dist!=null&&state.sum)state.sum.dist=d.snd.dist;
     if(Array.isArray(d.snd.mute))d.snd.mute.forEach((m,i)=>{ if(state.mute)state.mute[i]=m; });
     if(Array.isArray(d.snd.bus))d.snd.bus.forEach((b,i)=>{ if(state.bus)state.bus[i]=b; });
+    state.bpmTouched=true;                                                     // a loaded kit brings its own tempo
     state.choke=Array(VOICES);                                                 // an older file has none, then the defaults by name apply again
     if(Array.isArray(d.snd.choke))d.snd.choke.forEach((c,i)=>{ if(typeof c==="number")state.choke[i]=c; });
     if(typeof sendAllChoke==="function")sendAllChoke();
