@@ -1644,7 +1644,7 @@ body.copy-drag .pat,body.copy-drag .pg{cursor:copy}
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 1010</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 1011</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -3000,7 +3000,7 @@ registerProcessor("pitch-fx", PitchFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="1010";
+const REV="1011";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -8436,16 +8436,38 @@ function steps128(pi, ch, len){
 // ---- 1 :: UPLINK ----
 let atSdkPromise=import("./nexus.bundle.js");
 let atSession=null;
-const MACH_GAP=720;                                                          // desktop units below the lowest device :: the DAW only pushes devices apart when you drag one
-function machinisteSpot(t,doc){                                               // below everything already on the desktop, lined up with the leftmost device
-  let all=null;
-  try{ all=(t&&t.entities&&typeof t.entities.get==="function")?t.entities.get()
-          :((doc&&doc.queryEntities&&typeof doc.queryEntities.get==="function")?doc.queryEntities.get():null); }catch(e){ all=null; }
-  let minX=null,maxY=null;
-  (all||[]).forEach(en=>{ const f=en&&en.fields; if(!f||!f.positionX||!f.positionY)return;   // only devices have a place on the desktop
-    const x=f.positionX.value, y=f.positionY.value; if(typeof x!=="number"||typeof y!=="number")return;
-    minX=(minX==null)?x:Math.min(minX,x); maxY=(maxY==null)?y:Math.max(maxY,y); });
-  return (maxY==null)?{x:0,y:MACH_GAP}:{x:minX,y:maxY+MACH_GAP};
+const MACH_GAP=720;                                                          // desktop units below the stagebox :: the DAW only pushes devices apart when you drag one
+const MACH_STEP=600;                                                         // sideways, when that spot is already taken by an earlier export
+function nxList(t,doc,type){                                                  // read entities inside a transaction, or from the document if the transaction cannot list
+  try{ if(t&&t.entities){ const q=type?t.entities.ofTypes(type):t.entities; if(q&&typeof q.get==="function")return q.get()||[]; } }catch(e){}
+  try{ if(doc&&doc.queryEntities){ const q=type?doc.queryEntities.ofTypes(type):doc.queryEntities; if(q&&typeof q.get==="function")return q.get()||[]; } }catch(e){}
+  return [];
+}
+function nxPos(en){ const f=en&&en.fields; if(!f||!f.positionX||!f.positionY)return null;
+  const x=f.positionX.value, y=f.positionY.value; return (typeof x==="number"&&typeof y==="number")?{x,y}:null; }
+function machinisteSpot(t,doc){                                               // right under the stagebox, the one place everybody can find
+  const mm=nxList(t,doc,"mixerMaster").map(nxPos).filter(Boolean)[0]||{x:0,y:0};
+  const taken=nxList(t,doc,null).map(nxPos).filter(Boolean);
+  const spot={x:Math.round(mm.x),y:Math.round(mm.y+MACH_GAP)};                // int32 on the wire
+  for(let i=0;i<24&&taken.some(q=>Math.abs(q.x-spot.x)<50&&Math.abs(q.y-spot.y)<50);i++)spot.x+=MACH_STEP;   // a second export sits beside the first, not on it
+  return spot;
+}
+function buildMachinisteTx(t,doc,o){                                          // everything the export writes, in one transaction :: kept apart so it can be run against the real SDK
+  const ses=o.names.map((n)=> t.create("sample",{ sampleName:n }));
+  const spot=machinisteSpot(t,doc);                                          // never on top of the stagebox :: new devices all start at 0,0, the same place the stagebox sits
+  const mach=t.create("machiniste",{ displayName:o.set+"_brachinski", positionX:spot.x, positionY:spot.y, patternIndex:((o.patternIndex%32)+32)%32,
+    channels: Array.from({length:MACH_CH},(_,i)=> i<ses.length ? ({ sample:ses[i].location, gain:0.85, panning:0 }) : ({ gain:0, panning:0 })) });   // pad to the fixed channel count
+  o.usePats.forEach((pi)=>{
+    const len=o.patternLen(pi);
+    t.create("machinistePattern",{
+      slot: mach.fields.patternSlots.array[((pi%32)+32)%32].location,          // the machiniste has 32 slots :: a rack bank number would run past them
+      stepScaleIndex:1, length:len,
+      channelPatterns: Array.from({length:MACH_CH},(_,i)=> i<o.usedVoices.length ? ({ steps: o.steps(pi,o.usedVoices[i],len) }) : ({ steps: o.empty() }))   // pad to the fixed channel count
+    });
+  });
+  const ch=t.create("mixerChannel",{ displayParameters:{ displayName:o.set } });   // a strip in the stagebox, named after the set
+  t.create("desktopAudioCable",{ fromSocket:mach.fields.mainOutput.location, toSocket:ch.fields.audioInput.location });   // and the machiniste plugged into it, so it sounds right away
+  return { mach, spot, channel:o.set };
 }
 async function loadAtSdk(){ const m=await atSdkPromise; return m.default||m; }
 async function atConnect(interactive){
@@ -8540,22 +8562,10 @@ async function runExport(){
     for(let k=0;k<items.length;k++){ const dn=finalNames[k]; atlog("uploading "+dn+" ("+(k+1)+"/"+items.length+")"); names.push(await uploadBlob(items[k].blob,dn)); }
 
     atlog("building machiniste + "+usePats.length+" pattern(s) ...");
-    await doc.modify((t)=>{
-      const ses=names.map((n)=> t.create("sample",{ sampleName:n }));
-      const spot=machinisteSpot(t,doc);                                          // never on top of the stagebox :: new devices all start at 0,0, the same place the stagebox sits
-      const mach=t.create("machiniste",{ displayName:set+"_brachinski", positionX:spot.x, positionY:spot.y, patternIndex:state.curPattern,
-        channels: Array.from({length:MACH_CH},(_,i)=> i<ses.length ? ({ sample:ses[i].location, gain:0.85, panning:0 }) : ({ gain:0, panning:0 })) });   // pad to the fixed channel count
-      usePats.forEach((pi)=>{
-        const len=state.patterns[pi].bars*STEPS_PER_BAR;
-        t.create("machinistePattern",{
-          slot: mach.fields.patternSlots.array[pi].location,
-          stepScaleIndex:1, length:len,
-          channelPatterns: Array.from({length:MACH_CH},(_,i)=> i<usedVoices.length ? ({ steps: steps128(pi,usedVoices[i],len) }) : ({ steps: steps128empty() }))   // pad to the fixed channel count
-        });
-      });
-      return mach;
-    });
-    atlog("DONE :: "+usedVoices.length+" voice(s) + "+usePats.length+" pattern(s). open the desktop, reload (F5).");
+    const res=await doc.modify((t)=>buildMachinisteTx(t,doc,{ names, set, usePats, usedVoices, patternIndex:state.curPattern,
+      patternLen:(pi)=>state.patterns[pi].bars*STEPS_PER_BAR, steps:steps128, empty:steps128empty }));
+    const sp=(res&&res.spot)?res.spot:null;
+    atlog("DONE :: "+usedVoices.length+" voice(s) + "+usePats.length+" pattern(s) \u00b7 placed at "+(sp?(sp.x+", "+sp.y):"?")+" under the stagebox, cabled to channel "+set+" \u00b7 reload the desktop (F5)");
   }catch(e){ console.error(e); atlog("EXPORT failed :: "+(e.message||e)); ex.disabled=false; }
 }
 
