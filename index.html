@@ -1660,7 +1660,7 @@ body.copy-drag .pat,body.copy-drag .pg{cursor:copy}
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 1020</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 1021</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -3030,7 +3030,7 @@ registerProcessor("pitch-fx", PitchFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="1020";
+const REV="1021";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -4560,7 +4560,7 @@ async function loopLoadFile(file,ti,si){
 // ---- pull loops out of the audiotool timeline ----
 async function atOpenDoc(){
   const at=atSession||await atConnect(true); if(!at)return null;
-  const projUrl=((document.getElementById("projurl")||{}).value||"").trim()||AT_PROJECT;
+  const projUrl=projectUrl(); if(!projUrl)return;
   const doc=await at.open(projUrl); if(doc.start)await doc.start();
   return {at:at,doc:doc,client:(at.client||at)};
 }
@@ -7986,7 +7986,7 @@ document.addEventListener("keydown",e=>{
 //   3 TRANSMIT -> render current params, upload, build machiniste + patterns
 // ============================================================
 const AT_CLIENT_ID = "5162daa5-a5ea-4dda-b2a0-1f66eb556879";
-const AT_PROJECT   = "https://www.audiotool.com/studio?project=0209566c-4b70-407c-b5ae-93de77992a2c";
+function projectUrl(){ const v=((document.getElementById("projurl")||{}).value||"").trim(); if(!v)atlog("STOP :: paste the link of your audiotool project first \u00b7 nothing is written without it"); return v; }   // no fixed project :: every export goes where you point it
 let   AT_REDIRECT  = (location.origin + location.pathname).replace(/index\.html?$/i, "");
 const AT_SCOPE     = "project:write sample:write";
 
@@ -8377,11 +8377,15 @@ function encodeWavStereo(L, R, sr){
   return new Blob([ab],{type:"audio/wav"});
 }
 function buildOfflineMaster(ctx, node, allowKinds, xo){   // build the master chain in ctx via a synchronous global-swap (restored immediately). allowKinds!=null => only those module kinds (finalizer always on)
-  const save={ac, meterNode, masterIn, masterOut, masterSendBus, fin, dryBus, engineNode, masterLimiter, masterCeil};
+  const save={ac, meterNode, masterIn, masterOut, masterSendBus, fin, dryBus, engineNode, masterLimiter, masterCeil, scopeNode, LIVEBUS};   // scope and live bus exist once the device has played :: they belong to the live context, never to a render
+  const liveHeld=(typeof liveFxMods==="function"?liveFxMods():[]).filter(Boolean).map(m=>[m,m._nodes]);
+  const gfxSave=groupFX, grpHeld=[];                                              // group chains too :: the master build rewires them, and it must do that in the render
+  if(typeof voidGroups==="function")voidGroups().forEach(g=>groupModules(g.id).forEach(m=>grpHeld.push([m,m._nodes])));
   const savedMods=state.master.modules, savedNodes=savedMods.map(m=>m._nodes);
   let ok=false;
   try{
-    ac=ctx; meterNode=ctx.destination;
+    ac=ctx; meterNode=ctx.destination; scopeNode=null; LIVEBUS=null; liveHeld.forEach(([m])=>{ delete m._nodes; });
+    groupFX={}; grpHeld.forEach(([m])=>{ delete m._nodes; }); engineNode=node;   // everything that belongs to the live context steps aside first, not piece by piece
     masterIn=ctx.createGain(); masterIn.gain.value=SUM_COMP; masterOut=ctx.createGain(); masterSendBus=ctx.createGain(); dryBus=ctx.createGain(); dryBus.gain.value=SUM_COMP; fin=null;
     masterLimiter=ctx.createDynamicsCompressor();masterLimiter.threshold.value=-2.5;masterLimiter.ratio.value=12;masterLimiter.attack.value=0.003;masterLimiter.release.value=0.09;masterLimiter.knee.value=0;
     masterCeil=ctx.createWaveShaper();{const nn=2048,cc=new Float32Array(nn),kn=0.85,ce=0.9,rg=ce-kn;for(let i=0;i<nn;i++){const x=(i/(nn-1))*2-1,ax=Math.abs(x);cc[i]=ax<=kn?x:Math.sign(x)*(kn+rg*Math.tanh((ax-kn)/rg));}masterCeil.curve=cc;}masterCeil.oversample="4x";
@@ -8390,20 +8394,16 @@ function buildOfflineMaster(ctx, node, allowKinds, xo){   // build the master ch
     initMasterNodes(); node.connect(masterIn); wireMaster();
     if(xo&&xo.outMap)state.master.modules.forEach(m=>xo.outMap.set(m,m._nodes));   // the offline nodes, so recorded effect moves can reach them while rendering
     if(xo&&xo.groups&&state.kit===6&&typeof voidGroups==="function"&&voidGroups().length){   // the rack :: build the group chains too, with the device's own wiring
-      const gSave=groupFX, lbSave=LIVEBUS, held=[];
-      voidGroups().forEach(g=>groupModules(g.id).forEach(m=>{ held.push([m,m._nodes]); delete m._nodes; }));
-      (typeof liveFxMods==="function"?liveFxMods():[]).forEach(m=>{ if(m){ held.push([m,m._nodes]); delete m._nodes; } });
-      try{ groupFX={}; LIVEBUS=null; engineNode=node;
+      try{
         if(node.numberOfOutputs>1){ try{ node.connect(dryBus,1); }catch(e){} }
         wireGroupBuses();
         if(xo.outMap)voidGroups().forEach(g=>groupModules(g.id).forEach(m=>xo.outMap.set(m,m._nodes)));
       }catch(e){ console.error("offline group build failed :: groups render through the master only",e); }
-      finally{ groupFX=gSave; LIVEBUS=lbSave; held.forEach(([m,n])=>{ m._nodes=n; }); }
     }
     ok=true;
   }catch(e){ console.error("offline master build failed :: rendering dry",e); }
   finally{
-    ac=save.ac; meterNode=save.meterNode; masterIn=save.masterIn; masterOut=save.masterOut; masterSendBus=save.masterSendBus; fin=save.fin; dryBus=save.dryBus; engineNode=save.engineNode; masterLimiter=save.masterLimiter; masterCeil=save.masterCeil;
+    ac=save.ac; meterNode=save.meterNode; masterIn=save.masterIn; masterOut=save.masterOut; masterSendBus=save.masterSendBus; fin=save.fin; dryBus=save.dryBus; engineNode=save.engineNode; masterLimiter=save.masterLimiter; masterCeil=save.masterCeil; scopeNode=save.scopeNode; LIVEBUS=save.LIVEBUS; liveHeld.forEach(([m,n])=>{ m._nodes=n; }); groupFX=gfxSave; grpHeld.forEach(([m,n])=>{ m._nodes=n; });
     state.master.modules=savedMods; savedMods.forEach((m,i)=>{ m._nodes=savedNodes[i]; });
   }
   return ok;
@@ -8700,7 +8700,7 @@ async function runTimelineExport(mode,groups){
   if(btn)btn.disabled=true;
   try{
     if(state.playing){ const pb=document.getElementById("play"); if(pb)pb.click(); }   // the render borrows the project tempo :: the transport has to rest meanwhile
-    const projUrl=(document.getElementById("projurl").value||"").trim()||AT_PROJECT, set=setSlug();
+    const projUrl=projectUrl(), set=setSlug(); if(!projUrl)return;
     atlog("set "+set+" :: opening project");
     const doc=await at.open(projUrl); if(doc.start)await doc.start();
     const bpm=nxProjectTempo(null,doc)||state.bpm;
@@ -8845,7 +8845,7 @@ async function runExport(){
   const at = atSession || await atConnect(true);
   if(!at){ ex.disabled=false; return; }
   try{
-    const projUrl=(document.getElementById("projurl").value||"").trim() || AT_PROJECT;
+    const projUrl=projectUrl(); if(!projUrl){ ex.disabled=false; return; }
     const set=setSlug();
     atlog("set "+set+" :: opening project");
     const doc=await at.open(projUrl);
@@ -9841,7 +9841,6 @@ document.getElementById("hideBtn").onclick=()=>{const r=document.documentElement
 buildMeter();buildKit();buildEditor();buildMaster();buildStrip();buildSeq();histInit();
 restoreSamplesLocal();   // reload locally stored KIT 4 samples from a previous session
 setStatus("READY // KIT 1 · "+state.voices.length+" VOICES");
-document.getElementById("projurl").value=AT_PROJECT;
 document.getElementById("uplink").onclick=()=>atConnect(true);
 document.getElementById("export").onclick=()=>runExport();
 document.getElementById("looptest").onclick=()=>openExportPopup();
