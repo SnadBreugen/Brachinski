@@ -1660,7 +1660,7 @@ body.copy-drag .pat,body.copy-drag .pg{cursor:copy}
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 1019</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 1020</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -3030,7 +3030,7 @@ registerProcessor("pitch-fx", PitchFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="1019";
+const REV="1020";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -8601,6 +8601,19 @@ async function atUpload(c,blob,dn,set,kind){                                  //
     return up.name;
   }catch(e){ atlog(dn+" try "+a+"/3 failed :: "+(e.message||e)); if(a===3) throw new Error(dn+" gave up after 3 tries :: "+(e.message||e)); await new Promise(r=>setTimeout(r,1500)); atlog("retry "+dn+" ..."); } }
 }
+async function atVerify(c,name,expectSec){                                   // ask audiotool whether an upload really is there :: DONE only when it is
+  try{ const m=await atTimeout(c.samples.get(name),20000,"check");
+    if(!m||m instanceof Error)return { ok:false, why:"not found"+((m&&m.message)?" ("+m.message+")":"") };
+    const d=m.durationSeconds;
+    if(expectSec!=null&&typeof d==="number"&&Math.abs(d-expectSec)>0.25)return { ok:false, why:d.toFixed(2)+" s on the server, "+expectSec.toFixed(2)+" s rendered" };
+    return { ok:true, d };
+  }catch(e){ return { ok:false, why:(e&&e.message)||String(e) }; }
+}
+async function atVerifyAll(c,names,shown,secs){                              // every upload, one by one :: a list of what is missing
+  const bad=[]; atlog("checking "+names.length+" upload(s) in your library ...");
+  for(let k=0;k<names.length;k++){ const r=await atVerify(c,names[k],secs?secs[k]:null); if(!r.ok)bad.push(shown[k]+" :: "+r.why); }
+  return bad;
+}
 const TICKS_16=960;                                                           // audiotool counts 3840 ticks to a quarter note :: a sixteenth is 960
 function nxProjectTempo(t,doc){ const c=nxList(t,doc,"config")[0]; const v=c&&c.fields&&c.fields.tempoBpm&&c.fields.tempoBpm.value; return (typeof v==="number"&&v>0)?v:null; }
 function nxHasTempoChanges(t,doc){ return nxList(t,doc,"tempoAutomationTrack").length>0; }
@@ -8708,10 +8721,12 @@ async function runTimelineExport(mode,groups){
     let names; try{ names=await reviewSamples(items); }catch(e){ atlog("export cancelled :: nothing uploaded"); return; }
     const c=at.client||at, up=[];
     for(let k=0;k<items.length;k++){ atlog("uploading "+names[k]+" ("+(k+1)+"/"+items.length+")"); up.push(await atUpload(c,items[k].blob,names[k],set,"loop")); }
+    { const bad=await atVerifyAll(c,up,names,items.map(it=>it.seconds));
+      if(bad.length){ atlog("STOP :: "+bad.length+" upload(s) not in your library \u00b7 "+bad.join(" \u00b7 ")+" \u00b7 nothing placed in the timeline"); return; } }
     const label=rawSet;                                                         // the set as you typed it, spaces and all
     const tracks=items.map((it,k)=>({ name:(it.g?stemName(it.g)+" \u00b7 "+label:label+" LOOP"), sampleName:up[k], seconds:it.seconds }));
     await doc.modify((t)=>buildTimelineTx(t,doc,{ tracks, loopTicks:N*TICKS_16, bpm }));
-    atlog("DONE :: "+tracks.length+" track(s) in the timeline at "+bpm+" BPM, each on its own channel \u00b7 reload the desktop (F5)");
+    atlog("DONE :: "+tracks.length+" track(s) in the timeline at "+bpm+" BPM, each on its own channel, every sample checked in your library \u00b7 reload the desktop (F5)");
   }catch(e){ console.error(e); atlog("TIMELINE failed :: "+(e.message||e)); }
   finally{ state.bpm=keepBpm; state.fin.preset=keepFin; if(btn)btn.disabled=false; }
 }
@@ -8849,6 +8864,8 @@ async function runExport(){
     try{ finalNames=await reviewSamples(items); }
     catch(e){ atlog("export cancelled :: nothing uploaded"); ex.disabled=false; return; }
     for(let k=0;k<items.length;k++){ const dn=finalNames[k]; atlog("uploading "+dn+" ("+(k+1)+"/"+items.length+")"); names.push(await uploadBlob(items[k].blob,dn)); }
+    { const bad=await atVerifyAll(c,names,finalNames,null);
+      if(bad.length){ atlog("STOP :: "+bad.length+" upload(s) not in your library \u00b7 "+bad.join(" \u00b7 ")+" \u00b7 no machiniste built"); ex.disabled=false; return; } }
 
     atlog("building machiniste + "+usePats.length+" pattern(s) ...");
     const res=await doc.modify((t)=>buildMachinisteTx(t,doc,{ names, set, usePats, usedVoices, patternIndex:state.curPattern,
