@@ -1532,6 +1532,15 @@ body.copy-drag .pat,body.copy-drag .pg{cursor:copy}
 .rev-panel .xp-list div{padding-left:10px;text-indent:-10px}
 .rev-panel .xp-list div::before{content:"\00b7  "}
 .rev-panel .xp-tip{margin-top:10px;font-size:11px;color:var(--dim)}
+
+.stem-list{margin:6px 0 4px}
+.stem-row{display:flex;align-items:center;gap:4px;margin:3px 0}
+.stem-name{flex:1 1 auto;font-size:11px;letter-spacing:1px;color:var(--ink)}
+.stem-chip{min-width:22px;padding:2px 5px;background:transparent;border:1px solid rgba(255,255,255,.22);color:var(--dim);font:inherit;font-size:10px;cursor:pointer}
+.stem-chip.on{background:var(--amber);border-color:var(--amber);color:#111}
+.stem-chip.wide{padding:3px 9px;letter-spacing:1px}
+.stem-pre{display:flex;gap:6px;margin-top:8px}
+.rev-panel{max-height:92vh;overflow:auto}
 </style>
 </head>
 <body>
@@ -1651,7 +1660,7 @@ body.copy-drag .pat,body.copy-drag .pg{cursor:copy}
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 1018</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 1019</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -2402,6 +2411,7 @@ class BrachinisteEngine extends AudioWorkletProcessor {
         if(po.raw)this.raw=true;
         if(Array.isArray(po.renderAuto)&&po.loopSamp>0){ this.rAuto=po.renderAuto.map(a=>({voice:a.voice,key:a.key,vals:a.vals,last:-1})); this.rLoop=po.loopSamp; this.rK=po.autoRes||256; }   // recorded moves, applied while rendering
         if(typeof po.soloOut==="number")this.soloOut=po.soloOut;                  // a stem :: every voice plays, only this one is heard
+        if(Array.isArray(po.soloSet)&&po.soloSet.length){ this.soloMask=[]; po.soloSet.forEach(x=>{ this.soloMask[x|0]=true; }); }   // a stem of several voices
         if(Array.isArray(po.bus))for(let v=0;v<po.bus.length&&v<this.bus.length;v++)this.bus[v]=po.bus[v]|0;   // which output each voice takes, groups included
         for(const ev of po.renderNotes)this.queue.push({atFrame:ev.atFrame,voice:ev.voice,vel:ev.vel,locks:ev.locks,seed:ev.seed,slide:ev.slide||0,from:(ev.from!=null?ev.from:-1)});   // slide too, or the wav would not glide where the machine does
         this.queue.sort((a,b)=>a.atFrame-b.atFrame);
@@ -2460,7 +2470,7 @@ class BrachinisteEngine extends AudioWorkletProcessor {
           if(vo._gRise){ vo._gEnv+=vo._gAtk; if(vo._gEnv>=1){vo._gEnv=1;vo._gRise=0;} } else vo._gEnv*=vo._gCoef; }
           if(vo._chk>0){ s*=vo._chk; vo._chk*=vo._chkCoef; if(vo._chk<1e-4){ vo._chk=0; vo.active=false; } }   // choked :: fade out, then stop for good
           s=bipFilt(vo,s); if(ok===1){s=kit2Filt(vo,s);s=kit2FX(vo,s);} if(vo.olvl!==undefined){ vo._olvl=(vo._olvl===undefined?vo.olvl:vo._olvl+(vo.olvl-vo._olvl)*0.01); s*=vo._olvl; }
-        if(this.soloOut!=null&&this.soloOut>=0&&v!==this.soloOut)continue;   // a stem :: the voice still ran above, so glides and chokes stay right, it is just not heard
+        if((this.soloOut!=null&&this.soloOut>=0&&v!==this.soloOut)||(this.soloMask&&!this.soloMask[v]))continue;   // a stem :: the voice still ran above, so glides and chokes stay right, it is just not heard
         let pan=vo.pan||0;
         if(vo.smoothPan){ if(vo._panS===undefined)vo._panS=pan; vo._panS+=(pan-vo._panS)*0.002; pan=vo._panS; }   // live pan needs a glide, otherwise dragging zippers
         const pl=s*Math.cos((pan+1)*0.25*Math.PI), pr=s*Math.sin((pan+1)*0.25*Math.PI);
@@ -3020,7 +3030,7 @@ registerProcessor("pitch-fx", PitchFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="1018";
+const REV="1019";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -7740,6 +7750,7 @@ function kitSharePayload(){
         arr.push((rows.some(r=>/[12]/.test(r))||glk||gAuto||ggx)?{b:p.bars,l:p.length,s:rows,u:(p.sub||[]).map(r=>r.join(",")),k:glk,a:gAuto,ak:(gAuto&&p.autoKit)?p.autoKit:0,g:ggx}:0); }
       out.gpats[g.id]=arr; });
   }
+  { const sm=state.stemMap&&state.stemMap[state.kit]; if(sm&&Object.keys(sm).length)out.st=Object.assign({},sm); }   // which voices share a stem
   return out;
 }
 
@@ -7769,7 +7780,7 @@ function applySharedKit(d){
   if(!d||d.k==null){ setStatus("not a BRACHINSKI kit file"); return false; }
   if(d.k===3){ setStatus("SAMPLES kit cannot be loaded this way"); return false; }
   const _wasRestoring=restoring; restoring=true;   // one undo step for the whole import, not one per slot
-  try{ return _applySharedKit(d); } finally { restoring=_wasRestoring; commit(); }
+  try{ const ok=_applySharedKit(d); if(ok!==false&&d.st&&typeof d.st==="object")(state.stemMap=state.stemMap||{})[state.kit]=Object.assign({},d.st); return ok; } finally { restoring=_wasRestoring; commit(); }
 }
 function _applySharedKit(d){
   switchKit(d.k,true);
@@ -8335,7 +8346,7 @@ function renderSampleData(){                                                  //
   return out;
 }
 async function renderShot(v){
-  const sr=44100, dur=1.6;
+  const sr=44100, dur=6.0;                                                    // long kicks and open hats used to be cut at 1.6 s
   const ctx=new OfflineAudioContext(2, Math.ceil(sr*dur), sr);
   const code=document.getElementById("worklet-code").textContent;
   await ctx.audioWorklet.addModule("data:text/javascript;charset=utf-8,"+encodeURIComponent(code));
@@ -8347,7 +8358,11 @@ async function renderShot(v){
   const mono=new Float32Array(L.length);
   for(let i=0;i<L.length;i++) mono[i]=(L[i]+R[i])*0.7071;
   let last=0; for(let i=0;i<mono.length;i++) if(Math.abs(mono[i])>0.0008) last=i;
-  return encodeWav(mono.slice(0, Math.min(mono.length, last+Math.round(sr*0.03))), sr);
+  const out=mono.slice(0, Math.min(mono.length, last+Math.round(sr*0.03)));
+  const fl=Math.min(out.length, Math.round(sr*0.02)); for(let i=0;i<fl;i++)out[out.length-1-i]*=i/fl;   // fade the last 20 ms :: no click where the file ends
+  let pk=0; for(let i=0;i<out.length;i++){ const a=Math.abs(out[i]); if(a>pk)pk=a; }
+  if(pk>0.99){ const g=0.99/pk; for(let i=0;i<out.length;i++)out[i]*=g; }      // the mono sum can pass full scale :: bring it down rather than clip
+  return encodeWav(out, sr);
 }
 
 // ---- pattern helpers (machiniste-native: 128 steps, 16th grid) ----
@@ -8485,7 +8500,7 @@ async function renderLoopCore(opt){
   const rackGroups=withMaster&&state.kit===6&&typeof voidGroups==="function"&&voidGroups().length>0;
   const outs=rackGroups?{numberOfOutputs:8,outputChannelCount:[2,2,2,2,2,2,2,2]}:{outputChannelCount:[2]};
   const busMap=rackGroups?Array.from({length:VOICES},(_,v)=>busOf(v)):null;
-  const node=new AudioWorkletNode(ctx,"brachiniste-engine",Object.assign({},outs,{processorOptions:{kit:state.kit, renderNotes:notes, voiceParams:voiceParams, renderAuto:tl.voice, loopSamp:loopSamp, autoRes:AUTO_RES, soloOut:(opt.soloVoice!=null?opt.soloVoice:-1), bus:busMap, sumDist:sumDist, raw:!!opt.raw, voidMap:voidMap(), samples:renderSampleData()}}));
+  const node=new AudioWorkletNode(ctx,"brachiniste-engine",Object.assign({},outs,{processorOptions:{kit:state.kit, renderNotes:notes, voiceParams:voiceParams, renderAuto:tl.voice, loopSamp:loopSamp, autoRes:AUTO_RES, soloOut:(opt.soloVoice!=null?opt.soloVoice:-1), soloSet:(Array.isArray(opt.soloVoices)?opt.soloVoices:null), bus:busMap, sumDist:sumDist, raw:!!opt.raw, voidMap:voidMap(), samples:renderSampleData()}}));
   let masterOK=false;
   const offMap=new Map();
   if(withMaster){ _offGlitch=new Map();
@@ -8617,21 +8632,52 @@ function timelineVoices(){                                                    //
   for(let v=0;v<VOICES;v++){ if(state.mute[v])continue; const pv=(vpm&&vpm[v]===null)?null:((vpm&&vpm[v])||pat); if(pv&&pv.steps[v]&&pv.steps[v].some(s=>s>0))out.push(v); }
   return out;
 }
+const STEM_LETTERS=["A","B","C","D","E"];
+function stemMap(){ const m=(state.stemMap=state.stemMap||{}); return (m[state.kit]=m[state.kit]||{}); }   // voice to letter, per kit :: no letter means the voice gets its own track
+function stemGroups(vs){                                                      // the tracks a stems export makes :: voices sharing a letter share a track
+  const map=stemMap(), by={}, out=[];
+  vs.forEach(v=>{ const L=map[v]; if(L&&STEM_LETTERS.indexOf(L)>=0)(by[L]=by[L]||[]).push(v); else out.push({voices:[v],letter:null}); });
+  STEM_LETTERS.forEach(L=>{ if(by[L])out.push({voices:by[L],letter:L}); });
+  return out.sort((a,b)=>a.voices[0]-b.voices[0]);
+}
+function stemName(g){ const nm=v=>(state.voices[v]&&state.voices[v].name)||("VOICE "+(v+1));
+  if(g.voices.length===1)return nm(g.voices[0]); if(g.voices.length===2)return nm(g.voices[0])+" + "+nm(g.voices[1]); return "STEM "+(g.letter||"X"); }
+function stemSlug(g){ if(g.voices.length===1)return voiceSlug(g.voices[0]); if(g.voices.length===2)return voiceSlug(g.voices[0])+"+"+voiceSlug(g.voices[1]); return "stem-"+String(g.letter||"x").toLowerCase(); }
+function stemsByGroup(vs){ const map=stemMap(); for(const k in map)delete map[k];   // every rack group becomes one track, loose voices stay on their own
+  if(state.kit!==6||typeof voidGroups!=="function")return;
+  voidGroups().forEach((g,i)=>{ if(i>=STEM_LETTERS.length)return; vs.forEach(v=>{ const vo=state.voices[v]; if(vo&&vo.group===g.id)map[v]=STEM_LETTERS[i]; }); }); }
 function chooseTimelineMode(){
   return new Promise((resolve)=>{
+    const vs=timelineVoices();
     const ov=document.createElement("div"); ov.className="rev-ov";
     const p=document.createElement("div"); p.className="rev-panel";
-    p.innerHTML='<div class="rev-h">EXPORT &rarr; TIMELINE</div><div class="rev-note">'
-      +'<div class="xp-sec">LOOP</div><div class="xp-list"><div>one track, the whole beat as you hear it, finalizer and effects included</div></div>'
-      +'<div class="xp-sec">STEMS</div><div class="xp-list"><div>one track per voice, with its moves, rolls, glides and effects :: no finalizer, the stagebox mixes</div></div>'
-      +'<div class="xp-tip">rendered at the tempo of your audiotool project, so it sits on the grid</div></div>';
+    const h=document.createElement("div"); h.className="rev-h"; h.innerHTML="EXPORT &rarr; TIMELINE";
+    const note=document.createElement("div"); note.className="rev-note";
+    note.innerHTML='<div class="xp-sec">LOOP</div><div class="xp-list"><div>one track, the whole beat as you hear it, finalizer and effects included</div></div>'
+      +'<div class="xp-sec">STEMS</div><div class="xp-list"><div>voices with the same letter share a track, a voice without a letter gets its own :: no finalizer, the stagebox mixes</div></div>';
+    const list=document.createElement("div"); list.className="stem-list";
+    const draw=()=>{ list.innerHTML=""; const map=stemMap();
+      vs.forEach(v=>{ const row=document.createElement("div"); row.className="stem-row";
+        const lb=document.createElement("span"); lb.className="stem-name"; lb.textContent=(state.voices[v]&&state.voices[v].name)||("VOICE "+(v+1)); row.appendChild(lb);
+        STEM_LETTERS.forEach(L=>{ const b=document.createElement("button"); b.className="stem-chip"+(map[v]===L?" on":""); b.textContent=L;
+          b.title="put "+lb.textContent+" on stem "+L+" :: click again to give it its own track";
+          b.onclick=()=>{ if(map[v]===L)delete map[v]; else map[v]=L; draw(); }; row.appendChild(b); });
+        list.appendChild(row); });
+      const pre=document.createElement("div"); pre.className="stem-pre";
+      const mkP=(t,fn,title)=>{ const b=document.createElement("button"); b.className="stem-chip wide"; b.textContent=t; b.title=title; b.onclick=()=>{ fn(); draw(); }; pre.appendChild(b); };
+      mkP("EACH ALONE",()=>{ const m=stemMap(); for(const k in m)delete m[k]; },"every voice on its own track");
+      if(state.kit===6&&typeof voidGroups==="function"&&voidGroups().length)mkP("BY GROUP",()=>stemsByGroup(vs),"each group of the rack becomes one track");
+      list.appendChild(pre); };
+    draw();
+    const tip=document.createElement("div"); tip.className="xp-tip"; tip.textContent="rendered at the tempo of your audiotool project, so it sits on the grid";
+    note.appendChild(list); note.appendChild(tip);
     const foot=document.createElement("div"); foot.className="rev-foot";
-    const mk=(lbl,val,cls)=>{ const b=document.createElement("button"); b.className="rev-btn"+(cls?" "+cls:""); b.textContent=lbl; b.onclick=()=>{ ov.remove(); resolve(val); }; return b; };
-    foot.append(mk("CANCEL",null), mk("STEMS","stems","ok"), mk("LOOP","loop","ok"));
-    p.appendChild(foot); ov.appendChild(p); document.body.appendChild(ov);
+    const mk=(lbl,val,cls)=>{ const b=document.createElement("button"); b.className="rev-btn"+(cls?" "+cls:""); b.textContent=lbl; b.onclick=()=>{ ov.remove(); resolve(typeof val==="function"?val():val); }; return b; };
+    foot.append(mk("CANCEL",null), mk("STEMS",()=>({mode:"stems",groups:stemGroups(vs)}),"ok"), mk("LOOP",{mode:"loop"},"ok"));
+    p.append(h,note,foot); ov.appendChild(p); document.body.appendChild(ov);
   });
 }
-async function runTimelineExport(mode){
+async function runTimelineExport(mode,groups){
   const btn=document.getElementById("toTimeline");
   const rawSet=(document.getElementById("setname").value||"").trim();
   if(!rawSet){ atlog("STOP :: name the SET first \u00b7 audiotool uploads are permanent, they can't be deleted"); return; }
@@ -8651,17 +8697,19 @@ async function runTimelineExport(mode){
     try{
       if(mode==="loop"){ atlog("rendering the loop at "+bpm+" BPM ...");
         const c=await renderLoopCore({withMaster:true, sumDist:(state.sum&&state.sum.dist)||0});
-        items.push({v:-1, blob:encodeWavStereo(c.L,c.R,c.sr), seconds:c.loopSamp/c.sr, name:set+"_loop_"+Math.round(bpm)+"bpm"}); }
+        items.push({g:null, blob:encodeWavStereo(c.L,c.R,c.sr), seconds:c.loopSamp/c.sr, name:set+"_loop_"+Math.round(bpm)+"bpm"}); }
       else { state.fin.preset="off";                                            // stems skip the finalizer :: it reacts to the whole mix, not to one voice
-        for(let k=0;k<vs.length;k++){ const v=vs[k]; atlog("rendering stem "+(k+1)+"/"+vs.length+" at "+bpm+" BPM ...");
-          const c=await renderLoopCore({withMaster:true, soloVoice:v, sumDist:0});
-          items.push({v, blob:encodeWavStereo(c.L,c.R,c.sr), seconds:c.loopSamp/c.sr, name:set+"_"+voiceSlug(v)+"_stem_"+Math.round(bpm)+"bpm"}); } }
+        const gs=((groups&&groups.length)?groups:vs.map(v=>({voices:[v],letter:null})))
+          .map(g=>({voices:g.voices.filter(v=>vs.indexOf(v)>=0),letter:g.letter})).filter(g=>g.voices.length);   // only voices that still play
+        for(let k=0;k<gs.length;k++){ const g=gs[k]; atlog("rendering stem "+(k+1)+"/"+gs.length+" at "+bpm+" BPM ...");
+          const c=await renderLoopCore({withMaster:true, soloVoices:g.voices, sumDist:0});
+          items.push({g, blob:encodeWavStereo(c.L,c.R,c.sr), seconds:c.loopSamp/c.sr, name:set+"_"+stemSlug(g)+"_stem_"+Math.round(bpm)+"bpm"}); } }
     } finally{ state.bpm=keepBpm; state.fin.preset=keepFin; }
     let names; try{ names=await reviewSamples(items); }catch(e){ atlog("export cancelled :: nothing uploaded"); return; }
     const c=at.client||at, up=[];
     for(let k=0;k<items.length;k++){ atlog("uploading "+names[k]+" ("+(k+1)+"/"+items.length+")"); up.push(await atUpload(c,items[k].blob,names[k],set,"loop")); }
     const label=rawSet;                                                         // the set as you typed it, spaces and all
-    const tracks=items.map((it,k)=>({ name:(it.v<0?label+" LOOP":(((state.voices[it.v]&&state.voices[it.v].name)||("VOICE "+(it.v+1)))+" \u00b7 "+label)), sampleName:up[k], seconds:it.seconds }));
+    const tracks=items.map((it,k)=>({ name:(it.g?stemName(it.g)+" \u00b7 "+label:label+" LOOP"), sampleName:up[k], seconds:it.seconds }));
     await doc.modify((t)=>buildTimelineTx(t,doc,{ tracks, loopTicks:N*TICKS_16, bpm }));
     atlog("DONE :: "+tracks.length+" track(s) in the timeline at "+bpm+" BPM, each on its own channel \u00b7 reload the desktop (F5)");
   }catch(e){ console.error(e); atlog("TIMELINE failed :: "+(e.message||e)); }
@@ -9780,7 +9828,7 @@ document.getElementById("projurl").value=AT_PROJECT;
 document.getElementById("uplink").onclick=()=>atConnect(true);
 document.getElementById("export").onclick=()=>runExport();
 document.getElementById("looptest").onclick=()=>openExportPopup();
-{ const tb=document.getElementById("toTimeline"); if(tb)tb.onclick=async()=>{ const m=await chooseTimelineMode(); if(m)runTimelineExport(m); }; }
+{ const tb=document.getElementById("toTimeline"); if(tb)tb.onclick=async()=>{ const m=await chooseTimelineMode(); if(m)runTimelineExport(m.mode,m.groups); }; }
 atConnect(false);
 
 // ============================================================
