@@ -1651,7 +1651,7 @@ body.copy-drag .pat,body.copy-drag .pg{cursor:copy}
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 1017</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 1018</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -3020,7 +3020,7 @@ registerProcessor("pitch-fx", PitchFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="1017";
+const REV="1018";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -8562,8 +8562,8 @@ function machinisteSpot(t,doc,extra){                                           
 function buildMachinisteTx(t,doc,o){                                          // everything the export writes, in one transaction :: kept apart so it can be run against the real SDK
   const ses=o.names.map((n)=> t.create("sample",{ sampleName:n }));
   const spot=machinisteSpot(t,doc);                                          // never on top of the stagebox :: new devices all start at 0,0, the same place the stagebox sits
-  const mach=t.create("machiniste",{ displayName:o.set+"_brachinski", positionX:spot.x, positionY:spot.y, patternIndex:((o.patternIndex%32)+32)%32,
-    channels: Array.from({length:MACH_CH},(_,i)=> i<ses.length ? ({ sample:ses[i].location, gain:0.85, panning:0 }) : ({ gain:0, panning:0 })) });   // pad to the fixed channel count
+  const mach=t.create("machiniste",{ displayName:o.set+"_brachinski", positionX:spot.x, positionY:spot.y, patternIndex:((o.patternIndex%32)+32)%32, mainOutputGain:1,   // 0 dB :: the DAW default is -3
+    channels: Array.from({length:MACH_CH},(_,i)=> i<ses.length ? ({ sample:ses[i].location, gain:1, panning:0, envelopePeakRatio:0, envelopeSlope:-1 }) : ({ gain:0, panning:0 })) });   // the one-shot already has its shape :: -1 keeps the machiniste envelope out of its way
   o.usePats.forEach((pi)=>{
     const len=o.patternLen(pi);
     t.create("machinistePattern",{
@@ -8572,7 +8572,7 @@ function buildMachinisteTx(t,doc,o){                                          //
       channelPatterns: Array.from({length:MACH_CH},(_,i)=> i<o.usedVoices.length ? ({ steps: o.steps(pi,o.usedVoices[i],len) }) : ({ steps: o.empty() }))   // pad to the fixed channel count
     });
   });
-  const ch=t.create("mixerChannel",{ displayParameters:{ displayName:o.set } });   // a strip in the stagebox, named after the set
+  const ch=t.create("mixerChannel",{ displayParameters:{ displayName:o.set }, preGain:1 });   // a strip in the stagebox, named after the set, at 0 dB instead of the DAW's -8
   t.create("desktopAudioCable",{ fromSocket:mach.fields.mainOutput.location, toSocket:ch.fields.audioInput.location });   // and the machiniste plugged into it, so it sounds right away
   return { mach, spot, channel:o.set };
 }
@@ -8590,18 +8590,24 @@ const TICKS_16=960;                                                           //
 function nxProjectTempo(t,doc){ const c=nxList(t,doc,"config")[0]; const v=c&&c.fields&&c.fields.tempoBpm&&c.fields.tempoBpm.value; return (typeof v==="number"&&v>0)?v:null; }
 function nxHasTempoChanges(t,doc){ return nxList(t,doc,"tempoAutomationTrack").length>0; }
 function nxNextTrackOrder(t,doc){ let mx=-1; nxList(t,doc,null).forEach(en=>{ const f=en&&en.fields&&en.fields.orderAmongTracks; if(f&&typeof f.value==="number"&&f.value>mx)mx=f.value; }); return mx+1; }
+function nxGet(t,doc,loc){ const id=loc&&(loc.entityId||(loc.value&&loc.value.entityId)); if(!id)return null;   // the entity a location points at
+  try{ if(t&&t.entities&&t.entities.getEntity){ const e=t.entities.getEntity(id); if(e)return e; } }catch(e){}
+  try{ if(doc&&doc.queryEntities&&doc.queryEntities.getEntity)return doc.queryEntities.getEntity(id)||null; }catch(e){}
+  return null; }
 function buildTimelineTx(t,doc,o){                                            // every track the timeline export writes, in one transaction :: kept apart so it runs against the real SDK
-  let order=nxNextTrackOrder(t,doc); const placed=[];
+  if(typeof t.insertSample!=="function")throw new Error("this NEXUS bundle cannot place samples :: put the new nexus.bundle.js next to the page");
+  const placed=[];
   o.tracks.forEach(tr=>{
     const spot=machinisteSpot(t,doc,placed);                                   // a row of players under the stagebox, none on top of another
-    const smp=t.create("sample",{ sampleName:tr.sampleName });
-    const dev=t.create("audioDevice",{ displayName:tr.name, positionX:spot.x, positionY:spot.y });
-    const ch=t.create("mixerChannel",{ displayParameters:{ displayName:tr.name } });   // its own strip in the stagebox
-    t.create("desktopAudioCable",{ fromSocket:dev.fields.audioOutput.location, toSocket:ch.fields.audioInput.location });
-    const track=t.create("audioTrack",{ player:dev.location, orderAmongTracks:order++ });
-    const col=t.create("automationCollection",{});                             // empty :: the sample plays at its own speed, it was rendered at the project tempo
-    t.create("audioRegion",{ region:{ positionTicks:0, durationTicks:o.loopTicks, loopOffsetTicks:0, loopDurationTicks:o.loopTicks, displayName:tr.name },
-      track:track.location, playbackAutomationCollection:col.location, sample:smp.location, timestretchMode:1 });
+    const reg=t.insertSample({ name:tr.sampleName, durationSeconds:tr.seconds, bpm:o.bpm },   // the SDK's own way :: track, player, cable, channel and the playback curve that makes the region sound
+      { sample:{ bpm:o.bpm }, region:{ positionTicks:0, durationTicks:o.loopTicks }, loop:true });
+    const rf=reg.fields.region&&reg.fields.region.fields; if(rf&&rf.displayName)t.update(rf.displayName,tr.name);
+    const track=nxGet(t,doc,reg.fields.track.value), dev=track?nxGet(t,doc,track.fields.player.value):null;
+    if(dev){ t.update(dev.fields.displayName,tr.name); t.update(dev.fields.positionX,spot.x); t.update(dev.fields.positionY,spot.y); t.update(dev.fields.gain,1);   // 0 dB :: the render already has the level
+      const out=JSON.stringify(dev.fields.audioOutput.location);
+      const cab=nxList(t,doc,"desktopAudioCable").find(c=>JSON.stringify(c.fields.fromSocket.value)===out);
+      const ch=cab?nxGet(t,doc,cab.fields.toSocket.value):null;
+      if(ch){ const dp=ch.fields.displayParameters&&ch.fields.displayParameters.fields; if(dp&&dp.displayName)t.update(dp.displayName,tr.name); if(ch.fields.preGain)t.update(ch.fields.preGain,1); } }
     placed.push({x:spot.x,y:spot.y});
   });
   return { placed };
@@ -8645,17 +8651,18 @@ async function runTimelineExport(mode){
     try{
       if(mode==="loop"){ atlog("rendering the loop at "+bpm+" BPM ...");
         const c=await renderLoopCore({withMaster:true, sumDist:(state.sum&&state.sum.dist)||0});
-        items.push({v:-1, blob:encodeWavStereo(c.L,c.R,c.sr), name:set+"_loop_brachinski"}); }
+        items.push({v:-1, blob:encodeWavStereo(c.L,c.R,c.sr), seconds:c.loopSamp/c.sr, name:set+"_loop_"+Math.round(bpm)+"bpm"}); }
       else { state.fin.preset="off";                                            // stems skip the finalizer :: it reacts to the whole mix, not to one voice
         for(let k=0;k<vs.length;k++){ const v=vs[k]; atlog("rendering stem "+(k+1)+"/"+vs.length+" at "+bpm+" BPM ...");
           const c=await renderLoopCore({withMaster:true, soloVoice:v, sumDist:0});
-          items.push({v, blob:encodeWavStereo(c.L,c.R,c.sr), name:voiceSlug(v)+"_"+set+"_stem"}); } }
+          items.push({v, blob:encodeWavStereo(c.L,c.R,c.sr), seconds:c.loopSamp/c.sr, name:set+"_"+voiceSlug(v)+"_stem_"+Math.round(bpm)+"bpm"}); } }
     } finally{ state.bpm=keepBpm; state.fin.preset=keepFin; }
     let names; try{ names=await reviewSamples(items); }catch(e){ atlog("export cancelled :: nothing uploaded"); return; }
     const c=at.client||at, up=[];
     for(let k=0;k<items.length;k++){ atlog("uploading "+names[k]+" ("+(k+1)+"/"+items.length+")"); up.push(await atUpload(c,items[k].blob,names[k],set,"loop")); }
-    const tracks=items.map((it,k)=>({ name:(it.v<0?set:((state.voices[it.v]&&state.voices[it.v].name)||("VOICE "+(it.v+1)))), sampleName:up[k] }));
-    await doc.modify((t)=>buildTimelineTx(t,doc,{ tracks, loopTicks:N*TICKS_16 }));
+    const label=rawSet;                                                         // the set as you typed it, spaces and all
+    const tracks=items.map((it,k)=>({ name:(it.v<0?label+" LOOP":(((state.voices[it.v]&&state.voices[it.v].name)||("VOICE "+(it.v+1)))+" \u00b7 "+label)), sampleName:up[k], seconds:it.seconds }));
+    await doc.modify((t)=>buildTimelineTx(t,doc,{ tracks, loopTicks:N*TICKS_16, bpm }));
     atlog("DONE :: "+tracks.length+" track(s) in the timeline at "+bpm+" BPM, each on its own channel \u00b7 reload the desktop (F5)");
   }catch(e){ console.error(e); atlog("TIMELINE failed :: "+(e.message||e)); }
   finally{ state.bpm=keepBpm; state.fin.preset=keepFin; if(btn)btn.disabled=false; }
