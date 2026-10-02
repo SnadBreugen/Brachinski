@@ -322,7 +322,7 @@ html.mach .transport.deck .field label{color:#171205}
 .sel .n{color:var(--ink)}
 .sel.active{background:var(--amber);border-color:var(--amber);color:var(--bg);box-shadow:0 0 11px var(--amber-glow)}
 .sel.msel{border-color:var(--signal);box-shadow:inset 0 0 0 1px var(--signal)}   /* picked for grouping :: without a mark nobody can tell what CTRL+G will take */
-.sel.msel::after{content:"\u25a0";position:absolute;right:7px;top:50%;transform:translateY(-50%);font-size:8px;color:var(--signal);pointer-events:none}
+.sel.msel::after{content:"\25A0";position:absolute;right:7px;top:50%;transform:translateY(-50%);font-size:8px;color:var(--signal);pointer-events:none}
 .sel{flex:1;text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--dim);background:#0c0814;border:1px solid var(--line);border-radius:3px;padding:8px 9px;cursor:pointer;overflow:hidden;white-space:nowrap;box-shadow:inset 0 1px 2px rgba(0,0,0,.5);position:relative}
 .sel.active .n{color:var(--bg)}
 .mute{font-size:9px;color:var(--dim);background:#0c0814;border:1px solid var(--line);border-radius:3px;padding:8px;cursor:pointer;letter-spacing:1px}
@@ -1541,6 +1541,8 @@ body.copy-drag .pat,body.copy-drag .pg{cursor:copy}
 .stem-chip.wide{padding:3px 9px;letter-spacing:1px}
 .stem-pre{display:flex;gap:6px;margin-top:8px}
 .rev-panel{max-height:92vh;overflow:auto}
+
+.sel.msel::after{right:1px;top:1px;bottom:1px;transform:none;display:flex;align-items:center;padding:0 6px 0 6px;background:inherit;border-radius:0 2px 2px 0}   /* the mark sits on its own patch :: a long name ends under it instead of running through it */
 </style>
 </head>
 <body>
@@ -1660,7 +1662,7 @@ body.copy-drag .pat,body.copy-drag .pg{cursor:copy}
     <div class="hint">// renders the 9 voices with your current params, uploads them, builds a machiniste and writes your patterns. needs the live github-pages url.</div>
   </div>
 
-  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 1022</span></div>
+  <div class="foot"><span>// BRACHINSKI · SNAD INDUSTRIES</span><span class="rev" id="revfoot">REV 1026</span></div>
 </div>
 
 <script id="worklet-code" type="text/worklet">
@@ -3030,7 +3032,7 @@ registerProcessor("pitch-fx", PitchFX);
 // ============================================================
 // BRACHINISTE :: worklet engine shell  (per-sample, Kit 1)
 // ============================================================
-const REV="1022";
+const REV="1026";
 const STEPS_PER_BAR=16,MAX_STEPS=64,PATTERNS=8,VOICES=16;   // pattern rows :: kits may use fewer, VOID can grow up to 15 slots
 
 function d(key,min,max,def,log,label,rev,curve){return {key,min,max,def,log:!!log,label,rev:!!rev,curve:(curve||0)};}
@@ -3142,6 +3144,60 @@ async function restoreSamplesLocal(){ const db=await sdb(); if(!db)return;
     if(state.kit===KIT_SAMPLES){ buildSeq(); buildEditor(); } }catch(e){} }
 function sendSample(v,tgtKit,tgtVoice){ if(!engineNode||!userSamples[v])return; const u=userSamples[v]; const copy=new Float32Array(u.data); engineNode.port.postMessage({type:"sample",kit:(tgtKit!=null?tgtKit:3),voice:(tgtVoice!=null?tgtVoice:v),sr:u.sr,data:copy},[copy.buffer]); }
 const voidSamples={};   // VOID slots keep their own audio, independent of the SAMPLES kit
+function loopTempoFromName(name){                                             // "kick_loop_128bpm", "128 BPM", "bpm128" :: loop packs usually say it in the name
+  const s=String(name||""); const m=/(\d{2,3}(?:[.,]\d{1,2})?)\s*-?\s*bpm/i.exec(s)||/bpm\s*-?\s*(\d{2,3}(?:[.,]\d{1,2})?)/i.exec(s);
+  if(!m)return null; const v=parseFloat(m[1].replace(",",".")); return (v>=50&&v<=250)?v:null; }
+function loopTempoFromAcid(ab){                                               // the ACID chunk of a WAV :: loop libraries write the tempo there
+  try{ const dv=new DataView(ab); if(dv.byteLength<12||dv.getUint32(0,false)!==0x52494646||dv.getUint32(8,false)!==0x57415645)return null;
+    let p=12; while(p+8<=dv.byteLength){ const id=dv.getUint32(p,false), sz=dv.getUint32(p+4,true);
+      if(id===0x61636964&&sz>=24&&p+8+24<=dv.byteLength){ const t=dv.getFloat32(p+8+20,true); return (t>=50&&t<=250)?t:null; }
+      p+=8+sz+(sz&1); } }catch(e){}
+  return null; }
+function loopTempoFromAudio(audio){                                           // listen for the beat :: onset strength, autocorrelated over 55 to 220 BPM
+  try{ const sr=audio.sampleRate, n=audio.length, nc=audio.numberOfChannels, hop=Math.max(64,Math.round(sr*0.0058));
+    const c0=audio.getChannelData(0), c1=nc>1?audio.getChannelData(1):null, F=Math.floor(n/hop); if(F<96)return null;
+    const on=new Float32Array(F); let prev=0;
+    for(let f=0;f<F;f++){ let e=0; for(let i=f*hop,end=i+hop;i<end;i++){ const x=c1?(c0[i]+c1[i])*0.5:c0[i]; e+=x*x; } const le=Math.log(1e-9+e/hop); on[f]=f?Math.max(0,le-prev):0; prev=le; }
+    let mean=0; for(let f=0;f<F;f++)mean+=on[f]; mean/=F; for(let f=0;f<F;f++)on[f]-=mean;
+    let r0=0; for(let f=0;f<F;f++)r0+=on[f]*on[f]; if(r0<=0)return null;
+    const fps=sr/hop, lo=Math.max(2,Math.floor(fps*60/220)), hi=Math.min(F-2,Math.ceil(fps*60/55));
+    const R=new Float32Array(hi+2); let best=-1, bl=0;
+    for(let L=lo;L<=hi+1;L++){ let r=0; for(let f=0;f+L<F;f++)r+=on[f]*on[f+L]; R[L]=r/r0; }
+    for(let L=lo;L<=hi;L++){ const bpm=60*fps/L, w=Math.exp(-0.5*Math.pow(Math.log2(bpm/120),2)); if(R[L]*w>best){ best=R[L]*w; bl=L; } }
+    if(!bl)return null;
+    const y0=R[bl-1]||0, y1=R[bl], y2=R[bl+1]||0, den=y0-2*y1+y2, off=(den!==0)?Math.max(-0.5,Math.min(0.5,0.5*(y0-y2)/den)):0;   // the peak between two frames
+    return { bpm:60*fps/(bl+off), strength:best }; }catch(e){ return null; }
+}
+function analyseLoop(audio,o){                                                // the loop's tempo and bar count :: read it where it is written, hear it where it is not, the length only counts the bars
+  o=o||{}; const secs=audio.duration; if(!(secs>0.8))return null;
+  let hint=null, src="guess";
+  const fa=o.arrayBuffer?loopTempoFromAcid(o.arrayBuffer):null, fn=loopTempoFromName(o.name);
+  if(fa){ hint=fa; src="file"; } else if(fn){ hint=fn; src="name"; }
+  else { const a=loopTempoFromAudio(audio); if(a&&a.strength>0.12){ hint=a.bpm; src="beat"; } }
+  const pref=o.prefer||state.bpm||120; if(!hint){ hint=pref; src="guess"; }
+  const cands=[]; [0.5,1,2,4,8,16,32].forEach(bars=>{ const b=bars*240/secs; if(b>=50&&b<=250)cands.push({bars,bpm:b}); });
+  if(!cands.length)return null;
+  const lg=x=>Math.log2(x), oct=c=>Math.min(Math.abs(lg(c.bpm/hint)),Math.abs(lg(c.bpm/hint)-1),Math.abs(lg(c.bpm/hint)+1)), d=c=>{   // a heard beat can be the half or double one :: the current tempo breaks that tie
+    if(src==="beat")return (oct(c)<0.1?0:oct(c))+Math.abs(lg(c.bpm/pref));
+    return Math.abs(lg(c.bpm/hint)); };
+  const best=cands.reduce((a,c)=>d(c)<d(a)?c:a);
+  let bpm=best.bpm; const bars=best.bars;
+  if(src==="file"||src==="name")bpm=hint;                                     // written down :: exact
+  else {                                                                      // the ear sets the tempo, the length only counted bars :: take the round BPM that fits the file with at most an mp3 padding left over
+    let h=bpm;                                                                // the length's tempo, pushed a little low by padding
+    if(src==="beat"){ let v0=null, bd=1e9; [1,2,0.5,1.5,2/3,4/3,0.75].forEach(r=>{ const v=hint*r, dd=Math.abs(Math.log2(v/bpm)); if(dd<bd){ bd=dd; v0=v; } });
+      if(bd<0.06)h=v0; }                                                      // hats on every eighth make the ear hear one and a half beats :: fold that back, the ear is the finer measure
+    const search=(w)=>{ let pick=null, pd=1e9;
+      for(let B=Math.floor(h*(1-w)*2)/2;B<=h*(1+w);B+=0.5){ const mus=bars*240/B, left=secs-mus;
+        if(left<-0.002||left>0.08)continue; const dd=Math.abs(B-h)+(B%1?0.3:0); if(dd<pd){ pd=dd; pick=B; } }
+      return pick; };
+    bpm=search(0.015)||search(0.04)||bars*240/secs; }
+  const musical=bars*240/bpm;
+  if(musical>secs)bpm=bars*240/secs;                                          // the file is shorter than that :: let it play exactly its length, never drift
+  return { bpm, bars, end:Math.min(1,musical/secs), src };
+}
+function loopTempoNote(an){ if(!an)return ""; const where={file:"from the file",name:"from the name",beat:"by ear",guess:"guessed"}[an.src]||"";
+  return " \u00b7 "+(Math.round(an.bpm*10)/10)+" BPM "+where+" \u00b7 "+an.bars+(an.bars===1?" bar":" bars"); }
 function detectLoopBPM(seconds){   // a cut loop spans a whole number of bars :: try the usual ones and keep the musical answer
   let best=null;
   for(const bars of [1,2,4,8,16]){
@@ -3165,7 +3221,8 @@ async function loadSampleIntoVoid(file,voidSlot){
     const vo=state.kits[6][voidSlot]; if(vo)vo.name=nm;
     setTimeout(()=>{ if(engineNode){ const copy=new Float32Array(mono); engineNode.port.postMessage({type:"sample",kit:6,voice:voidSlot,sr:audio.sampleRate,data:copy},[copy.buffer]); } },0);
     const secs=n/audio.sampleRate;
-    const det=(secs>0.8)?detectLoopBPM(secs):null;                       // only worth guessing on loop-length material
+    const an=(secs>0.8)?analyseLoop({duration:secs,sampleRate:audio.sampleRate,length:n,numberOfChannels:1,getChannelData:()=>mono},{name:nm}):null;
+    const det=(an&&(an.src==="name"||an.src==="file"))?an:null;              // a sample is only fitted to the tempo when its tempo is known for sure :: a long crash is not a loop
     if(det&&vo){
       const semis=12*Math.log2(state.bpm/det.bpm);                        // stretch it onto the project tempo via playback rate
       if(isFinite(semis)&&Math.abs(semis)<=12){ vo.vals.pitch=semis; sendParam(voidSlot,"pitch",semis); }
@@ -3900,6 +3957,7 @@ async function startSeq(){
 }
 function stopSeq(){
   state.playing=false;clearTimeout(timer);timer=null;playQ.length=0;
+  if(typeof autoReleaseAll==="function")autoReleaseAll();                     // recorded moves only act while it plays :: at rest every knob is where you set it, and that is what gets saved
   if(state.liveRep){ state.liveRep.s=null; state.liveRep.want=0; if(state.liveRep.on){ state.liveRep.on=false; if(typeof lvRepDuck==="function")lvRepDuck(false); if(typeof liveFx==="function"){const sl=liveFx().slots.repeat; if(sl){sl.amt=0;sl.on=false;}} if(typeof paintLiveFxBar==="function")paintLiveFxBar(); } }   // stop while repeat is held :: release it, or the loops stay muted
   if(typeof loopState!=="undefined"){   // loop tracks follow the transport, exactly like the patterns do
     loopState.tracks.forEach((tr,ti)=>{ tr.armed=(tr.cur>=0?tr.cur:null); tr.pending=null; loopStop(ti); });
@@ -4364,7 +4422,9 @@ function openLive(){ const el=document.getElementById("liveScreen"); if(!el)retu
   { const sv=document.getElementById("lvSaveSet"); if(sv)sv.onclick=()=>{ if(typeof saveLiveSet==="function")saveLiveSet(); }; }
   { const ld=document.getElementById("lvLoadSet"); if(ld)ld.onclick=()=>{ if(typeof openSetPicker==="function")openSetPicker(); }; }
   buildLiveScreen(); }
-function closeLive(){ state.liveOpen=false; document.documentElement.classList.remove("live-on"); if(typeof buildLoopStrip==="function")buildLoopStrip();
+function closeLive(){ state.liveOpen=false; document.documentElement.classList.remove("live-on");
+  if(typeof LVFX_SLOTS!=="undefined"&&typeof liveFxSet==="function"){ const L=liveFx();   // the macros are LIVE only :: leaving it puts them at rest, the studio has no knob to see or undo them
+    LVFX_SLOTS.forEach(sl=>{ const st=L.slots[sl.id], rest=(sl.detent!=null?sl.detent:0); if(st&&(st.on||Math.abs(st.amt-rest)>1e-6))liveFxSet(sl.id,rest); }); } if(typeof buildLoopStrip==="function")buildLoopStrip();
   const bx=document.getElementById("bgfx"); if(bx)document.body.insertBefore(bx,document.body.firstChild);
   const cb=document.getElementById("ctrlbar"); if(cb){ const lc=document.getElementById("leftCase"); (lc||document.body).appendChild(cb); }   // back into the VIEW case when there is one, otherwise to the studio
   const el=document.getElementById("liveScreen"); if(el)el.hidden=true; }
@@ -4545,16 +4605,17 @@ async function loopLoadFile(file,ti,si){
   if(ac.state==="suspended"){ try{ await ac.resume(); }catch(e){} }
   try{
     const ab=await file.arrayBuffer();
+    const raw=ab.slice(0);                                   // decoding takes the buffer away :: keep a copy to read the tempo the file carries
     const audio=await ac.decodeAudioData(ab);
     const secs=audio.duration;
-    const det=(secs>0.8&&typeof detectLoopBPM==="function")?detectLoopBPM(secs):null;
-    const rate=det?(state.bpm/det.bpm):1;                  // play it at the project tempo
+    const an=analyseLoop(audio,{name:file.name,arrayBuffer:raw});
+    const rate=an?(state.bpm/an.bpm):1;                    // play it at the project tempo
     const nm=(file.name||"LOOP").replace(/\.[^.]+$/,"").toUpperCase().slice(0,14)||"LOOP";
     const tr=loopTrack(ti);
-    tr.slots[si]={buf:audio,name:nm,bpm:det?Math.round(det.bpm):null,rate:rate,secs:secs,baseBpm:state.bpm};
+    tr.slots[si]={buf:audio,name:nm,bpm:an?an.bpm:null,bars:an?an.bars:null,tempoSrc:an?an.src:null,end:an?an.end:1,rate:rate,secs:secs,baseBpm:state.bpm};   // the exact tempo, not a rounded one :: rounding made loops drift
     if(loopArrived(ti,si))return;                                              // it was the first thing, the machine follows it and says so
     buildLiveScreen(); if(typeof commit==="function")commit();
-    setStatus("LOOP "+(ti+1)+"."+(si+1)+" \u00b7 "+nm+(det?(" \u00b7 "+Math.round(det.bpm)+" BPM \u2192 "+state.bpm):(" \u00b7 "+secs.toFixed(1)+"s")));
+    setStatus("LOOP "+(ti+1)+"."+(si+1)+" \u00b7 "+nm+(an?loopTempoNote(an):(" \u00b7 "+secs.toFixed(1)+"s")));
   }catch(e){ setStatus("DECODE failed :: "+(e&&e.message||"unsupported file")); }
 }
 // ---- pull loops out of the audiotool timeline ----
@@ -4585,6 +4646,7 @@ async function atListRegions(){
       dur:(reg.durationTicks&&reg.durationTicks.value)||0,
       gain:(f.gain&&f.gain.value)!=null?f.gain.value:1,
       semis:(f.pitchShiftSemitones&&f.pitchShiftSemitones.value)||0,
+      tempo:(typeof nxProjectTempo==="function"?nxProjectTempo(null,h.doc):null),   // the project's own tempo :: the best hint there is for a loop that lives in it
       label:(nm.split("/").pop()||"REGION").slice(0,14).toUpperCase() });
   });
   return {h:h,regions:out};
@@ -4603,14 +4665,14 @@ async function atLoadRegion(client,rg,ti,si){
   try{
     const audio=await ac.decodeAudioData(await blob.arrayBuffer());
     const secs=audio.duration;
-    const det=(secs>0.8&&typeof detectLoopBPM==="function")?detectLoopBPM(secs):null;
+    const det=analyseLoop(audio,{name:rg.name,prefer:rg.tempo||state.bpm});
     const tr=loopTrack(ti);
-    tr.slots[si]={buf:audio,name:rg.label,bpm:det?Math.round(det.bpm):null,
+    tr.slots[si]={buf:audio,name:rg.label,bpm:det?det.bpm:null,bars:det?det.bars:null,tempoSrc:det?det.src:null,end:det?det.end:1,
       rate:det?(state.bpm/det.bpm):1,secs:secs,baseBpm:state.bpm};
     if(rg.semis&&typeof applyLoopPitch==="function"){ tr.slots[si].pitch=rg.semis; applyLoopPitch(ti,si,rg.semis); }
     if(loopArrived(ti,si))return;                                              // it was the first thing, the machine follows it and says so
     buildLiveScreen(); if(typeof commit==="function")commit();
-    setStatus("TIMELINE // "+rg.label+" \u2192 LOOP "+(ti+1)+"."+(si+1)+(det?(" \u00b7 "+Math.round(det.bpm)+" BPM, USE ITS TEMPO to follow it"):(" \u00b7 "+secs.toFixed(1)+"s")));
+    setStatus("TIMELINE // "+rg.label+" \u2192 LOOP "+(ti+1)+"."+(si+1)+(det?(loopTempoNote(det)+", USE ITS TEMPO to follow it"):(" \u00b7 "+secs.toFixed(1)+"s")));
   }catch(e){ setStatus("TIMELINE // decode failed :: "+(e&&e.message||"")); }
 }
 async function openTimelinePicker(ti,si){
@@ -5261,7 +5323,14 @@ function buildLiveSide(){ const side=document.getElementById("lvSide"); if(!side
         tb2.textContent="\u21b3 USE ITS TEMPO \u00b7 "+Math.round(sl.bpm)+" BPM";
         tb2.dataset.desc="TEMPO : sets the whole machine to "+Math.round(sl.bpm)+" BPM, so this loop plays exactly as it was recorded and the beat follows it";
         tb2.onclick=(e)=>{ e.stopPropagation(); adoptLoopTempo(lti,si); };
-        list.appendChild(tb2); } });
+        list.appendChild(tb2); }
+      if(sl.bpm){ [["\u00bd",0.5],["\u00d72",2]].forEach(([t,f])=>{                 // the tempo was heard wrong :: one click halves or doubles it
+        const hb=document.createElement("button"); hb.className="lv-fxbtn lv-tempo"; hb.textContent=t+" "+Math.round(sl.bpm*f)+" BPM";
+        hb.dataset.desc="TEMPO : this loop is really at "+Math.round(sl.bpm*f)+" BPM, not "+Math.round(sl.bpm)+" :: it then plays "+(f<1?"half":"twice")+" as fast";
+        hb.onclick=(e)=>{ e.stopPropagation(); sl.bpm*=f; if(sl.bars)sl.bars*=f; sl.tempoSrc="hand";
+          const trk=loopTrack(lti); if(trk&&trk.cur===si&&trk.src)trk.src.playbackRate.value=loopRate(sl);
+          setStatus("LOOP "+(lti+1)+"."+(si+1)+" \u00b7 "+(Math.round(sl.bpm*10)/10)+" BPM"); buildLiveScreen(); };
+        list.appendChild(hb); }); } });
     const ab=document.createElement("button"); ab.className="lv-fxbtn add"; ab.textContent="+ LOAD LOOP"; if(window.TIP&&TIP.LOADLOOP)ab.dataset.desc=TIP.LOADLOOP;
     ab.onclick=()=>{ const free=ltr.slots.findIndex(x=>!x); loopPickFile(lti,free<0?0:free); };
     list.appendChild(ab);
@@ -7385,17 +7454,14 @@ function clearPattern(){if(state.kit===6){for(let v=0;v<VOICES;v++){const p=patO
 const p=curPat();for(let v=0;v<VOICES;v++){p.steps[v].fill(0);if(p.sub)p.sub[v].fill(1);if(p.locks&&p.locks[v])p.locks[v]={};}setPage(state.page);refreshStrip();setStatus("PTN "+(state.curPattern+1)+" // CLEARED");commit();}
 // ---- ctrl and drag :: copy a pattern onto another, or one bar onto another ----
 var _dragCopy=null;                                                          // {kind:"pat"|"pg", from:index}
-function patHasContent(idx){ const p=state.patterns[bankBase()+idx];
-  return !!(p&&p.steps&&p.steps.some(r=>r&&r.some(x=>x>0))); }
-function pageHasContent(pg){ const p=curPat(), a=pg*STEPS_PER_BAR;
-  if(!p||!p.steps)return false;
-  for(let v=0;v<VOICES;v++){ const r=p.steps[v]; if(!r)continue;
-    for(let k=0;k<STEPS_PER_BAR;k++)if(r[a+k])return true; }
-  return false; }
-function copyPatternInto(from,to){                                           // steps, subdivisions and per step values :: automation stays where it is
-  if(from===to)return false;
-  const base=bankBase(), src=state.patterns[base+from], dst=state.patterns[base+to];
-  if(!src||!dst)return false;
+function patHasContent(idx){ return copyBanks().some(b=>{ const p=state.patterns[b+idx]; return !!(p&&p.steps&&p.steps.some(r=>r&&r.some(x=>x>0))); }); }   // any bank counts
+function pageHasContent(pg){ const a=pg*STEPS_PER_BAR;                       // any row in any pattern on screen counts
+  return pagePats().some(p=>p&&p.steps&&p.steps.some(r=>{ if(!r)return false; for(let k=0;k<STEPS_PER_BAR;k++)if(r[a+k])return true; return false; })); }
+function copyBanks(){                                                         // every bank a copy has to reach :: the rack keeps one per group next to the loose one
+  if(state.kit===6&&typeof voidGroups==="function")return [0].concat(voidGroups().map(g=>groupBank(g.id)));
+  return [bankBase()];
+}
+function copyPatObj(src,dst){                                                 // one whole pattern onto another :: steps, rolls, values, moves, glitch marks
   dst.bars=src.bars; dst.length=src.length;
   for(let v=0;v<VOICES;v++){
     if(src.steps&&src.steps[v])dst.steps[v]=src.steps[v].slice();
@@ -7407,17 +7473,35 @@ function copyPatternInto(from,to){                                           // 
   dst.autoKit=Object.assign({},src.autoKit||{});                             // and they keep the set they belong to
   if(src.setBase)dst.setBase=JSON.parse(JSON.stringify(src.setBase)); else delete dst.setBase;
   dst.gfx=src.gfx?JSON.parse(JSON.stringify(src.gfx)):{};                    // glitch marks belong to the pattern as well
-  return true; }
-function copyPageInto(from,to){                                              // one bar onto another, inside the pattern you are on
+}
+function copyPatternInto(from,to){                                           // the whole pattern, in every bank :: in the rack that is the loose pattern and each group's
+  if(from===to)return false; let done=false;
+  copyBanks().forEach(b=>{ const src=state.patterns[b+from], dst=state.patterns[b+to]; if(src&&dst){ copyPatObj(src,dst); done=true; } });
+  return done; }
+function pagePats(){                                                          // the patterns you are looking at :: in the rack every row shows the pattern of its group
+  const out=[]; const add=p=>{ if(p&&out.indexOf(p)<0)out.push(p); };
+  if(state.kit===6){ for(let v=0;v<VOICES;v++)add(patOfVoice(v)); add(state.patterns[loosePat()]); }
+  else add(curPat());
+  return out;
+}
+function copyPageInto(from,to){                                              // one bar onto another :: every row, and everything that belongs to the bar
   if(from===to)return false;
-  const p=curPat(); if(!p)return false;
-  const a=from*STEPS_PER_BAR, b=to*STEPS_PER_BAR;
-  for(let v=0;v<VOICES;v++){
-    if(p.steps&&p.steps[v])for(let k=0;k<STEPS_PER_BAR;k++)p.steps[v][b+k]=p.steps[v][a+k];
-    if(p.sub&&p.sub[v])for(let k=0;k<STEPS_PER_BAR;k++)p.sub[v][b+k]=p.sub[v][a+k];
-    if(p.locks&&p.locks[v])for(const pk in p.locks[v]){ const L=p.locks[v][pk];
-      for(let k=0;k<STEPS_PER_BAR;k++)L[b+k]=L[a+k]; }
-  }
+  const a=from*STEPS_PER_BAR, b=to*STEPS_PER_BAR, pats=pagePats(); if(!pats.length)return false;
+  pats.forEach(p=>{
+    for(let v=0;v<VOICES;v++){
+      if(p.steps&&p.steps[v])for(let k=0;k<STEPS_PER_BAR;k++)p.steps[v][b+k]=p.steps[v][a+k];
+      if(p.sub&&p.sub[v])for(let k=0;k<STEPS_PER_BAR;k++)p.sub[v][b+k]=p.sub[v][a+k];
+      if(p.locks&&p.locks[v])for(const pk in p.locks[v]){ const L=p.locks[v][pk];
+        for(let k=0;k<STEPS_PER_BAR;k++){ if(L[a+k]!==undefined)L[b+k]=L[a+k]; else delete L[b+k]; } }
+    }
+    if(p.gfx)for(const id in p.gfx){ const bl=p.gfx[id]; if(!Array.isArray(bl))continue;   // glitch marks :: the target bar takes the source bar's marks
+      const keep=bl.filter(x=>x.start<b||x.start>=b+STEPS_PER_BAR), add=bl.filter(x=>x.start>=a&&x.start<a+STEPS_PER_BAR).map(x=>Object.assign({},x,{start:x.start-a+b}));
+      p.gfx[id]=keep.concat(add); }
+    const bars=Math.max(1,p.bars||1);
+    if(p.auto&&from<bars&&to<bars)for(const k in p.auto){ const c=p.auto[k]; if(!Array.isArray(c))continue;   // recorded moves :: the stretch of the lane under the source bar
+      const n=c.length, s0=Math.round(from/bars*n), s1=Math.round((from+1)/bars*n), d0=Math.round(to/bars*n), d1=Math.round((to+1)/bars*n);
+      for(let j=d0;j<d1;j++){ const q=s0+Math.min(s1-s0-1,Math.floor((j-d0)*(s1-s0)/Math.max(1,d1-d0))); c[j]=c[q]; } }
+  });
   return true; }
 function dragCopyArm(el,kind,idx){                                           // ctrl held :: start a copy instead of switching
   el.addEventListener("pointerdown",(e)=>{ if(!e.ctrlKey&&!e.metaKey)return;
@@ -7702,7 +7786,7 @@ function applyLook(look){                                                      /
   if(!look)return;
   if(look.skin&&typeof skinState!=="undefined"){ skinState=look.skin; if(typeof skinApply==="function")skinApply(); }
   if(typeof BG!=="undefined"){ if(look.bg)BG.mode=look.bg; if(look.col)BG.fxColor=look.col;
-    if(typeof paintColBtn==="function")paintColBtn(); if(typeof paintBgBtn==="function")paintBgBtn(); }
+    if(typeof paintColBtn==="function")paintColBtn(); }
 }
 function closeBtn(ov){ const b=document.createElement("button"); b.className="mfx-b"; b.textContent="\u2715 CLOSE"; b.onclick=()=>ov.remove(); return b; }
 function kitSharePayload(){
@@ -10143,6 +10227,24 @@ setHoverDesc(null);
 buildEditor();           // rebuild so knobs pick up titles now that TIP_* exist
 tipsRefresh();
 deviceBoot();
+</script>
+<!-- HOME GUARD :: a red bar when this file runs in a repo that is not its own :: per app, change only APP_NAME and APP_HOME -->
+<script>
+(function(){
+  const APP_NAME="BRACHINSKI", APP_HOME="/Brachinski/";                        // the only line that differs from app to app
+  function homeMismatch(loc){                                                   // null when all is well, otherwise the path it is running at
+    if(!/\.github\.io$/i.test(loc.hostname||""))return null;                    // only on github pages :: local files and test servers stay quiet
+    const p=(loc.pathname||"/").toLowerCase(), h=APP_HOME.toLowerCase();
+    return (p===h.replace(/\/$/,"")||p.indexOf(h)===0)?null:(loc.pathname||"/");
+  }
+  window.homeGuardCheck=homeMismatch;                                           // for tests
+  const bad=homeMismatch(location); if(!bad)return;
+  const show=()=>{ const b=document.createElement("div"); b.id="homeGuard";
+    b.style.cssText="position:fixed;left:0;right:0;top:0;z-index:2147483647;background:#c0101a;color:#fff;font:600 13px/1.4 ui-monospace,Menlo,Consolas,monospace;letter-spacing:1px;padding:10px 14px;box-shadow:0 2px 0 #000";
+    b.textContent="WRONG REPO :: this is "+APP_NAME+", but it is running at "+bad+" :: it belongs in "+APP_HOME;
+    document.body.appendChild(b); document.title="WRONG REPO :: "+APP_NAME; };
+  if(document.body)show(); else document.addEventListener("DOMContentLoaded",show);
+})();
 </script>
 </body>
 </html>
